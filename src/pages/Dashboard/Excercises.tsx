@@ -1,6 +1,8 @@
 function Excercises() {
     return (
-        <div>Excercises</div>
+        <>
+            <h1 className="text-4xl font-black animate-in fade-in slide-in-from-left-3 duration-600">Excercises</h1>
+        </>
     )
 }
 
