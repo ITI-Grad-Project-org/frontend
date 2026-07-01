@@ -1,7 +1,10 @@
-import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils } from "lucide-react";
+import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, Moon, SunMedium } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
+import { useTheme } from "../../theme";
 
 function DashboardLayout() {
+    const { isDark, toggleTheme } = useTheme();
+
     const items = [
         { to: "overview", title: "Overview", icon: LayoutDashboard },
         { to: "clients", title: "Clients", icon: UsersRound },
@@ -27,7 +30,7 @@ function DashboardLayout() {
                                 key={item.to}
                                 to={item.to}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-3 px-4 py-3 rounded-xl text-sm whitespace-nowrap transition-all duration-200
+                                    `flex items-center gap-3 px-4 py-3 rounded-xl text-sm whitespace-nowrap transition-all duration-200 hover:shadow-card
                                     ${isActive ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`
                                 }
                             >
@@ -37,6 +40,15 @@ function DashboardLayout() {
                         );
                     })}
                 </nav>
+
+                <button
+                    type="button"
+                    onClick={toggleTheme}
+                    className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-border bg-muted text-foreground hover:bg-muted-foreground hover:text-background transition-colors duration-200 cursor-pointer"
+                >
+                    {isDark ? <SunMedium className="w-5 h-5" strokeWidth={2} /> : <Moon className="w-5 h-5" strokeWidth={2} />}
+                    <span>{isDark ? "Light mode" : "Dark mode"}</span>
+                </button>
             </aside>
 
             <main className="flex-1 overflow-y-auto pt-10 md:pt-14 px-6 md:px-16 pb-8">

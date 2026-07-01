@@ -9,25 +9,28 @@ import Nutrition from "./pages/Dashboard/Nutrition";
 import Excercises from "./pages/Dashboard/Excercises";
 import Meals from "./pages/Dashboard/Meals";
 import Analytics from "./pages/Dashboard/Analytics";
+import { ThemeProvider } from "./theme";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route index element={<Homepage />} />
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="overview" replace />} />
-          <Route path="overview" element={<Overview />} />
-          <Route path="clients" element={<Clients />} />
-          <Route path="plans" element={<Plans />} />
-          <Route path="nutrition" element={<Nutrition />} />
-          <Route path="exercises" element={<Excercises />} />
-          <Route path="meals" element={<Meals />} />
-          <Route path="analytics" element={<Analytics />} />
-        </Route>
-        <Route path="*" element={<DefaultPage />} />
-      </Routes>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<Homepage />} />
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<Navigate to="overview" replace />} />
+            <Route path="overview" element={<Overview />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="plans" element={<Plans />} />
+            <Route path="nutrition" element={<Nutrition />} />
+            <Route path="exercises" element={<Excercises />} />
+            <Route path="meals" element={<Meals />} />
+            <Route path="analytics" element={<Analytics />} />
+          </Route>
+          <Route path="*" element={<DefaultPage />} />
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

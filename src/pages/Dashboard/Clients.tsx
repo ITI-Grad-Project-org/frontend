@@ -1,7 +1,7 @@
 function Clients() {
     return (
         <>
-            <h1 className="mb-12 text-4xl font-black animate-in fade-in slide-in-from-left-3 duration-600">Clients</h1>
+            <h1 className="mb-12 font-display text-4xl font-black animate-in fade-in slide-in-from-left-3 duration-600">Clients</h1>
 
             <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-5 duration-800">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
