@@ -18,12 +18,12 @@ function DashboardLayout() {
     return (
         <div className="flex flex-col md:flex-row h-screen bg-background text-foreground animate-in fade-in duration-500 overflow-hidden">
 
-            <aside className="bg-primary-foreground flex flex-col md:w-64 p-6 shrink-0 border-b md:border-b-0 md:border-r border-border">
-                <NavLink to={"/"} className="font-display font-black text-4xl tracking-tight mb-6 md:mb-12 text-primary">
+            <aside className="bg-primary-foreground flex flex-col gap-2.5 md:w-64 p-6 shrink-0 border-b md:border-b-0 md:border-r border-border">
+                <NavLink to={"/"} className="order-1 font-display font-black text-4xl tracking-tight md:mb-12 text-primary">
                     UPLY
                 </NavLink>
 
-                <nav className="flex md:flex-col gap-2 font-medium overflow-x-auto no-scrollbar md:overflow-visible pb-2 md:pb-0">
+                <nav className="order-3 md:order-2 flex md:flex-col gap-2 font-medium overflow-x-auto no-scrollbar md:overflow-visible pb-2 md:pb-0">
                     {items.map((item) => {
                         return (
                             <NavLink
@@ -44,10 +44,10 @@ function DashboardLayout() {
                 <button
                     type="button"
                     onClick={toggleTheme}
-                    className="mt-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-border bg-muted text-foreground hover:bg-muted-foreground hover:text-background transition-colors duration-200 cursor-pointer"
+                    className="order-2 self-end md:order-3 w-fit md:w-full mt-auto inline-flex items-center justify-center gap-2 px-2 md:px-4 py-1 md:py-3 rounded-2xl border border-border bg-muted text-foreground hover:bg-muted-foreground hover:text-background transition-colors duration-200 cursor-pointer"
                 >
                     {isDark ? <SunMedium className="w-5 h-5" strokeWidth={2} /> : <Moon className="w-5 h-5" strokeWidth={2} />}
-                    <span>{isDark ? "Light mode" : "Dark mode"}</span>
+                    <span className="hidden md:block">{isDark ? "Light mode" : "Dark mode"}</span>
                 </button>
             </aside>
 
