@@ -1,7 +1,7 @@
 import { Heart } from "lucide-react"
-import CardMain from "../../components/CardMain"
-import CardBrand from "../../components/CardBrand"
-import CardInk from "../../components/CardInk"
+import CardMain from "../../components/Cards/CardMain"
+import CardBrand from "../../components/Cards/CardBrand"
+import CardInk from "../../components/Cards/CardInk"
 import { Chip } from "../../components/Chip"
 
 function Clients() {

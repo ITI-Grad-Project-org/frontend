@@ -1,5 +1,3 @@
-"use client"
-
 import { TrendingUp } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 
@@ -16,7 +14,7 @@ import {
     ChartTooltipContent,
     type ChartConfig,
 } from "@/components/ui/chart"
-import CardMain from "@/components/CardMain"
+import CardMain from "@/components/Cards/CardMain"
 
 export const description = "A bar chart"
 
@@ -40,23 +38,24 @@ export function ChartBarDefault() {
     return (
         <CardMain>
             <CardHeader>
-                <CardTitle>Bar Chart</CardTitle>
+                <CardTitle >Bar Chart</CardTitle>
                 <CardDescription>January - June 2024</CardDescription>
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig}>
                     <BarChart accessibilityLayer data={chartData}>
-                        <CartesianGrid vertical={false} />
+                        <CartesianGrid vertical={false} stroke="var(--color-border)" />
                         <XAxis
                             dataKey="month"
                             tickLine={false}
                             tickMargin={10}
                             axisLine={false}
+                            tick={{ fill: "var(--color-muted-foreground)" }}
                             tickFormatter={(value) => value.slice(0, 3)}
                         />
                         <ChartTooltip
                             cursor={false}
-                            content={<ChartTooltipContent hideLabel />}
+                            content={<ChartTooltipContent />}
                         />
                         <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8} />
                     </BarChart>

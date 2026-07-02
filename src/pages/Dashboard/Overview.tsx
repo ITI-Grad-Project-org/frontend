@@ -1,4 +1,6 @@
 import { ChartBarDefault } from "@/components/charts/clients/example"
+import { ChartAreaInteractive } from "@/components/charts/clients/example2"
+import { ChartAreaInteractive2 } from "@/components/charts/clients/example2 copy"
 
 function Overview() {
     return (
@@ -9,6 +11,10 @@ function Overview() {
             <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-5 duration-800">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <ChartBarDefault />
+                    <div className="col-span-2">
+                        <ChartAreaInteractive />
+                    </div>
+                    <ChartAreaInteractive2 />
                 </div>
 
             </div>

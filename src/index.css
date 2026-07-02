@@ -104,6 +104,14 @@
     --chip-mint: oklch(0.92 0.07 155);
     --chip-pink: oklch(0.93 0.06 10);
     --chip-yellow: oklch(0.94 0.09 95);
+
+    /* Reusable chart palette for future charts */
+    --chart-1: var(--color-brand);
+    --chart-2: var(--color-success);
+    --chart-3: var(--color-info);
+    --chart-4: var(--color-violet);
+    --chart-5: var(--color-warn);
+    --chart-6: var(--color-danger);
 }
 
 .dark {
