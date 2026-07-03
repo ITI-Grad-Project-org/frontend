@@ -32,7 +32,7 @@ function Clients() {
         <>
             <h1 className="mb-12 font-display text-4xl font-black animate-in fade-in slide-in-from-left-3 duration-600">Clients</h1>
 
-            <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-5 duration-800">
+            <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-3 duration-800">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
                     {dummyClients.map((client, index) => (
                         <ClientCard

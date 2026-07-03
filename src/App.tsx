@@ -6,7 +6,7 @@ import DefaultPage from "./pages/DefaultPage";
 import Overview from "./pages/Dashboard/Overview";
 import Plans from "./pages/Dashboard/Plans";
 import Nutrition from "./pages/Dashboard/Nutrition";
-import Excercises from "./pages/Dashboard/Excercises";
+import Exercises from "./pages/Dashboard/Exercises";
 import Meals from "./pages/Dashboard/Meals";
 import Analytics from "./pages/Dashboard/Analytics";
 import { ThemeProvider } from "./theme";
@@ -23,7 +23,7 @@ function App() {
             <Route path="clients" element={<Clients />} />
             <Route path="plans" element={<Plans />} />
             <Route path="nutrition" element={<Nutrition />} />
-            <Route path="exercises" element={<Excercises />} />
+            <Route path="exercises" element={<Exercises />} />
             <Route path="meals" element={<Meals />} />
             <Route path="analytics" element={<Analytics />} />
           </Route>

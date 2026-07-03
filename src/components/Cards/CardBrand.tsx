@@ -1,9 +1,24 @@
-import { type ReactNode } from 'react'
+import type { HTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
-function CardBrand({ children }: { children: ReactNode }) {
+type CardBrandProps = HTMLAttributes<HTMLDivElement>;
+
+function CardBrand({
+    className,
+    children,
+    ...props
+}: CardBrandProps) {
     return (
-        <div className='card-brand p-6 min-h-[160px] flex flex-col justify-between gap-2.5'>{children}</div>
-    )
+        <div
+            className={cn(
+                "card-brand p-6 flex flex-col justify-between gap-2.5",
+                className
+            )}
+            {...props}
+        >
+            {children}
+        </div>
+    );
 }
 
-export default CardBrand
+export default CardBrand;

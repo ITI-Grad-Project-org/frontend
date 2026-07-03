@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -101,6 +104,7 @@
     --chip-mint: oklch(0.92 0.07 155);
     --chip-pink: oklch(0.93 0.06 10);
     --chip-yellow: oklch(0.94 0.09 95);
+
     /* Reusable chart palette for future charts */
     --chart-1: var(--color-brand);
     --chart-2: var(--color-success);
@@ -111,67 +115,23 @@
 }
 
 .dark {
-    /* Clean black palette — no purple tint */
-    --background: oklch(0.145 0.005 260);
-    --foreground: oklch(0.97 0.005 260);
-
-    --card: oklch(0.195 0.006 260);
-    --card-foreground: oklch(0.98 0.005 260);
-    --popover: oklch(0.21 0.007 260);
-    --popover-foreground: oklch(0.98 0.005 260);
-
+    --background: oklch(0.16 0.01 260);
+    --foreground: oklch(0.98 0 0);
+    --card: oklch(0.22 0.01 260);
+    --card-foreground: oklch(0.98 0 0);
+    --popover: oklch(0.22 0.01 260);
+    --popover-foreground: oklch(0.98 0 0);
     --primary: oklch(0.98 0 0);
-    --primary-foreground: oklch(0.15 0.005 260);
-    --secondary: oklch(0.24 0.006 260);
-    --secondary-foreground: oklch(0.98 0.005 260);
-    --muted: oklch(0.22 0.006 260);
-    --muted-foreground: oklch(0.72 0.02 260);
-    --accent: oklch(0.28 0.012 45);
-    --accent-foreground: oklch(0.98 0.005 260);
-    --border: oklch(1 0 0 / 10%);
+    --primary-foreground: oklch(0.18 0.01 260);
+    --secondary: oklch(0.26 0.01 260);
+    --secondary-foreground: oklch(0.98 0 0);
+    --muted: oklch(0.26 0.01 260);
+    --muted-foreground: oklch(0.7 0.02 260);
+    --accent: oklch(0.26 0.01 260);
+    --accent-foreground: oklch(0.98 0 0);
+    --border: oklch(1 0 0 / 8%);
     --input: oklch(1 0 0 / 12%);
-    --ring: oklch(0.72 0.04 40);
-
-    --ink: oklch(0.26 0.01 260);
-    --ink-foreground: oklch(0.98 0.005 260);
-
-    --brand: oklch(0.72 0.19 38);
-    --brand-foreground: oklch(0.99 0 0);
-
-    --success: oklch(0.72 0.16 145);
-    --warn: oklch(0.82 0.14 85);
-    --danger: oklch(0.7 0.2 25);
-    --info: oklch(0.7 0.11 235);
-    --violet: oklch(0.62 0.18 285);
-
-    --chip-violet: oklch(0.32 0.08 290);
-    --chip-peach: oklch(0.34 0.07 45);
-    --chip-mint: oklch(0.32 0.07 155);
-    --chip-pink: oklch(0.34 0.08 10);
-    --chip-yellow: oklch(0.36 0.1 95);
-
-    --shadow-card: 0 1px 2px oklch(0 0 0 / 0.35), 0 8px 28px -12px oklch(0 0 0 / 0.55);
-    --shadow-card-hover: 0 2px 4px oklch(0 0 0 / 0.45), 0 20px 48px -16px oklch(0 0 0 / 0.7);
-    --shadow-accent: 0 12px 36px -12px oklch(0.7 0.18 38 / 0.55);
 }
-
-.dark body {
-    background-image: none;
-}
-
-.dark .card-surface,
-.dark .card-ink {
-    border: 1px solid oklch(1 0 0 / 6%);
-}
-
-.dark .card-surface {
-    background: oklch(0.195 0.006 260);
-}
-
-.dark .card-ink {
-    background: oklch(0.26 0.01 260);
-}
-
 
 @layer base {
     * {

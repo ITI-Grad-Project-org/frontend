@@ -16,7 +16,7 @@ function DashboardLayout() {
     ];
 
     return (
-        <div className="flex flex-col md:flex-row h-screen bg-background text-foreground animate-in fade-in duration-500 overflow-hidden">
+        <div className="flex flex-col md:flex-row h-screen bg-background text-foreground animate-in fade-in duration-500 overflow-hidden ">
 
             <aside className="bg-primary-foreground flex flex-col gap-2.5 md:w-64 p-6 shrink-0 border-b md:border-b-0 md:border-r border-border">
                 <NavLink to={"/"} className="order-1 font-display font-black text-4xl tracking-tight md:mb-12 text-primary">
@@ -51,9 +51,11 @@ function DashboardLayout() {
                 </button>
             </aside>
 
+
             <main className="flex-1 overflow-y-auto pt-10 md:pt-14 px-6 md:px-16 pb-8">
                 <Outlet />
             </main>
+
         </div>
     );
 }

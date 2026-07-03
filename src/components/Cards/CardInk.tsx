@@ -1,9 +1,24 @@
-import type { ReactNode } from "react"
+import type { HTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
-function CardInk({ children }: { children: ReactNode }) {
+type CardInkProps = HTMLAttributes<HTMLDivElement>;
+
+function CardInk({
+    className,
+    children,
+    ...props
+}: CardInkProps) {
     return (
-        <div className="card-ink p-6 min-h-[160px] flex flex-col justify-between gap-2.5">{children}</div>
-    )
+        <div
+            className={cn(
+                "card-ink p-6 flex flex-col justify-between gap-2.5",
+                className
+            )}
+            {...props}
+        >
+            {children}
+        </div>
+    );
 }
 
-export default CardInk
+export default CardInk;

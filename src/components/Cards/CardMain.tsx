@@ -1,9 +1,22 @@
-import { type ReactNode } from 'react'
+import { type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
-function CardMain({ children }: { children: ReactNode }) {
+type CardMainProps = {
+    children: ReactNode;
+    className?: string;
+};
+
+function CardMain({ children, className }: CardMainProps) {
     return (
-        <div className='card-surface p-6 min-h-[160px] flex flex-col justify-between gap-2.5'>{children}</div>
-    )
+        <div
+            className={cn(
+                "card-surface p-6 flex flex-col justify-between gap-2.5",
+                className
+            )}
+        >
+            {children}
+        </div>
+    );
 }
 
-export default CardMain
+export default CardMain;

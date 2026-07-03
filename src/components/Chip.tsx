@@ -1,11 +1,17 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
-interface ChipProps {
+interface ChipProps extends HTMLAttributes<HTMLSpanElement> {
     color?: "violet" | "orange" | "green" | "pink" | "yellow";
     children: ReactNode;
 }
 
-export function Chip({ color = "violet", children }: ChipProps) {
+export function Chip({
+    color = "violet",
+    children,
+    className,
+    ...props
+}: ChipProps) {
     const styles = {
         // violet: "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300",
         // orange: "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300",
@@ -20,7 +26,14 @@ export function Chip({ color = "violet", children }: ChipProps) {
     }[color];
 
     return (
-        <span className={`p-3 text-xs rounded-full w-fit flex items-center justify-center ${styles}`}>
+        <span
+            className={cn(
+                "p-3 text-xs rounded-full w-fit flex items-center justify-center",
+                styles,
+                className
+            )}
+            {...props}
+        >
             {children}
         </span>
     );
