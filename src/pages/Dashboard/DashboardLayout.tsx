@@ -19,9 +19,22 @@ function DashboardLayout() {
         <div className="flex flex-col md:flex-row h-screen bg-background text-foreground animate-in fade-in duration-500 overflow-hidden ">
 
             <aside className="bg-primary-foreground flex flex-col gap-2.5 md:w-64 p-6 shrink-0 border-b md:border-b-0 md:border-r border-border">
-                <NavLink to={"/"} className="order-1 font-display font-black text-4xl tracking-tight md:mb-12 text-primary">
-                    UPLY
+
+                {/* <NavLink to={"/"} className="order-1 font-display font-black text-4xl tracking-tight md:mb-12 text-primary w-36 md:w-2/3 md:my-8">
+                    <img src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"} alt="UPLY" className="w-full h-auto object-contain" />
+                </NavLink> */}
+
+                <NavLink
+                    to="/"
+                    className="order-1 md:mb-12 md:my-8"
+                >
+                    <img
+                        src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"}
+                        alt="UPLY"
+                        className="h-auto w-36 md:w-2/3"
+                    />
                 </NavLink>
+
 
                 <nav className="order-3 md:order-2 flex md:flex-col gap-2 font-medium overflow-x-auto no-scrollbar md:overflow-visible pb-2 md:pb-0">
                     {items.map((item) => {

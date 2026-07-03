@@ -7,19 +7,19 @@ import { Chip } from "@/components/Chip";
 import { Heart } from "lucide-react";
 
 const ChartBarDefault = lazy(() =>
-    import("@/components/charts/clients/example").then((m) => ({
+    import("@/components/charts/examples/example").then((m) => ({
         default: m.ChartBarDefault,
     })),
 );
 
 const ChartAreaInteractive = lazy(() =>
-    import("@/components/charts/clients/example2").then((m) => ({
+    import("@/components/charts/examples/example2").then((m) => ({
         default: m.ChartAreaInteractive,
     })),
 );
 
 const ChartAreaInteractive2 = lazy(() =>
-    import("@/components/charts/clients/example2 copy").then((m) => ({
+    import("@/components/charts/examples/example2 copy").then((m) => ({
         default: m.ChartAreaInteractive2,
     })),
 );
