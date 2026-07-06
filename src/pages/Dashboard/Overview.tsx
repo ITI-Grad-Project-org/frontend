@@ -35,11 +35,11 @@ function ChartSkeleton({ className = "" }: { className?: string }) {
 function Overview() {
     return (
         <>
-            <p className="text-muted-foreground font-sans text-sm animate-in fade-in slide-in-from-left-3 duration-600">
+            <p className="font-sans text-sm text-muted-foreground animate-in fade-in slide-in-from-left-3 duration-600">
                 Good morning, Coach 👋
             </p>
 
-            <h1 className="mb-12 text-foreground text-6xl font-black animate-in fade-in slide-in-from-left-3 duration-600">
+            <h1 className="mb-12 text-6xl font-black text-foreground animate-in fade-in slide-in-from-left-3 duration-600">
                 Dashboard
             </h1>
 
@@ -60,7 +60,7 @@ function Overview() {
                     </Suspense>
 
                     <CardMain>
-                        <h3 className="display text-2xl font-bold">Weekly Completion</h3>
+                        <h3 className="text-2xl font-bold display">Weekly Completion</h3>
 
                         <div className="flex flex-wrap gap-2.5">
                             <Chip color="yellow">
@@ -100,14 +100,14 @@ function Overview() {
 
                     <div className="flex gap-2.5">
                         <CardInk>
-                            <h1 className="display text-2xl font-bold">Meals</h1>
+                            <h1 className="text-2xl font-bold display">Meals</h1>
                             <p>
                                 Clients exercised <b>10</b> Times
                             </p>
                         </CardInk>
 
                         <CardBrand>
-                            <h1 className="display text-2xl font-bold">Meals</h1>
+                            <h1 className="text-2xl font-bold display">Meals</h1>
                             <p>
                                 Clients exercised <b>10</b> Times
                             </p>

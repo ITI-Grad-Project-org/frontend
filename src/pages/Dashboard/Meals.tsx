@@ -45,17 +45,17 @@ function Meals() {
 
     return (
         <div className="flex flex-col gap-3.5">
-            <div className="flex justify-between flex-wrap">
-                <h1 className="font-display text-4xl font-black animate-in fade-in slide-in-from-left-3 duration-600">Meals</h1>
+            <div className="flex flex-wrap justify-between">
+                <h1 className="text-4xl font-black font-display animate-in fade-in slide-in-from-left-3 duration-600">Meals</h1>
                 <div>
                     <div className="grid grid-cols-2 gap-3">
-                        <button className="flex items-center justify-center gap-2 bg-brand text-brand-foreground text-sm font-semibold py-3 px-4 rounded-2xl hover:opacity-90 transition-opacity cursor-pointer">
+                        <button className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-opacity cursor-pointer bg-brand text-brand-foreground rounded-2xl hover:opacity-90">
                             <UserRoundPlus className="w-4 h-4" strokeWidth={2.5} />
                             <span>Custom for Clients</span>
                         </button>
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="flex items-center justify-center gap-2 bg-ink text-ink-foreground text-sm font-semibold py-3 px-4 rounded-2xl hover:opacity-90 transition-opacity cursor-pointer"
+                            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-opacity cursor-pointer bg-ink text-ink-foreground rounded-2xl hover:opacity-90"
                         >
                             <Plus className="w-4 h-4" strokeWidth={2.5} />
                             <span>Add to library</span>
@@ -65,18 +65,18 @@ function Meals() {
             </div>
 
             <CardMain className="animate-in fade-in slide-in-from-left-3 duration-800">
-                <div className="flex items-center gap-2 rounded-xl bg-muted px-3 py-2">
-                    <Search className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted">
+                    <Search className="w-4 h-4 text-muted-foreground" />
                     <input
                         value={""}
                         onChange={(e) => e}
                         placeholder="Search meals…"
-                        className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                        className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground"
                     />
                 </div>
             </CardMain>
 
-            <section className="space-y-8 mt-12">
+            <section className="mt-12 space-y-8">
                 <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-3 duration-600">
                     <h2 className="text-3xl font-semibold">Library</h2>
                     <Chip className="font-bold">{meals.length}</Chip>
@@ -88,7 +88,7 @@ function Meals() {
                     ))}
                 </div>
 
-                <div className="space-y-4 mt-12">
+                <div className="mt-12 space-y-4">
                     <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-3 duration-600">
                         <h2 className="text-3xl font-semibold">Custom — per client</h2>
                         <Chip color="orange" className="font-bold">0</Chip>

@@ -16,12 +16,12 @@ function DashboardLayout() {
     ];
 
     return (
-        <div className="flex flex-col md:flex-row h-screen bg-background text-foreground animate-in fade-in duration-500 overflow-hidden ">
+        <div className="flex flex-col h-screen overflow-hidden duration-500 md:flex-row bg-background text-foreground animate-in fade-in ">
 
             <aside className="bg-primary-foreground flex flex-col gap-2.5 md:w-64 p-6 shrink-0 border-b md:border-b-0 md:border-r border-border">
 
-                {/* <NavLink to={"/"} className="order-1 font-display font-black text-4xl tracking-tight md:mb-12 text-primary w-36 md:w-2/3 md:my-8">
-                    <img src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"} alt="UPLY" className="w-full h-auto object-contain" />
+                {/* <NavLink to={"/"} className="order-1 text-4xl font-black tracking-tight font-display md:mb-12 text-primary w-36 md:w-2/3 md:my-8">
+                    <img src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"} alt="UPLY" className="object-contain w-full h-auto" />
                 </NavLink> */}
 
                 <NavLink
@@ -36,7 +36,7 @@ function DashboardLayout() {
                 </NavLink>
 
 
-                <nav className="order-3 md:order-2 flex md:flex-col gap-2 font-medium overflow-x-auto no-scrollbar md:overflow-visible pb-2 md:pb-0">
+                <nav className="flex order-3 gap-2 pb-2 overflow-x-auto font-medium md:order-2 md:flex-col no-scrollbar md:overflow-visible md:pb-0">
                     {items.map((item) => {
                         return (
                             <NavLink
@@ -47,7 +47,7 @@ function DashboardLayout() {
                                     ${isActive ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`
                                 }
                             >
-                                <item.icon className="w-5 h-5 shrink-0 transition-colors" strokeWidth={2} />
+                                <item.icon className="w-5 h-5 transition-colors shrink-0" strokeWidth={2} />
                                 <span>{item.title}</span>
                             </NavLink>
                         );
@@ -57,7 +57,7 @@ function DashboardLayout() {
                 <button
                     type="button"
                     onClick={toggleTheme}
-                    className="order-2 self-end md:order-3 w-fit md:w-full mt-auto inline-flex items-center justify-center gap-2 px-2 md:px-4 py-1 md:py-3 rounded-2xl border border-border bg-muted text-foreground hover:bg-muted-foreground hover:text-background transition-colors duration-200 cursor-pointer"
+                    className="inline-flex items-center self-end justify-center order-2 gap-2 px-2 py-1 mt-auto transition-colors duration-200 border cursor-pointer md:order-3 w-fit md:w-full md:px-4 md:py-3 rounded-2xl border-border bg-muted text-foreground hover:bg-muted-foreground hover:text-background"
                 >
                     {isDark ? <SunMedium className="w-5 h-5" strokeWidth={2} /> : <Moon className="w-5 h-5" strokeWidth={2} />}
                     <span className="hidden md:block">{isDark ? "Light mode" : "Dark mode"}</span>
@@ -65,7 +65,7 @@ function DashboardLayout() {
             </aside>
 
 
-            <main className="flex-1 overflow-y-auto pt-10 md:pt-14 px-6 md:px-16 pb-8">
+            <main className="flex-1 px-6 pt-10 pb-8 overflow-y-auto md:pt-14 md:px-16">
                 <Outlet />
             </main>
 

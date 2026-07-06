@@ -19,10 +19,10 @@ function Clients() {
     if (!dummyClients || dummyClients.length === 0) {
         return (
             <>
-                <h1 className="mb-12 font-display text-4xl font-black animate-in fade-in slide-in-from-left-3 duration-600">Clients</h1>
-                <div className="flex flex-col items-center justify-center min-h-75 border border-dashed border-border rounded-3xl bg-muted/20 animate-in fade-in duration-500">
-                    <p className="text-muted-foreground font-medium text-lg">No clients found</p>
-                    <p className="text-sm text-muted-foreground/70 mt-1">When clients register, they will appear here.</p>
+                <h1 className="mb-12 text-4xl font-black font-display animate-in fade-in slide-in-from-left-3 duration-600">Clients</h1>
+                <div className="flex flex-col items-center justify-center duration-500 border border-dashed min-h-75 border-border rounded-3xl bg-muted/20 animate-in fade-in">
+                    <p className="text-lg font-medium text-muted-foreground">No clients found</p>
+                    <p className="mt-1 text-sm text-muted-foreground/70">When clients register, they will appear here.</p>
                 </div>
             </>
         )
@@ -30,7 +30,7 @@ function Clients() {
 
     return (
         <>
-            <h1 className="mb-12 font-display text-4xl font-black animate-in fade-in slide-in-from-left-3 duration-600">Clients</h1>
+            <h1 className="mb-12 text-4xl font-black font-display animate-in fade-in slide-in-from-left-3 duration-600">Clients</h1>
 
             <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-3 duration-800">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">

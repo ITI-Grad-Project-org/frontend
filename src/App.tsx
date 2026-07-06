@@ -9,6 +9,8 @@ import Nutrition from "./pages/Dashboard/Nutrition";
 import Exercises from "./pages/Dashboard/Exercises";
 import Meals from "./pages/Dashboard/Meals";
 import Analytics from "./pages/Dashboard/Analytics";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
 import { ThemeProvider } from "./theme";
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route index element={<Homepage />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Navigate to="overview" replace />} />
             <Route path="overview" element={<Overview />} />
