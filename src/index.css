@@ -111,6 +111,15 @@
     --chart-6: var(--color-danger);
 }
 
+@utility animate-text {
+
+    @apply animate-in fade-in slide-in-from-left-3 duration-600
+}
+
+@utility animate-content {
+    @apply animate-in fade-in slide-in-from-left-3 duration-800
+}
+
 .dark {
     /* Refined charcoal — layered depth, warm orange accent */
     --background: oklch(0.16 0.006 260);

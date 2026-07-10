@@ -35,15 +35,15 @@ function ChartSkeleton({ className = "" }: { className?: string }) {
 function Overview() {
     return (
         <>
-            <p className="font-sans text-sm text-muted-foreground animate-in fade-in slide-in-from-left-3 duration-600">
+            <p className="font-sans text-sm text-muted-foreground animate-text">
                 Good morning, Coach 👋
             </p>
 
-            <h1 className="mb-12 text-6xl font-black text-foreground animate-in fade-in slide-in-from-left-3 duration-600">
+            <h1 className="mb-12 text-6xl font-black text-foreground animate-text">
                 Dashboard
             </h1>
 
-            <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-3 duration-800">
+            <div className="flex flex-col gap-6 animate-content">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <Suspense fallback={<ChartSkeleton />}>
                         <ChartBarDefault />

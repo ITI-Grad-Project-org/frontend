@@ -93,7 +93,7 @@ function Exercises() {
         <div className="flex flex-col gap-3.5">
 
             <div className="flex flex-wrap justify-between">
-                <h1 className="text-4xl font-black font-display animate-in fade-in slide-in-from-left-3 duration-600">Exercises</h1>
+                <h1 className="text-4xl font-black font-display animate-text">Exercises</h1>
                 <div>
                     <div className="grid grid-cols-2 gap-3">
                         <button className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-opacity cursor-pointer bg-brand text-brand-foreground rounded-2xl hover:opacity-90">
@@ -111,7 +111,7 @@ function Exercises() {
             </div>
 
 
-            <CardMain className="animate-in fade-in slide-in-from-left-3 duration-800">
+            <CardMain className="animate-content">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted">
                     <Search className="w-4 h-4 text-muted-foreground" />
                     <input value={""} onChange={(e) => e} placeholder="Search exercises…"
@@ -121,12 +121,12 @@ function Exercises() {
 
 
             <section className="mt-12 space-y-8">
-                <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-3 duration-600">
+                <div className="flex items-center gap-3 animate-text">
                     <h2 className="text-3xl font-semibold ">Library</h2>
                     <Chip className="font-bold">{exercises.length}</Chip>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 animate-in fade-in slide-in-from-left-3 duration-800">
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 animate-content">
                     {exercises.map((exercise) => (
                         <ExerciseCard
                             key={exercise.name}
@@ -136,7 +136,7 @@ function Exercises() {
                 </div>
 
                 <div className="mt-12 space-y-4">
-                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-3 duration-600">
+                    <div className="flex items-center gap-3 animate-text">
                         <h2 className="text-3xl font-semibold ">Custom — per client</h2>
                         <Chip color="orange" className="font-bold">0</Chip>
                     </div>
