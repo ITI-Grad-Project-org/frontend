@@ -25,4 +25,4 @@ The app uses Axios and Zustand for the coach authentication flow. Access tokens 
 
 Set `VITE_API_BASE_URL` in `.env` when using a different API server; `.env.example` contains the default API URL.
 
-For persistent sessions, the API should set the refresh token in an `HttpOnly`, `Secure` cookie and allow credentialed requests from the frontend origin. The client includes `withCredentials: true`. If the current API only returns `refreshToken` in JSON, it is kept in module memory as a short-lived fallback and is cleared on page reload; it is never written to localStorage or sessionStorage.
+For persistent sessions, the API should set the refresh token in an `HttpOnly`, `Secure` cookie and allow credentialed requests from the frontend origin. The client includes `withCredentials: true`. If the current API only returns `refreshToken` in JSON, it stores that token in `localStorage` as a browser-wide fallback so page refreshes and new tabs can restore the session; it is cleared on sign-out. The access token is never written to browser storage.

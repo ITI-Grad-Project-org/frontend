@@ -19,7 +19,7 @@ function Clients() {
     if (!dummyClients || dummyClients.length === 0) {
         return (
             <>
-                <h1 className="mb-12 text-4xl font-black font-display animate-text">Clients</h1>
+                <h1 className="mb-12 text-4xl font-black font-display">Clients</h1>
                 <div className="flex flex-col items-center justify-center duration-500 border border-dashed min-h-75 border-border rounded-3xl bg-muted/20 animate-in fade-in">
                     <p className="text-lg font-medium text-muted-foreground">No clients found</p>
                     <p className="mt-1 text-sm text-muted-foreground/70">When clients register, they will appear here.</p>
@@ -30,9 +30,9 @@ function Clients() {
 
     return (
         <>
-            <h1 className="mb-12 text-4xl font-black font-display animate-text">Clients</h1>
+            <h1 className="mb-12 text-4xl font-black font-display">Clients</h1>
 
-            <div className="flex flex-col gap-6 animate-content">
+            <div className="flex flex-col gap-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
                     {dummyClients.map((client, index) => (
                         <ClientCard

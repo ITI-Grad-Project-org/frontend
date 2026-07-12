@@ -1,8 +1,8 @@
 function Nutrition() {
     return (
         <>
-            <h1 className="text-4xl font-black font-display animate-text">Nutrition</h1>
-            
+            <h1 className="text-4xl font-black font-display">Nutrition</h1>
+
         </>
     )
 }

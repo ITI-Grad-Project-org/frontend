@@ -16,6 +16,8 @@ import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
 import { AuthSessionBootstrap } from "./components/AuthSessionBootstrap";
 import { RequireAuth } from "./components/RequireAuth";
+import { RequireGuest } from "./components/RequireGuest";
+import { ThemeToggleFab } from "./components/ThemeToggleFab";
 
 function App() {
   return (
@@ -24,9 +26,30 @@ function App() {
         <AuthSessionBootstrap>
           <Routes>
             <Route index element={<Homepage />} />
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/signin"
+              element={
+                <RequireGuest>
+                  <SignIn />
+                </RequireGuest>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <RequireGuest>
+                  <SignUp />
+                </RequireGuest>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <RequireGuest>
+                  <ForgotPassword />
+                </RequireGuest>
+              }
+            />
             <Route
               path="/profile"
               element={
@@ -56,6 +79,7 @@ function App() {
 
             <Route path="*" element={<DefaultPage />} />
           </Routes>
+          <ThemeToggleFab />
         </AuthSessionBootstrap>
       </BrowserRouter>
     </ThemeProvider>
