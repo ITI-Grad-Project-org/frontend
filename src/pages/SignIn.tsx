@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
+import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
+import { getFirstFormErrorMessage } from "@/lib/form-errors";
 import { signIn } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
@@ -49,11 +51,19 @@ function SignIn() {
         try {
             const session = await signIn(data);
             setSession(session);
+            toast.success("Signed in successfully.");
             const redirectPath = (location.state as { from?: string } | null)?.from ?? "/dashboard";
             navigate(redirectPath, { replace: true });
         } catch (error) {
-            setSubmissionError(getApiErrorMessage(error, "Incorrect email or password. Please try again."));
+            const message = getApiErrorMessage(error, "Incorrect email or password. Please try again.");
+            setSubmissionError(message);
+            toast.error(message);
         }
+    };
+
+    const onInvalid = (formErrors: FieldErrors<SignInFormData>) => {
+        const message = getFirstFormErrorMessage(formErrors) ?? "Please fix the highlighted fields.";
+        toast.error(message);
     };
 
     return (
@@ -73,7 +83,7 @@ function SignIn() {
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+                <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="mt-8 space-y-4">
                     <Field label="Email" type="email" autoComplete="email" placeholder="alex@yourgym.com" error={errors.email?.message} {...register("email")} />
                     <Field label="Password" type="password" autoComplete="current-password" placeholder="Enter your password" error={errors.password?.message} {...register("password")} />
 

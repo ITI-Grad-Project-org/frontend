@@ -18,6 +18,7 @@ import { AuthSessionBootstrap } from "./components/AuthSessionBootstrap";
 import { RequireAuth } from "./components/RequireAuth";
 import { RequireGuest } from "./components/RequireGuest";
 import { ThemeToggleFab } from "./components/ThemeToggleFab";
+import { AppToaster } from "./components/AppToaster";
 
 function App() {
   return (
@@ -80,6 +81,7 @@ function App() {
             <Route path="*" element={<DefaultPage />} />
           </Routes>
           <ThemeToggleFab />
+          <AppToaster />
         </AuthSessionBootstrap>
       </BrowserRouter>
     </ThemeProvider>

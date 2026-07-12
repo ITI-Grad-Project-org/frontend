@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { z } from "zod";
+import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
+import { getFirstFormErrorMessage } from "@/lib/form-errors";
 import { registerCoach } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
@@ -63,10 +65,18 @@ function SignUp() {
             });
 
             setSession(session);
+            toast.success("Account created successfully.");
             navigate("/profile", { replace: true });
         } catch (error) {
-            setSubmissionError(getApiErrorMessage(error, "We could not create your account. Please try again."));
+            const message = getApiErrorMessage(error, "We could not create your account. Please try again.");
+            setSubmissionError(message);
+            toast.error(message);
         }
+    };
+
+    const onInvalid = (formErrors: FieldErrors<SignUpFormData>) => {
+        const message = getFirstFormErrorMessage(formErrors) ?? "Please fix the highlighted fields.";
+        toast.error(message);
     };
 
     return (
@@ -86,7 +96,7 @@ function SignUp() {
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+                <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="mt-8 space-y-4">
                     <div className="grid gap-4 sm:grid-cols-2">
                         <Field label="First name" type="text" autoComplete="given-name" placeholder="Alex" error={errors.firstName?.message} {...register("firstName")} />
                         <Field label="Last name" type="text" autoComplete="family-name" placeholder="Rivera" error={errors.lastName?.message} {...register("lastName")} />

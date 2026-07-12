@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Mail } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { Link } from "react-router";
 import { z } from "zod";
+import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
+import { getFirstFormErrorMessage } from "@/lib/form-errors";
 import { requestPasswordReset } from "@/services/auth";
 import { useTheme } from "@/theme";
 
@@ -32,9 +34,17 @@ function ForgotPassword() {
         try {
             await requestPasswordReset(email);
             setIsSubmitted(true);
+            toast.success("Reset instructions sent.");
         } catch (error) {
-            setSubmissionError(getApiErrorMessage(error, "We could not send the reset email. Please try again."));
+            const message = getApiErrorMessage(error, "We could not send the reset email. Please try again.");
+            setSubmissionError(message);
+            toast.error(message);
         }
+    };
+
+    const onInvalid = (formErrors: FieldErrors<ForgotPasswordFormData>) => {
+        const message = getFirstFormErrorMessage(formErrors) ?? "Please fix the highlighted fields.";
+        toast.error(message);
     };
 
     return (
@@ -57,7 +67,7 @@ function ForgotPassword() {
                         Check your inbox for password reset instructions.
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
+                    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="mt-8 space-y-4">
                         <label className="block">
                             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Email</span>
                             <input

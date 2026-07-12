@@ -10,6 +10,7 @@ import { deleteCoachProfile, getCoachProfile, updateCoachProfile } from "@/servi
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
 import type { Coach, UpdateCoachPayload } from "@/types/auth";
+import { toast } from "react-toastify";
 
 const certificationSchema = z.object({
     name: z.string().trim().min(1, "Certification name is required"),
@@ -84,14 +85,20 @@ function toFormValues(coach: Coach): ProfileFormData {
 function Profile() {
     const { isDark } = useTheme();
     const navigate = useNavigate();
+
     const user = useAuthStore((state) => state.user);
     const setUser = useAuthStore((state) => state.setUser);
     const clearSession = useAuthStore((state) => state.clearSession);
+
     const [loadError, setLoadError] = useState("");
     const [submissionError, setSubmissionError] = useState("");
+
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
+
     const [specialties, setSpecialties] = useState<string[]>([]);
+
+
     const {
         register,
         control,
@@ -103,6 +110,7 @@ function Profile() {
         resolver: zodResolver(profileSchema),
         defaultValues: user ? toFormValues(user) : emptyProfile,
     });
+
     const { fields, append, remove } = useFieldArray({ control, name: "certifications" });
 
     const updateSpecialties = (nextSpecialties: string[], shouldDirty: boolean) => {
@@ -154,13 +162,14 @@ function Profile() {
             true,
         );
     };
-
     const onSubmit = async (data: ProfileFormData) => {
         if (!user) {
+            toast.error("User session not found. Please log in again.");
             return;
         }
 
         setSubmissionError("");
+
         const payload: UpdateCoachPayload = {
             firstName: data.firstName,
             lastName: data.lastName,
@@ -187,15 +196,27 @@ function Profile() {
             setUser(refreshedCoach);
             reset(toFormValues(refreshedCoach));
             updateSpecialties(refreshedCoach.specialties ?? [], false);
+
+            toast.success("Profile updated successfully!");
+
         } catch (error) {
-            setSubmissionError(getApiErrorMessage(error, "We could not save your profile. Please try again."));
+            const errorMessage = getApiErrorMessage(error, "We could not save your profile. Please try again.");
+
+            setSubmissionError(errorMessage);
+
+            toast.error(errorMessage);
         }
     };
 
     const handleSignOut = async () => {
-        await signOut().catch(() => undefined);
-        clearSession();
-        navigate("/", { replace: true });
+        try {
+            await signOut();
+            toast.success("You've been signed out.");
+            clearSession();
+            navigate("/", { replace: true });
+        } catch (error) {
+            toast.error("Something went wrong. Please try again.");
+        }
     };
 
     const handleDelete = async () => {
@@ -250,7 +271,7 @@ function Profile() {
                         <button
                             type="button"
                             onClick={handleSignOut}
-                            className="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted sm:px-5"
+                            className="btn-magnetic inline-flex items-center gap-1.5 border border-border cursor-pointer rounded-full px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted sm:px-5"
                         >
                             <LogOut className="w-4 h-4" />
                             Sign out
@@ -333,8 +354,8 @@ function Profile() {
                     {submissionError && <p role="alert" className="p-3 text-sm rounded-xl bg-destructive/10 text-destructive">{submissionError}</p>}
 
                     <div className="flex flex-wrap items-center justify-between gap-4 pb-8">
-                        <button type="button" disabled={isDeleting} onClick={handleDelete} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold transition rounded-xl text-destructive hover:bg-destructive/10 disabled:opacity-60"><Trash2 className="w-4 h-4" />{isDeleting ? "Deleting…" : "Delete profile"}</button>
-                        <button type="submit" disabled={isSubmitting || !isDirty} className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition rounded-xl bg-ink text-ink-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"><Save className="w-4 h-4" />{isSubmitting ? "Saving…" : "Save profile"}</button>
+                        <button type="button" disabled={isDeleting} onClick={handleDelete} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold transition cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 disabled:opacity-60"><Trash2 className="w-4 h-4" />{isDeleting ? "Deleting…" : "Delete profile"}</button>
+                        <button type="submit" disabled={isSubmitting || !isDirty} className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition rounded-xl bg-ink text-ink-foreground hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"><Save className="w-4 h-4" />{isSubmitting ? "Saving…" : "Save profile"}</button>
                     </div>
                 </form>
             </div>
