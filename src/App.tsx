@@ -13,30 +13,50 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import { ThemeProvider } from "./theme";
 import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword";
+import { AuthSessionBootstrap } from "./components/AuthSessionBootstrap";
+import { RequireAuth } from "./components/RequireAuth";
 
 function App() {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Routes>
-          <Route index element={<Homepage />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/profile" element={<Profile />} />
+        <AuthSessionBootstrap>
+          <Routes>
+            <Route index element={<Homepage />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/profile"
+              element={
+                <RequireAuth>
+                  <Profile />
+                </RequireAuth>
+              }
+            />
 
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Navigate to="overview" replace />} />
-            <Route path="overview" element={<Overview />} />
-            <Route path="clients" element={<Clients />} />
-            <Route path="plans" element={<Plans />} />
-            <Route path="nutrition" element={<Nutrition />} />
-            <Route path="exercises" element={<Exercises />} />
-            <Route path="meals" element={<Meals />} />
-            <Route path="analytics" element={<Analytics />} />
-          </Route>
+            <Route
+              path="/dashboard"
+              element={
+                <RequireAuth>
+                  <DashboardLayout />
+                </RequireAuth>
+              }
+            >
+              <Route index element={<Navigate to="overview" replace />} />
+              <Route path="overview" element={<Overview />} />
+              <Route path="clients" element={<Clients />} />
+              <Route path="plans" element={<Plans />} />
+              <Route path="nutrition" element={<Nutrition />} />
+              <Route path="exercises" element={<Exercises />} />
+              <Route path="meals" element={<Meals />} />
+              <Route path="analytics" element={<Analytics />} />
+            </Route>
 
-          <Route path="*" element={<DefaultPage />} />
-        </Routes>
+            <Route path="*" element={<DefaultPage />} />
+          </Routes>
+        </AuthSessionBootstrap>
       </BrowserRouter>
     </ThemeProvider>
   );
