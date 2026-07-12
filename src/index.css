@@ -142,8 +142,10 @@
     --input: oklch(1 0 0 / 12%);
     --ring: oklch(0.75 0.19 40);
 
-    --ink: oklch(0.3 0.012 260);
-    --ink-foreground: oklch(0.99 0.005 260);
+    /* --ink: oklch(0.3 0.012 260);
+    --ink-foreground: oklch(0.99 0.005 260); */
+    --ink: oklch(0.18 0.01 260);
+    --ink-foreground: oklch(0.99 0 0);
 
     --brand: oklch(0.78 0.19 42);
     --brand-foreground: oklch(0.16 0.01 40);
@@ -178,11 +180,11 @@
     border: 1px solid oklch(1 0 0 / 6%);
 }
 
-.dark .card-ink {
+/* .dark .card-ink {
     background: linear-gradient(180deg, oklch(0.32 0.012 260) 0%, oklch(0.26 0.01 260) 100%);
     color: var(--color-ink-foreground);
     border: 1px solid oklch(1 0 0 / 8%);
-}
+} */
 
 /* Classic dark — solid, flat, single-color surfaces (no gradients, no ambient bg) */
 .dark.dark-classic {

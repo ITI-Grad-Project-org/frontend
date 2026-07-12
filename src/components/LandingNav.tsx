@@ -55,13 +55,24 @@ export function LandingNav() {
                 ))}
             </nav>
 
-            <Link
-                to="/signup"
-                className="btn-magnetic group inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground shadow-(--shadow-accent)"
-            >
-                Get started
-                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-            </Link>
+            <div>
+
+                <Link
+                    to="/signin"
+                    className="group inline-flex items-center gap-1.5 rounded-full  px-5 py-2.5 text-sm font-semibold"
+                >
+                    Sign in
+                    <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </Link>
+
+                <Link
+                    to="/signup"
+                    className="btn-magnetic group inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground shadow-(--shadow-accent)"
+                >
+                    Get started
+                    <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </Link>
+            </div>
         </header>
     );
 }

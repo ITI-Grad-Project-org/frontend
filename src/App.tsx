@@ -12,6 +12,7 @@ import Analytics from "./pages/Dashboard/Analytics";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import { ThemeProvider } from "./theme";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -21,6 +22,8 @@ function App() {
           <Route index element={<Homepage />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/profile" element={<Profile />} />
+
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Navigate to="overview" replace />} />
             <Route path="overview" element={<Overview />} />
@@ -31,6 +34,7 @@ function App() {
             <Route path="meals" element={<Meals />} />
             <Route path="analytics" element={<Analytics />} />
           </Route>
+
           <Route path="*" element={<DefaultPage />} />
         </Routes>
       </BrowserRouter>
