@@ -1,0 +1,203 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+
+
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --radius-2xl: calc(var(--radius) + 8px);
+    --radius-3xl: calc(var(--radius) + 14px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-ink: var(--ink);
+    --color-ink-foreground: var(--ink-foreground);
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+    --color-success: var(--success);
+    --color-warn: var(--warn);
+    --color-danger: var(--danger);
+    --color-info: var(--info);
+    --color-violet: var(--violet);
+
+    --color-chip-violet: var(--chip-violet);
+    --color-chip-peach: var(--chip-peach);
+    --color-chip-mint: var(--chip-mint);
+    --color-chip-pink: var(--chip-pink);
+    --color-chip-yellow: var(--chip-yellow);
+
+    --font-display: "Inter Tight", "SF Pro Display", system-ui, sans-serif;
+    --font-sans: "Inter", system-ui, sans-serif;
+
+    --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px -12px oklch(0 0 0 / 0.08);
+    --shadow-card-hover: 0 2px 4px oklch(0 0 0 / 0.05), 0 18px 40px -16px oklch(0 0 0 / 0.18);
+    --shadow-accent: 0 12px 36px -12px oklch(0.7 0.18 38 / 0.55);
+}
+
+:root {
+    --radius: 0.875rem;
+
+    /* canvas — soft warm gray like the references */
+    --background: oklch(0.965 0.004 80);
+    --foreground: oklch(0.18 0.01 260);
+
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.18 0.01 260);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.18 0.01 260);
+
+    --primary: oklch(0.18 0.01 260);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.96 0.004 80);
+    --secondary-foreground: oklch(0.18 0.01 260);
+    --muted: oklch(0.955 0.004 80);
+    --muted-foreground: oklch(0.5 0.015 260);
+    --accent: oklch(0.95 0.01 60);
+    --accent-foreground: oklch(0.18 0.01 260);
+    --destructive: oklch(0.62 0.22 27);
+    --destructive-foreground: oklch(0.99 0 0);
+    --border: oklch(0.92 0.005 80);
+    --input: oklch(0.92 0.005 80);
+    --ring: oklch(0.7 0.04 256);
+
+    /* dark accent card (like the Statistics / Body Temp cards) */
+    --ink: oklch(0.18 0.01 260);
+    --ink-foreground: oklch(0.99 0 0);
+
+    /* brand orange (like the "75% Mind Analysis" + R-R Interval cards) */
+    --brand: oklch(0.72 0.19 38);
+    --brand-foreground: oklch(0.99 0 0);
+
+    --success: oklch(0.74 0.18 145);
+    --warn: oklch(0.82 0.16 85);
+    --danger: oklch(0.68 0.21 28);
+    --info: oklch(0.7 0.13 235);
+    --violet: oklch(0.62 0.18 285);
+
+    /* round soft-chip backgrounds for icons (like the reference dots) */
+    --chip-violet: oklch(0.92 0.06 285);
+    --chip-peach: oklch(0.92 0.07 50);
+    --chip-mint: oklch(0.92 0.07 155);
+    --chip-pink: oklch(0.93 0.06 10);
+    --chip-yellow: oklch(0.94 0.09 95);
+
+    /* Reusable chart palette for future charts */
+    --chart-1: var(--color-brand);
+    --chart-2: var(--color-success);
+    --chart-3: var(--color-info);
+    --chart-4: var(--color-violet);
+    --chart-5: var(--color-warn);
+    --chart-6: var(--color-danger);
+}
+
+.dark {
+    --background: oklch(0.16 0.01 260);
+    --foreground: oklch(0.98 0 0);
+    --card: oklch(0.22 0.01 260);
+    --card-foreground: oklch(0.98 0 0);
+    --popover: oklch(0.22 0.01 260);
+    --popover-foreground: oklch(0.98 0 0);
+    --primary: oklch(0.98 0 0);
+    --primary-foreground: oklch(0.18 0.01 260);
+    --secondary: oklch(0.26 0.01 260);
+    --secondary-foreground: oklch(0.98 0 0);
+    --muted: oklch(0.26 0.01 260);
+    --muted-foreground: oklch(0.7 0.02 260);
+    --accent: oklch(0.26 0.01 260);
+    --accent-foreground: oklch(0.98 0 0);
+    --border: oklch(1 0 0 / 8%);
+    --input: oklch(1 0 0 / 12%);
+}
+
+@layer base {
+    * {
+        border-color: var(--color-border);
+    }
+
+    html,
+    body {
+        background-color: var(--color-background);
+        color: var(--color-foreground);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    .display {
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+    }
+}
+
+@utility card-surface {
+    background: var(--color-card);
+    border-radius: var(--radius-3xl);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 220ms ease, transform 220ms ease;
+
+    &:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-2px);
+    }
+}
+
+@utility card-ink {
+    background: var(--color-ink);
+    color: var(--color-ink-foreground);
+    border-radius: var(--radius-3xl);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 220ms ease, transform 220ms ease;
+
+    &:hover {
+        box-shadow: var(--shadow-card-hover);
+        transform: translateY(-2px);
+    }
+}
+
+@utility card-brand {
+    background: var(--color-brand);
+    color: var(--color-brand-foreground);
+    border-radius: var(--radius-3xl);
+    box-shadow: var(--shadow-accent);
+    transition: box-shadow 220ms ease, transform 220ms ease;
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+}
+
+@utility chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.5rem;
+    width: 2.5rem;
+    border-radius: 9999px;
+}
