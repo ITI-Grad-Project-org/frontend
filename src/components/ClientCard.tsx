@@ -28,11 +28,11 @@ function ClientCard(props: { name: string; info: string; weight: string; height:
                 </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-                <button className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-opacity cursor-pointer bg-ink text-ink-foreground rounded-2xl hover:opacity-90">
+                <button className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold  cursor-pointer bg-ink text-ink-foreground rounded-2xl hover:opacity-90 active:scale-[0.97] transition-all">
                     <Dumbbell className="w-4 h-4" strokeWidth={2.5} />
                     <span>Create plan</span>
                 </button>
-                <button className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-opacity cursor-pointer bg-brand text-brand-foreground rounded-2xl hover:opacity-90">
+                <button className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold  cursor-pointer bg-brand text-brand-foreground rounded-2xl hover:opacity-90 active:scale-[0.97] transition-all">
                     <Utensils className="w-4 h-4" strokeWidth={2.5} />
                     <span>Create nutrition</span>
                 </button>

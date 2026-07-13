@@ -12,7 +12,7 @@ export function LandingHeroSection({ x, y }: LandingHeroSectionProps) {
         <section id="home" className="relative mx-auto max-w-7xl px-6 pb-40 pt-24 md:px-10 md:pt-32">
             <LandingFloatingArt x={x} y={y} />
             <div className="relative z-10 mx-auto max-w-4xl text-center reveal">
-                <h1 className="display mt-8 text-[clamp(2.75rem,7vw,6.25rem)] font-semibold leading-[0.98] tracking-[-0.03em]">
+                <h1 className="display mt-8 text-[clamp(2.75rem,7vw,6.25rem)] font-semibold leading-[0.98] tracking-[-0.03em] animate-in zoom-in-95 duration-600">
                     <span className="block">Train smarter.</span>
                     <span className="block">Coach better.</span>
                     <span className="block text-shimmer">One platform.</span>
@@ -25,7 +25,7 @@ export function LandingHeroSection({ x, y }: LandingHeroSectionProps) {
                 <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
                     <Link
                         to="/dashboard"
-                        className="btn-magnetic group relative inline-flex items-center gap-2 rounded-full bg-brand px-7 py-4 text-sm font-semibold text-brand-foreground shadow-(--shadow-accent)"
+                        className="animate-in zoom-in-95 duration-600 btn-magnetic group relative inline-flex items-center gap-2 rounded-full bg-brand px-7 py-4 text-sm font-semibold text-brand-foreground shadow-(--shadow-accent)"
                     >
                         <LayoutDashboard className="h-4 w-4" />
                         Open dashboard
@@ -34,7 +34,7 @@ export function LandingHeroSection({ x, y }: LandingHeroSectionProps) {
                     </Link>
                     <a
                         href="#mobile"
-                        className="btn-magnetic group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-4 text-sm font-semibold backdrop-blur transition hover:bg-white/8"
+                        className="animate-in zoom-in-95 duration-600 btn-magnetic group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-4 text-sm font-semibold backdrop-blur transition hover:bg-white/8"
                     >
                         <Smartphone className="h-4 w-4" />
                         Open mobile app

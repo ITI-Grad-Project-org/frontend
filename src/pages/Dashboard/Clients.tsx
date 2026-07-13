@@ -11,7 +11,7 @@ interface dummyClients {
 function Clients() {
     const dummyClients: dummyClients[] | [] = [
         { id: 0, name: "Max Tyson", info: "Intermediate · Bulking", weight: "78 kg", height: "178 cm", AvatarImageSrc: "https://www.landfood.ubc.ca/files/2025/04/IMG_0837-1-e1750374490980.png" },
-        { id: 1, name: "Sara Lee", info: "Beginner · Cutting", weight: "62 kg", height: "168 cm", AvatarImageSrc: "https://as1.ftcdn.net/jpg/03/82/78/76/1000_F_382787674_JmU69nTp1qEUwh0kxBeThK60my6MBYSL.jpg" },
+        { id: 1, name: "Sara Lee", info: "Beginner · Cutting", weight: "62 kg", height: "168 cm", AvatarImageSrc: "" },
         { id: 2, name: "Jon Rivera", info: "Advanced · Recomp", weight: "84 kg", height: "182 cm", AvatarImageSrc: "https://m.media-amazon.com/images/M/MV5BNzhiNjFkNzgtNjhkNS00Mjc3LTk0ZWMtNzA3Y2ZmNzFmZWQyXkEyXkFqcGc@._V1_.jpg" },
         { id: 3, name: "Aya Kim", info: "Intermediate · Endurance", weight: "56 kg", height: "162 cm", AvatarImageSrc: "https://avatars.githubusercontent.com/u/77188666?v=4" }
     ];

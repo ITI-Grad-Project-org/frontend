@@ -31,7 +31,8 @@ export function LandingNav() {
     };
 
     return (
-        <header className="glass-nav sticky top-4 z-50 mx-auto flex max-w-6xl items-center justify-between rounded-full px-3 py-2.5 md:px-4">
+        // <header className="glass-nav sticky top-4 z-50 mx-auto flex max-w-6xl items-center justify-between rounded-full px-3 py-2.5 md:px-4">
+        <header className="sticky top-0 z-50 mx-auto flex items-center justify-between lg:justify-center lg:gap-30 lg:py-5 px-3 py-2.5  glass-nav">
             {/* <Link to="/" className="flex items-center gap-2 pl-3">
                 <img
                     src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"}

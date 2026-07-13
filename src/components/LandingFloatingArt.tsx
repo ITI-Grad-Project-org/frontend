@@ -9,7 +9,7 @@ type LandingFloatingArtProps = {
 
 export function LandingFloatingArt({ x, y }: LandingFloatingArtProps) {
     return (
-        <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-0 animate-in zoom-in-95 duration-600">
             <img
                 src={dumbbell1}
                 alt=""
