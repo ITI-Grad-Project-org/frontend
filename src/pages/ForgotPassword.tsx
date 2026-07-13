@@ -85,7 +85,7 @@ function ForgotPassword() {
                         <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex w-full items-center justify-center rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="cursor-pointer flex w-full items-center justify-center rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {isSubmitting ? "Sending…" : "Send reset instructions"}
                         </button>

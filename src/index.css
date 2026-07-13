@@ -218,6 +218,10 @@
         border-color: var(--color-border);
     }
 
+    button {
+        cursor: pointer;
+    }
+
     html {
         scroll-behavior: smooth;
     }

@@ -97,7 +97,7 @@ export default function AddMealModal({ open, onClose }: Props) {
                         className="w-full px-4 border outline-none bg-muted h-14 rounded-2xl border-border"
                     />
 
-                    <button className="flex items-center justify-center w-full gap-2 font-semibold bg-ink text-ink-foreground h-14 rounded-2xl hover:opacity-90">
+                    <button className="cursor-pointer flex items-center justify-center w-full gap-2 font-semibold bg-ink text-ink-foreground h-14 rounded-2xl hover:opacity-90">
                         <Plus size={18} />
                         Save meal
                     </button>

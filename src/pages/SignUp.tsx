@@ -66,6 +66,7 @@ function SignUp() {
 
             setSession(session);
             toast.success("Account created successfully.");
+            toast.success("Please Fill The Missing info");
             navigate("/profile", { replace: true });
         } catch (error) {
             const message = getApiErrorMessage(error, "We could not create your account. Please try again.");
@@ -112,7 +113,7 @@ function SignUp() {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="cursor-pointer group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {isSubmitting ? "Creating account…" : <>Create account <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></>}
                     </button>
