@@ -76,4 +76,7 @@ export type UpdateCoachPayload = {
     specialties?: string[];
     yearsExperience?: number;
     certifications?: Certification[];
+    avatarUrl?: string | null;
+    socialLinks?: Record<string, string>;
 };
+

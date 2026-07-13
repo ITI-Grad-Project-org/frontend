@@ -34,6 +34,7 @@ api.interceptors.request.use((config) => {
 
     if (accessToken) {
       authenticatedConfig.headers.set("Authorization", `Bearer ${accessToken}`);
+      console.log(accessToken);
     }
   }
 
