@@ -1,7 +1,7 @@
 # Uply Frontend
 
 <p align="center">
-  <img src="public/Uply-light-logo.png" alt="Uply logo" width="180" />
+  <img src="public/Uply-light-logo.webp" alt="Uply logo" width="180" />
 </p>
 
 The user interface and dashboard for the Uply coaching platform. This repository houses the frontend application specifically designed for coaches to manage clients, track performance metrics, and streamline their daily workflow.

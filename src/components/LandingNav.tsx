@@ -35,14 +35,14 @@ export function LandingNav() {
         <header className="sticky top-0 z-50 mx-auto flex items-center justify-between lg:justify-center lg:gap-30 lg:py-5 px-3 py-2.5  glass-nav">
             {/* <Link to="/" className="flex items-center gap-2 pl-3">
                 <img
-                    src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"}
+                    src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
                     alt="UPLY"
                     className="w-auto h-6 md:h-8"
                 />
             </Link> */}
             <a href="#home" className="flex items-center gap-2 pl-3" onClick={(event) => handleAnchorClick(event, "#home")}>
                 <img
-                    src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"}
+                    src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
                     alt="UPLY"
                     className="w-auto h-6 md:h-8"
                 />

@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { LayoutDashboard, Smartphone } from "lucide-react";
-import dumbbell1 from "../assets/dumbbell-1.png";
+import dumbbell1 from "../assets/dumbbell-1.webp";
 
 export function LandingAccessSection() {
     return (

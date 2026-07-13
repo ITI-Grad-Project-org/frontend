@@ -51,7 +51,7 @@ function ForgotPassword() {
         <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
             <div className="w-full max-w-md">
                 <Link to="/" className="mb-10 flex items-center justify-center">
-                    <img src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"} alt="Uply" className="h-14 w-auto" />
+                    <img src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"} alt="Uply" className="h-14 w-auto" />
                 </Link>
 
                 <div className="text-center">

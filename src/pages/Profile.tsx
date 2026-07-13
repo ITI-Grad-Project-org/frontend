@@ -280,7 +280,7 @@ function Profile() {
             <div className="w-full max-w-4xl mx-auto">
                 <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
                     <Link to="/" className="inline-flex items-center">
-                        <img src={isDark ? "/Uply-light-logo.png" : "/Uply-dark-logo.png"} alt="Uply" className="w-auto h-8" />
+                        <img src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"} alt="Uply" className="w-auto h-8" />
                     </Link>
                     <div className="flex items-center gap-2">
                         <Link
