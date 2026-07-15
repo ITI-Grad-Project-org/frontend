@@ -19,6 +19,7 @@ import { RequireAuth } from "./components/RequireAuth";
 import { RequireGuest } from "./components/RequireGuest";
 import { ThemeToggleFab } from "./components/ThemeToggleFab";
 import { AppToaster } from "./components/AppToaster";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -48,6 +49,14 @@ function App() {
               element={
                 <RequireGuest>
                   <ForgotPassword />
+                </RequireGuest>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <RequireGuest>
+                  <ResetPassword />
                 </RequireGuest>
               }
             />
