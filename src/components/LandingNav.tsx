@@ -32,7 +32,7 @@ export function LandingNav() {
 
     return (
         // <header className="glass-nav sticky top-4 z-50 mx-auto flex max-w-6xl items-center justify-between rounded-full px-3 py-2.5 md:px-4">
-        <header className="sticky top-0 z-50 mx-auto flex items-center justify-between lg:justify-center lg:gap-30 lg:py-5 px-3 py-2.5  glass-nav">
+        <header className="sticky top-0 z-50 mx-auto flex items-center justify-between lg:justify-center lg:gap-30 py-5 px-3 glass-nav">
             {/* <Link to="/" className="flex items-center gap-2 pl-3">
                 <img
                     src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
@@ -68,7 +68,7 @@ export function LandingNav() {
                         </span>
                         <Link
                             to="/profile"
-                            className="btn-magnetic group inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-(--shadow-accent) sm:px-5"
+                            className="btn-magnetic group inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-brand-foreground shadow-(--shadow-accent) sm:px-5 sm:py-2.5 sm:text-sm"
                         >
                             <CircleUserRound className="w-4 h-4" />
                             Profile
@@ -78,18 +78,18 @@ export function LandingNav() {
                     <>
                         <Link
                             to="/signin"
-                            className="group inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold"
+                            className="group inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold sm:px-5 sm:py-2.5 sm:text-sm"
                         >
                             Sign in
-                            <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                            <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5 sm:h-3.5 sm:w-3.5" />
                         </Link>
 
                         <Link
                             to="/signup"
-                            className="btn-magnetic group inline-flex items-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground shadow-(--shadow-accent)"
+                            className="btn-magnetic group inline-flex items-center gap-1.5 rounded-full bg-brand px-3.5 py-1.5 text-xs font-semibold text-brand-foreground shadow-(--shadow-accent) sm:px-5 sm:py-2.5 sm:text-sm"
                         >
                             Get started
-                            <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                            <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5 sm:h-3.5 sm:w-3.5" />
                         </Link>
                     </>
                 )}

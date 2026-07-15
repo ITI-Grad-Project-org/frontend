@@ -2,7 +2,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, KeyRound } from "lucide-react";
 import { useForm, type FieldErrors } from "react-hook-form";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { z } from "zod";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
@@ -24,7 +24,7 @@ type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 function ResetPassword() {
     const { isDark } = useTheme();
-    const navigate = useNavigate();
+//    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
 
