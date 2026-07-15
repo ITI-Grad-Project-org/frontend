@@ -12,7 +12,7 @@ export function LandingHeroSection({ x, y }: LandingHeroSectionProps) {
         <section id="home" className="relative mx-auto max-w-7xl px-6 pb-40 pt-24 md:px-10 md:pt-32">
             <LandingFloatingArt x={x} y={y} />
             <div className="relative z-10 mx-auto max-w-4xl text-center reveal">
-                <h1 className="display mt-8 text-[clamp(2.75rem,7vw,6.25rem)] font-semibold leading-[0.98] tracking-[-0.03em] animate-in zoom-in-95 duration-600">
+                <h1 className="display mt-8 text-[clamp(2.75rem,7vw,6.25rem)] font-semibold leading-[0.98] tracking-[-0.03em] animate-in zoom-in-75 blur-in-3xl duration-800">
                     <span className="block">Train smarter.</span>
                     <span className="block">Coach better.</span>
                     <span className="block text-shimmer">One platform.</span>

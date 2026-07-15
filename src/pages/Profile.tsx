@@ -12,6 +12,7 @@ import { useTheme } from "@/theme";
 import type { Coach, UpdateCoachPayload } from "@/types/auth";
 import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 const certificationSchema = z.object({
     name: z.string().trim().min(1, "Certification name is required"),
@@ -120,6 +121,7 @@ function Profile() {
 
     const [specialties, setSpecialties] = useState<string[]>([]);
 
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const {
         register,
@@ -212,7 +214,7 @@ function Profile() {
         }
 
         try {
-            await updateCoachProfile(user.id, payload);
+            await updateCoachProfile(payload);
 
             const refreshedCoach = await getCoachProfile();
             setUser(refreshedCoach);
@@ -233,16 +235,22 @@ function Profile() {
     const handleSignOut = async () => {
         try {
             await signOut();
-            toast.success("You've been signed out.");
-            clearSession();
-            navigate("/", { replace: true });
         } catch (error) {
-            toast.error("Something went wrong. Please try again.");
+            console.log(error);
+
+        } finally {
+            clearSession();
+            toast.success("You've been signed out.");
+            navigate("/", { replace: true });
         }
     };
 
-    const handleDelete = async () => {
-        if (!user || !window.confirm("Delete your coach profile permanently? This cannot be undone.")) {
+    const handleDeleteClick = () => {
+        setIsDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!user) {
             return;
         }
 
@@ -250,11 +258,12 @@ function Profile() {
         setSubmissionError("");
 
         try {
-            await deleteCoachProfile(user.id);
+            await deleteCoachProfile();
             clearSession();
             navigate("/", { replace: true });
         } catch (error) {
             setSubmissionError(getApiErrorMessage(error, "We could not delete your profile. Please try again."));
+            setIsDeleteDialogOpen(false);
         } finally {
             setIsDeleting(false);
         }
@@ -278,7 +287,7 @@ function Profile() {
     return (
         <div className="min-h-screen px-6 py-8 bg-background text-foreground sm:py-12">
             <div className="w-full max-w-4xl mx-auto">
-                <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
+                <header className="flex flex-wrap items-center justify-between gap-4 mb-8 animate-text">
                     <Link to="/" className="inline-flex items-center">
                         <img src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"} alt="Uply" className="w-auto h-8" />
                     </Link>
@@ -301,13 +310,13 @@ function Profile() {
                     </div>
                 </header>
 
-                <div className="mb-8">
+                <div className="mb-8 animate-text">
                     <p className="text-sm font-semibold text-brand">Coach profile</p>
                     <h1 className="mt-2 text-3xl font-extrabold">Your profile</h1>
                     <p className="max-w-2xl mt-2 text-sm text-muted-foreground">Review and update the coaching details your clients see.</p>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-3">
+                <div className="grid gap-6 lg:grid-cols-3 animate-content">
                     <form onSubmit={handleSubmit(onSubmit)} className="lg:col-span-2 space-y-6">
                         <input type="hidden" {...register("specialties")} />
 
@@ -415,7 +424,8 @@ function Profile() {
                         {submissionError && <p role="alert" className="p-3 text-sm rounded-xl bg-destructive/10 text-destructive">{submissionError}</p>}
 
                         <div className="flex flex-wrap items-center justify-between gap-4 pb-8">
-                            <button type="button" disabled={isDeleting} onClick={handleDelete} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold transition cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 disabled:opacity-60"><Trash2 className="w-4 h-4" />{isDeleting ? "Deleting…" : "Delete profile"}</button>
+                            {/* <button type="button" disabled={isDeleting} onClick={handleDelete} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold transition cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 disabled:opacity-60"><Trash2 className="w-4 h-4" />{isDeleting ? "Deleting…" : "Delete profile"}</button> */}
+                            <button type="button" disabled={isDeleting} onClick={handleDeleteClick} className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold transition cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 disabled:opacity-60"><Trash2 className="w-4 h-4" />{isDeleting ? "Deleting…" : "Delete profile"}</button>
                             <button type="submit" disabled={isSubmitting || !isDirty} className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition rounded-xl bg-ink text-ink-foreground hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"><Save className="w-4 h-4" />{isSubmitting ? "Saving…" : "Save profile"}</button>
                         </div>
                     </form>
@@ -509,6 +519,17 @@ function Profile() {
                 </div>
 
             </div>
+
+            <ConfirmDialog
+                open={isDeleteDialogOpen}
+                title="Delete your profile?"
+                description="This will permanently delete your coach profile and cannot be undone."
+                confirmLabel="Delete profile"
+                isConfirming={isDeleting}
+                onConfirm={handleDeleteConfirm}
+                onCancel={() => setIsDeleteDialogOpen(false)}
+            />
+
         </div>
     );
 }

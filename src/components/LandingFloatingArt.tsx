@@ -9,13 +9,14 @@ type LandingFloatingArtProps = {
 
 export function LandingFloatingArt({ x, y }: LandingFloatingArtProps) {
     return (
-        <div aria-hidden className="pointer-events-none absolute inset-0 z-0 animate-in zoom-in-95 duration-600">
+        <div aria-hidden className="pointer-events-none absolute inset-0 z-0 animate-in zoom-in-300 blur-in-sm duration-800">
             <img
                 src={dumbbell1}
                 alt=""
                 width={520}
                 height={520}
                 className="float-a absolute left-[-4%] top-[8%] w-70 opacity-95 md:w-110 drop-shadow-[0_40px_60px_rgba(0,0,0,0.55)]"
+
                 style={{
                     ["--rot" as string]: "-14deg",
                     ["--px" as string]: `${x * 22}px`,
