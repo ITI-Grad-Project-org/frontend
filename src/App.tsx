@@ -9,6 +9,8 @@ import Nutrition from "./pages/Dashboard/Nutrition";
 import Exercises from "./pages/Dashboard/Exercises";
 import Meals from "./pages/Dashboard/Meals";
 import Analytics from "./pages/Dashboard/Analytics";
+import Reviews from "./pages/Dashboard/Reviews";
+import CoachProfile from "./pages/CoachProfile";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import { ThemeProvider } from "./theme";
@@ -85,7 +87,10 @@ function App() {
               <Route path="exercises" element={<Exercises />} />
               <Route path="meals" element={<Meals />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="reviews" element={<Reviews />} />
             </Route>
+
+            <Route path="/coach/:tenantId" element={<CoachProfile />} />
 
             <Route path="*" element={<DefaultPage />} />
           </Routes>
