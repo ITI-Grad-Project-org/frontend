@@ -7,61 +7,10 @@ import type { ClientConnection, ClientInvitation } from "@/types/client";
 import { getApiErrorMessage } from "@/lib/api";
 import { RefreshCw, UserRoundPlus, Mail, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
+import ClientCardSkeleton from "@/components/ClientCardSkeleton";
+import InvitationSkeleton from "@/components/InvitationSkeleton";
 
-function ClientCardSkeleton() {
-  return (
-    <div className="w-full flex flex-col justify-between gap-5 p-6 border border-border bg-card rounded-3xl animate-pulse">
-      <div className="flex flex-col gap-4">
-        {/* Avatar & Name skeleton */}
-        <div className="flex gap-4 items-center">
-          <div className="w-16 h-16 rounded-full bg-muted shrink-0" />
-          <div className="flex flex-col gap-2 w-full">
-            <div className="h-5 bg-muted rounded w-2/3" />
-            <div className="h-4 bg-muted rounded w-1/3" />
-          </div>
-        </div>
 
-        {/* Divider & details skeleton */}
-        <div className="flex flex-col gap-2.5 py-4 border-t border-b border-border/60">
-          <div className="h-4 bg-muted rounded w-3/4" />
-          <div className="h-4 bg-muted rounded w-1/2" />
-          <div className="h-4 bg-muted rounded w-2/3" />
-        </div>
-
-        {/* Stats columns */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="h-16 bg-muted/40 rounded-2xl border border-border/40" />
-          <div className="h-16 bg-muted/40 rounded-2xl border border-border/40" />
-        </div>
-      </div>
-
-      {/* Buttons */}
-      <div className="grid grid-cols-2 gap-3 mt-2">
-        <div className="h-11 bg-muted rounded-2xl" />
-        <div className="h-11 bg-muted rounded-2xl" />
-      </div>
-    </div>
-  );
-}
-
-function InvitationSkeleton() {
-  return (
-    <div className="w-full flex items-center justify-between p-5 border border-border bg-card rounded-2xl animate-pulse">
-      <div className="flex items-center gap-4.5 w-1/2">
-        <div className="w-10 h-10 rounded-xl bg-muted shrink-0" />
-        <div className="flex flex-col gap-2 w-full">
-          <div className="h-4.5 bg-muted rounded w-1/3" />
-          <div className="h-3.5 bg-muted rounded w-1/2" />
-        </div>
-      </div>
-      <div className="flex items-center gap-6">
-        <div className="h-6 w-16 bg-muted rounded-full" />
-        <div className="h-4 w-20 bg-muted rounded" />
-        <div className="h-8 w-8 bg-muted rounded-xl" />
-      </div>
-    </div>
-  );
-}
 
 function Clients() {
   const [activeTab, setActiveTab] = useState<"clients" | "invitations">("clients");
@@ -81,52 +30,62 @@ function Clients() {
   const [invitationToRevoke, setInvitationToRevoke] = useState<string | null>(null);
   const [isRevoking, setIsRevoking] = useState<boolean>(false);
 
-  const fetchClientsList = (isActive = true) => {
+  const fetchClientsList = async (isActive = true) => {
     setClientsLoading(true);
     setClientsError("");
-    getClients()
-      .then((data) => {
-        if (isActive) {
-          const validClients = Array.isArray(data)
-            ? data.filter((conn) => conn && conn.client)
-            : [];
-          setClients(validClients);
-        }
-      })
-      .catch((err) => {
-        if (isActive) {
-          setClientsError(getApiErrorMessage(err, "Failed to load clients. Please try again."));
-        }
-      })
-      .finally(() => {
-        if (isActive) {
-          setClientsLoading(false);
-        }
-      });
+
+    try {
+      const data = await getClients();
+
+      if (isActive) {
+        const validClients = Array.isArray(data)
+          ? data.filter((conn) => conn && conn.client)
+          : [];
+
+        setClients(validClients);
+      }
+    } catch (err) {
+      if (isActive) {
+        setClientsError(
+          getApiErrorMessage(err, "Failed to load clients. Please try again.")
+        );
+      }
+    } finally {
+      if (isActive) {
+        setClientsLoading(false);
+      }
+    }
   };
 
-  const fetchInvitationsList = (isActive = true) => {
+  const fetchInvitationsList = async (isActive = true) => {
     setInvitationsLoading(true);
     setInvitationsError("");
-    getInvitations()
-      .then((data) => {
-        if (isActive) {
-          const validInvites = Array.isArray(data)
-            ? [...data].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            : [];
-          setInvitations(validInvites);
-        }
-      })
-      .catch((err) => {
-        if (isActive) {
-          setInvitationsError(getApiErrorMessage(err, "Failed to load invitations. Please try again."));
-        }
-      })
-      .finally(() => {
-        if (isActive) {
-          setInvitationsLoading(false);
-        }
-      });
+
+    try {
+      const data = await getInvitations();
+
+      if (isActive) {
+        const validInvites = Array.isArray(data)
+          ? [...data].sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime()
+          )
+          : [];
+
+        setInvitations(validInvites);
+      }
+    } catch (err) {
+      if (isActive) {
+        setInvitationsError(
+          getApiErrorMessage(err, "Failed to load invitations. Please try again.")
+        );
+      }
+    } finally {
+      if (isActive) {
+        setInvitationsLoading(false);
+      }
+    }
   };
 
   useEffect(() => {

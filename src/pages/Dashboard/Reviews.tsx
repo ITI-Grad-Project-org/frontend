@@ -4,6 +4,8 @@ import { getMyReviews } from "@/services/reviews";
 import { getApiErrorMessage } from "@/lib/api";
 import type { Review, RatingSummary } from "@/types/reviews";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import SummarySkeleton from "@/components/SummarySkeleton";
+import ReviewSkeleton from "@/components/ReviewSkeleton";
 
 // ─── Star renderer ────────────────────────────────────────────────────────────
 
@@ -22,43 +24,6 @@ function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
           strokeWidth={1.5}
         />
       ))}
-    </div>
-  );
-}
-
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
-
-function ReviewSkeleton() {
-  return (
-    <div className="flex gap-4 p-5 border border-border bg-card rounded-2xl animate-pulse">
-      <div className="w-11 h-11 rounded-full bg-muted shrink-0" />
-      <div className="flex-1 flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="h-4 bg-muted rounded w-1/4" />
-          <div className="h-4 bg-muted rounded w-20" />
-        </div>
-        <div className="h-3.5 bg-muted rounded w-16" />
-        <div className="space-y-2">
-          <div className="h-3.5 bg-muted rounded w-full" />
-          <div className="h-3.5 bg-muted rounded w-3/4" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SummarySkeleton() {
-  return (
-    <div className="flex items-center gap-6 p-6 border border-border bg-card rounded-2xl animate-pulse w-full sm:w-fit">
-      <div className="flex flex-col items-center gap-2">
-        <div className="h-10 w-20 bg-muted rounded-xl" />
-        <div className="h-3 w-12 bg-muted rounded" />
-      </div>
-      <div className="w-px h-12 bg-border" />
-      <div className="flex flex-col gap-2">
-        <div className="h-4 w-28 bg-muted rounded" />
-        <div className="h-3 w-20 bg-muted rounded" />
-      </div>
     </div>
   );
 }
@@ -144,25 +109,27 @@ function Reviews() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchReviews = (isActive = true) => {
+  const fetchReviews = async (isActive = true) => {
     setLoading(true);
     setError("");
-    getMyReviews()
-      .then((data) => {
-        if (isActive) {
-          setReviews(Array.isArray(data) ? data : []);
-        }
-      })
-      .catch((err) => {
-        if (isActive) {
-          setError(
-            getApiErrorMessage(err, "Failed to load reviews. Please try again.")
-          );
-        }
-      })
-      .finally(() => {
-        if (isActive) setLoading(false);
-      });
+
+    try {
+      const data = await getMyReviews();
+
+      if (isActive) {
+        setReviews(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      if (isActive) {
+        setError(
+          getApiErrorMessage(err, "Failed to load reviews. Please try again.")
+        );
+      }
+    } finally {
+      if (isActive) {
+        setLoading(false);
+      }
+    }
   };
 
   useEffect(() => {
