@@ -87,7 +87,6 @@ function SignUp() {
                         <Field label="Last name" type="text" autoComplete="family-name" placeholder="Rivera" error={errors.lastName?.message} {...register("lastName")} />
                     </div>
                     <Field label="Email" type="email" autoComplete="email" placeholder="alex@yourgym.com" error={errors.email?.message} {...register("email")} />
-                    <Field label="Phone" type="tel" autoComplete="tel" placeholder="+201000062000" error={errors.phone?.message} {...register("phone")} />
                     <Field label="Business name" type="text" autoComplete="organization" placeholder="Your coaching business" error={errors.businessName?.message} {...register("businessName")} />
                     <Field label="Password" type="password" autoComplete="new-password" placeholder="Min. 8 characters" error={errors.password?.message} {...register("password")} />
                     <Field label="Confirm password" type="password" autoComplete="new-password" placeholder="Repeat your password" error={errors.confirmPassword?.message} {...register("confirmPassword")} />

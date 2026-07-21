@@ -35,13 +35,7 @@ export const signUpSchema = z
       .trim()
       .min(2, "Last name must be at least 2 characters"),
     email: z.string().trim().email("Enter a valid email address"),
-    phone: z
-      .string()
-      .trim()
-      .regex(
-        /^\+\d{8,15}$/,
-        "Use an international phone number, e.g. +201000000000",
-      ),
+
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
     businessName: z
