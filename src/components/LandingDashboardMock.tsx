@@ -1,6 +1,6 @@
 export function LandingDashboardMock() {
     return (
-        <div className="rounded-3xl border border-white/10 bg-[oklch(0.19_0.008_260)] p-5">
+        <div className="mock-dark-surface rounded-3xl border border-white/10 bg-[oklch(0.19_0.008_260)] p-5">
             <div className="mb-4 flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-white/15" />
                 <span className="h-2.5 w-2.5 rounded-full bg-white/15" />

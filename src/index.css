@@ -527,3 +527,95 @@
 .tile-card:hover::before {
     opacity: 1;
 }
+
+
+
+/* ---------- Homepage-only light mode overrides ---------- */
+
+:root:not(.dark) .landing-page .text-shimmer {
+    background: linear-gradient(90deg,
+            oklch(0.22 0.01 260) 0%,
+            oklch(0.22 0.01 260) 30%,
+            oklch(0.6 0.19 38) 50%,
+            oklch(0.22 0.01 260) 70%,
+            oklch(0.22 0.01 260) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+:root:not(.dark) .landing-page .glass-panel {
+    background: linear-gradient(180deg, oklch(1 0 0 / 65%), oklch(1 0 0 / 35%));
+    border: 1px solid oklch(0 0 0 / 8%);
+    box-shadow: 0 1px 2px oklch(0 0 0 / 0.04), 0 20px 44px -20px oklch(0 0 0 / 0.12);
+}
+
+:root:not(.dark) .landing-page .glass-nav {
+    border: 1px solid oklch(0 0 0 / 6%);
+}
+
+:root:not(.dark) .landing-page .grid-bg {
+    background-image:
+        linear-gradient(oklch(0 0 0 / 4%) 1px, transparent 1px),
+        linear-gradient(90deg, oklch(0 0 0 / 4%) 1px, transparent 1px);
+}
+
+:root:not(.dark) .landing-page footer {
+    border-top-color: oklch(0 0 0 / 8%);
+}
+
+/* Ghost / outline buttons + borders that assumed a dark canvas */
+:root:not(.dark) .landing-page .border-white\/10 {
+    border-color: oklch(0 0 0 / 10%);
+}
+
+:root:not(.dark) .landing-page .border-white\/8 {
+    border-color: oklch(0 0 0 / 8%);
+}
+
+:root:not(.dark) .landing-page .border-white\/5 {
+    border-color: oklch(0 0 0 / 8%);
+}
+
+:root:not(.dark) .landing-page .border-white\/20 {
+    border-color: oklch(0 0 0 / 14%);
+}
+
+:root:not(.dark) .landing-page .bg-white\/4 {
+    background-color: oklch(0 0 0 / 3%);
+}
+
+:root:not(.dark) .landing-page .bg-white\/5 {
+    background-color: oklch(0 0 0 / 4%);
+}
+
+:root:not(.dark) .landing-page .bg-white\/6 {
+    background-color: oklch(0 0 0 / 4%);
+}
+
+:root:not(.dark) .landing-page .bg-white\/8 {
+    background-color: oklch(0 0 0 / 6%);
+}
+
+:root:not(.dark) .landing-page .hover\:bg-white\/8:hover {
+    background-color: oklch(0 0 0 / 6%);
+}
+
+:root:not(.dark) .landing-page .hover\:bg-white\/6:hover {
+    background-color: oklch(0 0 0 / 5%);
+}
+
+/* ---------- Landing mocks: fixed-dark surfaces need fixed-light text ---------- */
+.mock-dark-surface,
+.mock-dark-surface * {
+    color: oklch(0.96 0.003 260);
+}
+
+.mock-dark-surface .text-muted-foreground {
+    color: oklch(0.72 0.02 260);
+}
+
+.mock-dark-surface .text-brand {
+    color: oklch(0.78 0.19 42);
+}

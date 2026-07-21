@@ -1,26 +1,18 @@
-import { useEffect } from "react";
 import { LandingAccessSection } from "../components/LandingAccessSection";
 import { LandingEcosystemSection } from "../components/LandingEcosystemSection";
 import { LandingFeaturesSection } from "../components/LandingFeaturesSection";
 import { LandingFooter } from "../components/LandingFooter";
 import { LandingNav } from "../components/LandingNav";
-import { useTheme } from "../theme";
 import { LandingHeroSection } from "@/components/LandingHeroSection";
 import { useMouseParallax } from "@/hooks/useMouseParallax";
 
 
 
 export default function Homepage() {
-    const { setTheme } = useTheme();
-
-    useEffect(() => {
-        setTheme("dark");
-    }, [setTheme]);
-
     const { x, y } = useMouseParallax();
 
     return (
-        <div className="relative min-h-screen overflow-x-clip bg-background text-foreground">
+        <div className="landing-page relative min-h-screen overflow-x-clip bg-background text-foreground">
             <div aria-hidden className="fixed inset-0 pointer-events-none -z-20">
                 <div
                     className="absolute inset-0"

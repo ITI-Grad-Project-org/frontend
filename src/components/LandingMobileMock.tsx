@@ -2,7 +2,7 @@ import { Check, Dumbbell } from "lucide-react";
 
 export function LandingMobileMock() {
     return (
-        <div className="rounded-[36px] border border-white/10 bg-[oklch(0.14_0.008_260)] p-3 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)]">
+        <div className="mock-dark-surface rounded-[36px] border border-white/10 bg-[oklch(0.14_0.008_260)] p-3 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)]">
             <div className="rounded-[28px] border border-white/10 bg-[oklch(0.19_0.008_260)] p-4">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                     <span>Today · Push A</span>
