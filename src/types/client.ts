@@ -39,3 +39,17 @@ export interface ClientInvitation {
   created_at: string;
   updated_at: string;
 }
+
+export interface JoinRequest {
+  id: string;
+  status: string; // e.g. "requested"
+  blockReason: string | null;
+  requestMessage: string | null;
+  decidedAt: string | null;
+  joinedAt: string | null;
+  lastActiveAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  client: ClientDetail;
+}

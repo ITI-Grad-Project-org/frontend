@@ -14,12 +14,12 @@ export default function Clients() {
   const [activeTab, setActiveTab] = useState<TabType>("clients");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
-  const { clients, invitations, actions } = useClientsData();
+  const { clients, invitations, joinRequests, actions } = useClientsData();
 
   const TABS: { id: TabType; label: string; count?: number }[] = [
     { id: "clients", label: "Active Clients", count: clients.data.length },
     { id: "invitations", label: "Invitations", count: invitations.data.length },
-    { id: "requests", label: "Client Requests", count: 0 },
+    { id: "requests", label: "Clients Requests", count: joinRequests.data.length },
   ];
 
   const activeTabClasses = "px-5 py-2.5 text-sm font-bold bg-ink text-ink-foreground rounded-xl transition-all shadow-sm";
@@ -52,7 +52,7 @@ export default function Clients() {
             onClick={() => setActiveTab(tab.id)}
             className={activeTab === tab.id ? activeTabClasses : inactiveTabClasses}
           >
-            {tab.label} {tab.count !== undefined ? `(${tab.count})` : ""}
+            {tab.label} {tab.count !== undefined && tab.count > 0 ? `(${tab.count})` : ""}
           </button>
         ))}
       </div>
@@ -77,7 +77,16 @@ export default function Clients() {
         />
       )}
 
-      {activeTab === "requests" && <RequestsTab />}
+      {activeTab === "requests" && (
+        <RequestsTab
+          data={joinRequests.data}
+          loading={joinRequests.loading}
+          error={joinRequests.error}
+          onRetry={() => joinRequests.refetch(true)}
+          onApprove={(id) => actions.setRequestToApprove(id)}
+          onReject={(id) => actions.setRequestToReject(id)}
+        />
+      )}
 
       {/* Modals & Dialogs */}
       <InviteClientModal
@@ -97,6 +106,26 @@ export default function Clients() {
         isConfirming={actions.isRevoking}
         onConfirm={actions.handleRevokeConfirm}
         onCancel={() => actions.setInvitationToRevoke(null)}
+      />
+
+      <ConfirmDialog
+        open={actions.requestToApprove !== null}
+        title="Approve Request?"
+        description="Are you sure you want to approve this client request? They will become an active client."
+        confirmLabel="Approve"
+        isConfirming={actions.isApproving}
+        onConfirm={actions.handleApproveConfirm}
+        onCancel={() => actions.setRequestToApprove(null)}
+      />
+
+      <ConfirmDialog
+        open={actions.requestToReject !== null}
+        title="Reject Request?"
+        description="Are you sure you want to reject this client request?"
+        confirmLabel="Reject"
+        isConfirming={actions.isRejecting}
+        onConfirm={actions.handleRejectConfirm}
+        onCancel={() => actions.setRequestToReject(null)}
       />
     </>
   );

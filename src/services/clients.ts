@@ -33,3 +33,16 @@ export async function createInvitation(payload: { email: string; name: string })
 export async function deleteInvitation(id: string): Promise<void> {
   await api.delete(`/invitation/${id}`);
 }
+
+export async function getJoinRequests(): Promise<import("@/types/client").JoinRequest[]> {
+  const { data } = await api.get<import("@/types/client").JoinRequest[]>("/join-requests");
+  return data;
+}
+
+export async function approveJoinRequest(id: string): Promise<void> {
+  await api.post(`/join-requests/${id}/approve`);
+}
+
+export async function rejectJoinRequest(id: string): Promise<void> {
+  await api.post(`/join-requests/${id}/reject`);
+}
