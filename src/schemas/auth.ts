@@ -1,0 +1,81 @@
+// src/schemas/auth.ts
+import { z } from "zod";
+
+/**
+ * Common Password Rules
+ */
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number");
+
+/**
+ * 1. Sign In Schema
+ */
+export const signInSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type SignInFormData = z.infer<typeof signInSchema>;
+
+/**
+ * 2. Sign Up Schema
+ */
+export const signUpSchema = z
+  .object({
+    firstName: z
+      .string()
+      .trim()
+      .min(2, "First name must be at least 2 characters"),
+    lastName: z
+      .string()
+      .trim()
+      .min(2, "Last name must be at least 2 characters"),
+    email: z.string().trim().email("Enter a valid email address"),
+    phone: z
+      .string()
+      .trim()
+      .regex(
+        /^\+\d{8,15}$/,
+        "Use an international phone number, e.g. +201000000000",
+      ),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+    businessName: z
+      .string()
+      .trim()
+      .min(2, "Business name must be at least 2 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type SignUpFormData = z.infer<typeof signUpSchema>;
+
+/**
+ * 3. Forgot Password Schema
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().email("Enter a valid email address"),
+});
+
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+
+/**
+ * 4. Reset Password Schema
+ */
+export const resetPasswordSchema = z
+  .object({
+    newPassword: passwordSchema,
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

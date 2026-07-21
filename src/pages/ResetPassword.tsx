@@ -3,28 +3,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, KeyRound } from "lucide-react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { Link, useSearchParams } from "react-router";
-import { z } from "zod";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { getFirstFormErrorMessage } from "@/lib/form-errors";
 import { resetPassword } from "@/services/auth";
 import { useTheme } from "@/theme";
+import { resetPasswordSchema, type ResetPasswordFormData } from "@/schemas/auth";
 
-const resetPasswordSchema = z
-    .object({
-        newPassword: z.string().min(8, "Password must be at least 8 characters"),
-        confirmPassword: z.string().min(1, "Please confirm your password"),
-    })
-    .refine((data) => data.newPassword === data.confirmPassword, {
-        message: "Passwords do not match",
-        path: ["confirmPassword"],
-    });
-
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
 function ResetPassword() {
     const { isDark } = useTheme();
-//    const navigate = useNavigate();
+    //    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
 

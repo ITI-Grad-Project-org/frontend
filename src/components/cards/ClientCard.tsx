@@ -1,5 +1,5 @@
-import CardMain from "./Cards/CardMain";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import CardMain from "./CardMain";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Dumbbell, User2Icon, Utensils, Mail, Phone, Calendar } from "lucide-react";
 import type { ClientConnection } from "@/types/client";
 import { toast } from "react-toastify";

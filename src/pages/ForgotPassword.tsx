@@ -3,18 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Mail } from "lucide-react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { Link } from "react-router";
-import { z } from "zod";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { getFirstFormErrorMessage } from "@/lib/form-errors";
 import { requestPasswordReset } from "@/services/auth";
 import { useTheme } from "@/theme";
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/schemas/auth";
 
-const forgotPasswordSchema = z.object({
-    email: z.string().trim().email("Enter a valid email address"),
-});
-
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 function ForgotPassword() {
     const { isDark } = useTheme();

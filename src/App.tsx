@@ -16,11 +16,11 @@ import SignUp from "./pages/SignUp";
 import { ThemeProvider } from "./theme";
 import Profile from "./pages/Profile";
 import ForgotPassword from "./pages/ForgotPassword";
-import { AuthSessionBootstrap } from "./components/AuthSessionBootstrap";
-import { RequireAuth } from "./components/RequireAuth";
-import { RequireGuest } from "./components/RequireGuest";
-import { ThemeToggleFab } from "./components/ThemeToggleFab";
-import { AppToaster } from "./components/AppToaster";
+import { AuthSessionBootstrap } from "./components/auth/AuthSessionBootstrap";
+import { RequireAuth } from "./components/auth/RequireAuth";
+import { RequireGuest } from "./components/auth/RequireGuest";
+import { ThemeToggleFab } from "./components/ui/ThemeToggleFab";
+import { AppToaster } from "./components/ui/AppToaster";
 import ResetPassword from "./pages/ResetPassword";
 
 function App() {

@@ -1,6 +1,6 @@
 import { Pencil, Trash2, UtensilsCrossed } from "lucide-react";
-import CardMain from "./Cards/CardMain";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import CardMain from "./CardMain";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 type MealCardProps = {
     thumbnail: string;

@@ -3,20 +3,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight } from "lucide-react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router";
-import { z } from "zod";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { getFirstFormErrorMessage } from "@/lib/form-errors";
 import { signIn } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
-
-const signInSchema = z.object({
-    email: z.string().trim().email("Enter a valid email address"),
-    password: z.string().min(1, "Password is required"),
-});
-
-type SignInFormData = z.infer<typeof signInSchema>;
+import { signInSchema, type SignInFormData } from "@/schemas/auth";
 
 function Field({ label, error, ...props }: { label: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
     return (

@@ -24,7 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import CardInk from "@/components/Cards/CardInk"
+import CardInk from "@/components/cards/CardInk"
 
 export const description = "An interactive area chart"
 

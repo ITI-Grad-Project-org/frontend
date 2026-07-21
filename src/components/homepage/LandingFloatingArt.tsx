@@ -1,6 +1,6 @@
-import dumbbell1 from "../assets/dumbbell-1.webp";
-import dumbbell2 from "../assets/dumbbell-2.webp";
-import kettlebell from "../assets/kettlebell.webp";
+import dumbbell1 from "@/assets/dumbbell-1.webp";
+import dumbbell2 from "@/assets/dumbbell-2.webp";
+import kettlebell from "@/assets/kettlebell.webp";
 
 type LandingFloatingArtProps = {
     x: number;

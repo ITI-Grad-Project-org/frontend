@@ -18,7 +18,7 @@ import { getApiErrorMessage } from "@/lib/api";
 import type { CoachPublicProfile, Review, RatingSummary } from "@/types/reviews";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useTheme } from "@/theme";
-import ProfileSkeleton from "@/components/ProfileSkeleton";
+import ProfileSkeleton from "@/components/skeletons/ProfileSkeleton";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

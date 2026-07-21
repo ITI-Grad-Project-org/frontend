@@ -14,7 +14,7 @@ import {
     ChartTooltipContent,
     type ChartConfig,
 } from "@/components/ui/chart"
-import CardMain from "@/components/Cards/CardMain"
+import CardMain from "@/components/cards/CardMain"
 
 export const description = "A bar chart"
 

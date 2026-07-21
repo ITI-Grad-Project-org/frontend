@@ -1,6 +1,6 @@
 import { DumbbellIcon, Pencil, Trash2 } from "lucide-react";
-import CardMain from "./Cards/CardMain";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import CardMain from "./CardMain";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import type { Exercise } from "@/types/exercise";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

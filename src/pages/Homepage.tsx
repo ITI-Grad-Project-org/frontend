@@ -1,12 +1,10 @@
-import { LandingAccessSection } from "../components/LandingAccessSection";
-import { LandingEcosystemSection } from "../components/LandingEcosystemSection";
-import { LandingFeaturesSection } from "../components/LandingFeaturesSection";
-import { LandingFooter } from "../components/LandingFooter";
-import { LandingNav } from "../components/LandingNav";
-import { LandingHeroSection } from "@/components/LandingHeroSection";
+import { LandingAccessSection } from "@/components/homepage/LandingAccessSection";
+import { LandingEcosystemSection } from "@/components/homepage/LandingEcosystemSection";
+import { LandingFeaturesSection } from "@/components/homepage/LandingFeaturesSection";
+import { LandingFooter } from "@/components/homepage/LandingFooter";
+import { LandingNav } from "@/components/homepage/LandingNav";
+import { LandingHeroSection } from "@/components/homepage/LandingHeroSection";
 import { useMouseParallax } from "@/hooks/useMouseParallax";
-
-
 
 export default function Homepage() {
     const { x, y } = useMouseParallax();

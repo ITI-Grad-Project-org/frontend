@@ -1,5 +1,5 @@
 import { X, DumbbellIcon, PlayCircle, ExternalLink, Pencil } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Exercise } from "@/types/exercise";
 
 type Props = {

@@ -1,7 +1,7 @@
-import AddMealModal from "@/components/AddMealModal";
-import CardMain from "@/components/Cards/CardMain";
-import { Chip } from "@/components/Chip";
-import MealCard from "@/components/MealCard";
+import AddMealModal from "@/components/modals/AddMealModal";
+import CardMain from "@/components/cards/CardMain";
+import { Chip } from "@/components/ui/Chip";
+import MealCard from "@/components/cards/MealCard";
 import { Plus, Search, UserRoundPlus } from "lucide-react";
 import { useState } from "react";
 

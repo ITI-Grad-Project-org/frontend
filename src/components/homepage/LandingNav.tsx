@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { ArrowRight, CircleUserRound } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
-import { useTheme } from "../theme";
+import { useTheme } from "@/theme";
 
 const navItems = [
     { label: "The Ecosystem", href: "#ecosystem" },
@@ -31,15 +31,9 @@ export function LandingNav() {
     };
 
     return (
-        // <header className="glass-nav sticky top-4 z-50 mx-auto flex max-w-6xl items-center justify-between rounded-full px-3 py-2.5 md:px-4">
-        <header className="sticky top-0 z-50 mx-auto flex items-center justify-between lg:justify-center lg:gap-30 py-5 px-3 glass-nav">
-            {/* <Link to="/" className="flex items-center gap-2 pl-3">
-                <img
-                    src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
-                    alt="UPLY"
-                    className="w-auto h-6 md:h-8"
-                />
-            </Link> */}
+        // <header className="sticky top-0 z-50 mx-auto flex items-center justify-between lg:justify-center lg:gap-30 py-5 px-3 lg:px-[calc((100vw-1152px)/2)] glass-nav">
+        <header className="glass-nav sticky top-4 z-50 mx-auto flex max-w-6xl items-center justify-between rounded-full px-3 py-2.5 md:px-4">
+
             <a href="#home" className="flex items-center gap-2 pl-3" onClick={(event) => handleAnchorClick(event, "#home")}>
                 <img
                     src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}

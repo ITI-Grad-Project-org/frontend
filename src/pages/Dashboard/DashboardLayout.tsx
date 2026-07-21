@@ -1,6 +1,6 @@
 import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, CircleUserRound, Star } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router";
-import { useTheme } from "../../theme";
+import { useTheme } from "@/theme";
 
 function DashboardLayout() {
     const { isDark } = useTheme();

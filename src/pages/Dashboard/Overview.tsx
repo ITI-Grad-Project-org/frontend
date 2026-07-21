@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { lazy, Suspense } from "react";
 
-import CardBrand from "@/components/Cards/CardBrand";
-import CardInk from "@/components/Cards/CardInk";
-import CardMain from "@/components/Cards/CardMain";
-import { Chip } from "@/components/Chip";
+import CardBrand from "@/components/cards/CardBrand";
+import CardInk from "@/components/cards/CardInk";
+import CardMain from "@/components/cards/CardMain";
+import { Chip } from "@/components/ui/Chip";
 import { Heart } from "lucide-react";
 
 const ChartBarDefault = lazy(() =>

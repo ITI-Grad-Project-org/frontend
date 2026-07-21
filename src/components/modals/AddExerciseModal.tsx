@@ -2,76 +2,18 @@ import { useState } from "react";
 import { X, Plus, DumbbellIcon, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "react-toastify";
 import { createExercise, updateExercise } from "@/services/exercises";
 import { getApiErrorMessage } from "@/lib/api";
 import type { Exercise } from "@/types/exercise";
 
-// ─── Option lists ─────────────────────────────────────────────────────────────
-
-const CATEGORY_OPTIONS = [
-  { value: "strength", label: "Strength" },
-  { value: "cardio", label: "Cardio" },
-  { value: "mobility", label: "Mobility" },
-  { value: "plyometric", label: "Plyometric" },
-  { value: "core", label: "Core" },
-] as const;
-
-const MUSCLE_OPTIONS = [
-  { value: "chest", label: "Chest" },
-  { value: "back", label: "Back" },
-  { value: "shoulders", label: "Shoulders" },
-  { value: "biceps", label: "Biceps" },
-  { value: "triceps", label: "Triceps" },
-  { value: "forearms", label: "Forearms" },
-  { value: "quads", label: "Quads" },
-  { value: "hamstrings", label: "Hamstrings" },
-  { value: "glutes", label: "Glutes" },
-  { value: "calves", label: "Calves" },
-  { value: "core", label: "Core" },
-  { value: "full_body", label: "Full Body" },
-] as const;
-
-const EQUIPMENT_OPTIONS = [
-  { value: "none", label: "Bodyweight / None" },
-  { value: "dumbbells", label: "Dumbbells" },
-  { value: "barbell", label: "Barbell" },
-  { value: "kettlebell", label: "Kettlebell" },
-  { value: "resistance_bands", label: "Resistance Bands" },
-  { value: "machines", label: "Machines" },
-  { value: "full_gym", label: "Full Gym" },
-] as const;
-
-const muscleValues = MUSCLE_OPTIONS.map((o) => o.value) as [string, ...string[]];
-const categoryValues = CATEGORY_OPTIONS.map((o) => o.value) as [string, ...string[]];
-
-// ─── Zod schema ───────────────────────────────────────────────────────────────
-
-const schema = z.object({
-  name: z.string().trim().min(1, "Exercise name is required"),
-  category: z.enum(categoryValues as ["strength", "cardio", "mobility", "plyometric", "core"], {
-    message: "Category is required",
-  }),
-  primaryMuscle: z.enum(
-    muscleValues as [
-      "chest", "back", "shoulders", "biceps", "triceps", "forearms",
-      "quads", "hamstrings", "glutes", "calves", "core", "full_body",
-    ],
-    { message: "Primary muscle is required" },
-  ),
-  thumbnailUrl: z
-    .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
-    .optional(),
-  demoVideoUrl: z
-    .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
-    .optional(),
-  demoGifUrl: z
-    .union([z.string().trim().url("Enter a valid URL"), z.literal("")])
-    .optional(),
-});
-
-type FormData = z.infer<typeof schema>;
+import {
+  addExerciseSchema,
+  CATEGORY_OPTIONS,
+  MUSCLE_OPTIONS,
+  EQUIPMENT_OPTIONS,
+  type AddExerciseFormData,
+} from "@/schemas/addExercise";
 
 // ─── Shared input / select class ──────────────────────────────────────────────
 
@@ -116,12 +58,12 @@ function AddExerciseModalContent({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<AddExerciseFormData>({
+    resolver: zodResolver(addExerciseSchema),
     values: {
       name: exercise?.name ?? "",
-      category: exercise?.category as FormData["category"],
-      primaryMuscle: exercise?.primaryMuscle as FormData["primaryMuscle"],
+      category: exercise?.category as AddExerciseFormData["category"],
+      primaryMuscle: exercise?.primaryMuscle as AddExerciseFormData["primaryMuscle"],
       thumbnailUrl: exercise?.thumbnailUrl ?? "",
       demoVideoUrl: exercise?.demoVideoUrl ?? "",
       demoGifUrl: exercise?.demoGifUrl ?? "",
@@ -157,7 +99,7 @@ function AddExerciseModalContent({
 
   // ── Submit ────────────────────────────────────────────────────────────────────
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: AddExerciseFormData) => {
     const steps = instructionSteps.filter((s) => s.trim());
 
     const payload = {
