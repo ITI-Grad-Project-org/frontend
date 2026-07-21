@@ -1,5 +1,9 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
-import { inputClassName, type ProfileFormData } from "../../schemas/profileSchema";
+import {
+    genderOptions,
+    inputClassName,
+    type ProfileFormData,
+} from "../../schemas/profileSchema";
 
 interface PersonalDetailsProps {
     register: UseFormRegister<ProfileFormData>;
@@ -22,19 +26,35 @@ export function PersonalDetailsSection({ register, errors }: PersonalDetailsProp
                     {errors.lastName && <p className="mt-1 text-xs text-destructive">{errors.lastName.message}</p>}
                 </label>
                 <label className="block">
-                    <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Email</span>
-                    <input className={`${inputClassName} bg-muted/60`} type="email" autoComplete="email" readOnly placeholder="coach@studio.com" {...register("email")} />
-                    <span className="block mt-1 text-xs text-muted-foreground">Email is locked after registration.</span>
-                    {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
-                </label>
-                <label className="block">
                     <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Phone</span>
                     <input className={inputClassName} type="tel" autoComplete="tel" placeholder="+201234567890" {...register("phone")} />
                     {errors.phone && <p className="mt-1 text-xs text-destructive">{errors.phone.message}</p>}
                 </label>
+                <label className="block">
+                    <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Age</span>
+                    <input className={inputClassName} type="number" min="16" max="100" placeholder="32" {...register("age")} />
+                    {errors.age && <p className="mt-1 text-xs text-destructive">{errors.age.message}</p>}
+                </label>
+                <label className="block">
+                    <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Gender</span>
+                    <select className={inputClassName} {...register("gender")}>
+                        <option value="">Select gender</option>
+                        {genderOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    {errors.gender && <p className="mt-1 text-xs text-destructive">{errors.gender.message}</p>}
+                </label>
+                <label className="block sm:col-span-2">
+                    <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Location</span>
+                    <input className={inputClassName} autoComplete="street-address" placeholder="Lisbon, PT" {...register("location")} />
+                    {errors.location && <p className="mt-1 text-xs text-destructive">{errors.location.message}</p>}
+                </label>
                 <label className="block sm:col-span-2">
                     <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Avatar URL</span>
-                    <input className={`${inputClassName} bg-muted/60`} type="url" readOnly placeholder="https://example.com/avatar.jpg" {...register("avatarUrl")} />
+                    <input className={inputClassName} type="url" placeholder="https://example.com/avatar.jpg" {...register("avatarUrl")} />
                     {errors.avatarUrl && <p className="mt-1 text-xs text-destructive">{errors.avatarUrl.message}</p>}
                 </label>
             </div>

@@ -23,8 +23,18 @@ export async function requestPasswordReset(email: string) {
   await api.post("/auth/forgot-password", { email }, { skipAuth: true });
 }
 
+export async function verifyResetOtp(payload: { email: string; otp: string }) {
+  const { data } = await api.post<{ resetToken: string }>(
+    "/auth/verify-reset-otp",
+    payload,
+    { skipAuth: true },
+  );
+
+  return data;
+}
+
 export async function resetPassword(payload: {
-  token: string;
+  resetToken: string;
   newPassword: string;
 }) {
   await api.post("/auth/reset-password", payload, { skipAuth: true });

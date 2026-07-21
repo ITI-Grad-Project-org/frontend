@@ -1,9 +1,14 @@
 export type Certification = {
   name: string;
-  issuer: string;
-  year: number;
+  issuer?: string | null;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  fileUrl?: string | null;
   credentialUrl?: string | null;
 };
+
+export type CoachGender = "male" | "female" | "other";
+export type CoachAvailability = "yes" | "no" | "hybrid";
 
 export type Tenant = {
   id: string;
@@ -23,13 +28,24 @@ export type Coach = {
   phone?: string | null;
   firstName: string;
   lastName: string;
+  avatarUrl?: string | null;
   bio?: string | null;
+  age?: number | null;
+  gender?: CoachGender | null;
+  location?: string | null;
   specialties?: string[];
   yearsExperience?: number | null;
+  careerExperience?: string | null;
   certifications?: Certification[];
-  avatarUrl?: string | null;
-  lastLoginAt?: string | null;
+  portfolioUrl?: string | null;
+  transformationPhotos?: string[];
+  featuredReviews?: string | null;
+  offlineAvailability?: CoachAvailability | null;
+  availabilityHours?: string | null;
+  priceFrom?: number | null;
+  priceTo?: number | null;
   socialLinks?: Record<string, string>;
+  lastLoginAt?: string | null;
   isEmailVerified?: boolean;
   isPhoneVerified?: boolean;
   createdAt?: string;
@@ -67,14 +83,23 @@ export type LoginPayload = {
 };
 
 export type UpdateCoachPayload = {
-  firstName: string;
-  lastName: string;
-  email: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string | null;
   phone?: string;
-  bio?: string;
+  age?: number;
+  gender?: CoachGender;
+  location?: string;
   specialties?: string[];
   yearsExperience?: number;
+  careerExperience?: string;
   certifications?: Certification[];
-  avatarUrl?: string | null;
-  socialLinks?: Record<string, string>;
+  portfolioUrl?: string;
+  transformationPhotos?: string[];
+  featuredReviews?: string;
+  bio?: string;
+  offlineAvailability?: CoachAvailability;
+  availabilityHours?: string;
+  priceFrom?: number;
+  priceTo?: number;
 };

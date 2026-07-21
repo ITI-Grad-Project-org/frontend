@@ -45,10 +45,14 @@ function specialtyLabel(value: string) {
   const labels: Record<string, string> = {
     strength: "Strength",
     hypertrophy: "Hypertrophy",
+    endurance: "Endurance",
     weight_loss: "Weight loss",
+    mobility: "Mobility",
     powerlifting: "Powerlifting",
     crossfit: "CrossFit",
     calisthenics: "Calisthenics",
+    postpartum: "Postpartum",
+    yoga: "Yoga",
     nutrition: "Nutrition",
     rehab: "Rehab",
     general_fitness: "General fitness",
@@ -125,6 +129,18 @@ function RatingBadge({ rating }: { rating: RatingSummary }) {
   );
 }
 
+function formatDate(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value
+    : date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 function CoachProfile() {
@@ -179,7 +195,7 @@ function CoachProfile() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Top nav */}
       <header className="sticky top-0 z-10 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="max-w-3xl mx-auto flex items-center justify-between px-6 py-4">
+        <div className="max-w-3xl mx-auto flex items-center justify-center px-6 py-4">
           <Link to="/">
             <img
               src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
@@ -187,13 +203,13 @@ function CoachProfile() {
               className="h-7 w-auto"
             />
           </Link>
-          <Link
+          {/* <Link
             to="/"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             Back
-          </Link>
+          </Link> */}
         </div>
       </header>
 
@@ -266,6 +282,9 @@ function CoachProfile() {
                       {coach.tenant.name}
                     </span>
                   </div>
+                  {coach.location && (
+                    <p className="text-sm text-muted-foreground">{coach.location}</p>
+                  )}
 
                   {/* Rating */}
                   <RatingBadge rating={rating} />
@@ -275,6 +294,23 @@ function CoachProfile() {
                     <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
                       {coach.bio}
                     </p>
+                  )}
+
+                  {coach.careerExperience && (
+                    <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+                      {coach.careerExperience}
+                    </p>
+                  )}
+
+                  {coach.featuredReviews && (
+                    <div className="mt-4 rounded-2xl border border-border bg-muted/25 p-4">
+                      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">
+                        Featured review
+                      </p>
+                      <p className="text-sm text-foreground leading-relaxed">
+                        {coach.featuredReviews}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -313,6 +349,39 @@ function CoachProfile() {
                     </p>
                   </div>
                 )}
+
+                {coach.offlineAvailability && (
+                  <div>
+                    <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">
+                      Offline availability
+                    </h2>
+                    <p className="text-sm font-semibold text-foreground capitalize">
+                      {coach.offlineAvailability}
+                    </p>
+                  </div>
+                )}
+
+                {coach.priceFrom != null || coach.priceTo != null ? (
+                  <div>
+                    <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">
+                      Pricing
+                    </h2>
+                    <p className="text-sm font-semibold text-foreground">
+                      {coach.priceFrom ?? "?"} - {coach.priceTo ?? "?"}
+                    </p>
+                  </div>
+                ) : null}
+
+                {coach.availabilityHours && (
+                  <div className="sm:col-span-2">
+                    <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">
+                      Availability hours
+                    </h2>
+                    <p className="text-sm font-semibold text-foreground">
+                      {coach.availabilityHours}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Certifications */}
@@ -333,21 +402,63 @@ function CoachProfile() {
                             {cert.name}
                           </p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {cert.issuer} · {cert.year}
+                            {[cert.issuer, formatDate(cert.issueDate), formatDate(cert.expiryDate)]
+                              .filter(Boolean)
+                              .join(" · ")}
                           </p>
                         </div>
-                        {cert.credentialUrl && (
-                          <a
-                            href={cert.credentialUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                            title="View credential"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {cert.fileUrl && (
+                            <a
+                              href={cert.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              title="View file"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          )}
+                          {cert.credentialUrl && (
+                            <a
+                              href={cert.credentialUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="shrink-0 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                              title="View credential"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {coach.transformationPhotos && coach.transformationPhotos.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-border">
+                  <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">
+                    Transformation photos
+                  </h2>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {coach.transformationPhotos.map((photoUrl, index) => (
+                      <a
+                        key={`${photoUrl}-${index}`}
+                        href={photoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block overflow-hidden rounded-2xl border border-border bg-muted/30"
+                        title="Open transformation photo"
+                      >
+                        <img
+                          src={photoUrl}
+                          alt={`Transformation photo ${index + 1}`}
+                          className="h-52 w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                          loading="lazy"
+                        />
+                      </a>
                     ))}
                   </div>
                 </div>

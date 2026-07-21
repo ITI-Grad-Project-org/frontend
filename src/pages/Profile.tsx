@@ -6,7 +6,6 @@ import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { PersonalDetailsSection } from "../components/profile/PersonalDetailsSection";
 import { CoachingExperienceSection } from "../components/profile/CoachingExperienceSection";
 import { CertificationsSection } from "../components/profile/CertificationsSection";
-import { SocialLinksSection } from "../components/profile/SocialLinksSection";
 import { ProfileSidebar } from "../components/profile/ProfileSidebar";
 
 function Profile() {
@@ -74,8 +73,6 @@ function Profile() {
                         />
 
                         <CertificationsSection control={control} register={register} errors={errors} />
-
-                        <SocialLinksSection register={register} errors={errors} />
 
                         {submissionError && (
                             <p role="alert" className="p-3 text-sm rounded-xl bg-destructive/10 text-destructive">

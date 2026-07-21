@@ -1,4 +1,4 @@
-import type { Certification } from "./auth";
+import type { Certification, CoachAvailability } from "./auth";
 
 export type ReviewClient = {
   id: string;
@@ -27,10 +27,19 @@ export type CoachPublicProfile = {
     firstName: string;
     lastName: string;
     avatarUrl: string | null;
+    location: string | null;
     bio: string | null;
     specialties: string[];
     yearsExperience: number | null;
+    careerExperience: string | null;
     certifications: Certification[];
+    portfolioUrl: string | null;
+    transformationPhotos: string[];
+    featuredReviews: string | null;
+    offlineAvailability: CoachAvailability | null;
+    availabilityHours: string | null;
+    priceFrom: number | null;
+    priceTo: number | null;
     tenant: {
       id: string;
       name: string;

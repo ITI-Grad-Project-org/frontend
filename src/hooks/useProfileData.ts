@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
@@ -11,11 +11,11 @@ import {
   updateCoachProfile,
 } from "@/services/coaches";
 import { useAuthStore } from "@/stores/auth-store";
-import type { UpdateCoachPayload } from "@/types/auth";
 import {
   profileSchema,
   emptyProfile,
   toFormValues,
+  toUpdateCoachPayload,
   type ProfileFormData,
 } from "../schemas/profileSchema";
 
@@ -33,7 +33,7 @@ export function useProfileData() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const form = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as Resolver<ProfileFormData>,
     defaultValues: user ? toFormValues(user) : emptyProfile,
   });
 
@@ -101,24 +101,10 @@ export function useProfileData() {
 
     setSubmissionError("");
 
-    const payload: UpdateCoachPayload = {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: user.email,
-      phone: data.phone,
-      bio: data.bio || undefined,
-      specialties,
-      certifications: data.certifications.map((cert) => ({
-        name: cert.name,
-        issuer: cert.issuer,
-        year: Number(cert.year),
-        credentialUrl: cert.credentialUrl || null,
-      })),
-    };
-
-    if (data.yearsExperience) {
-      payload.yearsExperience = Number(data.yearsExperience);
-    }
+    const payload = toUpdateCoachPayload({
+      ...data,
+      specialties: specialties.join(", "),
+    });
 
     try {
       await updateCoachProfile(payload);

@@ -1,76 +1,143 @@
 import { z } from "zod";
-import type { Coach } from "@/types/auth";
+import type { Coach, CoachAvailability, CoachGender, UpdateCoachPayload } from "@/types/auth";
+
+const optionalUrlSchema = z.union([
+  z.string().trim().url("Enter a valid URL"),
+  z.literal(""),
+]);
+
+const optionalTextSchema = z.union([z.string().trim().min(1), z.literal("")]);
+
+const optionalDateSchema = z.union([
+  z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
+  z.literal(""),
+]);
+
+const optionalNumberSchema = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || (/^\d+(\.\d+)?$/.test(value) && Number(value) >= 0), {
+    message: "Use a valid number",
+  });
+
+function boundedNumberSchema(min: number, max: number, message: string) {
+  return optionalNumberSchema.refine(
+    (value) => value === "" || (Number(value) >= min && Number(value) <= max),
+    { message },
+  );
+}
 
 export const certificationSchema = z.object({
   name: z.string().trim().min(1, "Certification name is required"),
-  issuer: z.string().trim().min(1, "Issuer is required"),
-  year: z
-    .string()
-    .trim()
-    .regex(/^\d{4}$/, "Use a four-digit year"),
-  credentialUrl: z.union([
-    z.string().trim().url("Enter a valid URL"),
-    z.literal(""),
-  ]),
+  issuer: optionalTextSchema.optional(),
+  issueDate: optionalDateSchema.optional(),
+  expiryDate: optionalDateSchema.optional(),
+  fileUrl: optionalUrlSchema.optional(),
+  credentialUrl: optionalUrlSchema.optional(),
 });
 
 export const specialtyOptions = [
   { value: "strength", label: "Strength" },
   { value: "hypertrophy", label: "Hypertrophy" },
+  { value: "endurance", label: "Endurance" },
   { value: "weight_loss", label: "Weight loss" },
+  { value: "mobility", label: "Mobility" },
+  { value: "rehab", label: "Rehab" },
+  { value: "postpartum", label: "Postpartum" },
+  { value: "yoga", label: "Yoga" },
+  { value: "nutrition", label: "Nutrition" },
   { value: "powerlifting", label: "Powerlifting" },
   { value: "crossfit", label: "CrossFit" },
   { value: "calisthenics", label: "Calisthenics" },
-  { value: "nutrition", label: "Nutrition" },
-  { value: "rehab", label: "Rehab" },
   { value: "general_fitness", label: "General fitness" },
 ] as const;
 
+export const genderOptions: Array<{ value: CoachGender; label: string }> = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
+
+export const availabilityOptions: Array<{ value: CoachAvailability; label: string }> = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+  { value: "hybrid", label: "Hybrid" },
+];
+
+export const weekdayOptions = [
+  { value: "Mon", label: "Monday" },
+  { value: "Tue", label: "Tuesday" },
+  { value: "Wed", label: "Wednesday" },
+  { value: "Thu", label: "Thursday" },
+  { value: "Fri", label: "Friday" },
+  { value: "Sat", label: "Saturday" },
+  { value: "Sun", label: "Sunday" },
+] as const;
+
+const timeOptions = [
+  "12 AM",
+  "1 AM",
+  "2 AM",
+  "3 AM",
+  "4 AM",
+  "5 AM",
+  "6 AM",
+  "7 AM",
+  "8 AM",
+  "9 AM",
+  "10 AM",
+  "11 AM",
+  "12 PM",
+  "1 PM",
+  "2 PM",
+  "3 PM",
+  "4 PM",
+  "5 PM",
+  "6 PM",
+  "7 PM",
+  "8 PM",
+  "9 PM",
+  "10 PM",
+  "11 PM",
+] as const;
+
+export const availabilityTimeOptions = timeOptions;
+
 export const profileSchema = z.object({
-  firstName: z
-    .string()
-    .trim()
-    .min(2, "First name must be at least 2 characters"),
+  firstName: z.string().trim().min(2, "First name must be at least 2 characters"),
   lastName: z.string().trim().min(2, "Last name must be at least 2 characters"),
-  email: z.string().trim().email("Enter a valid email address"),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^\+\d{8,15}$/, "Use an international phone number"),
-  bio: z.string().trim().max(1000, "Bio must be 1,000 characters or fewer"),
+  avatarUrl: optionalUrlSchema.optional(),
+  phone: z.string().trim().regex(/^\+\d{8,15}$/, "Use an international phone number"),
+  age: boundedNumberSchema(16, 100, "Use a whole number between 16 and 100"),
+  gender: z.union([z.enum(["male", "female", "other"]), z.literal("")]).optional(),
+  location: optionalTextSchema.optional(),
   specialties: z.string().trim(),
-  yearsExperience: z
-    .string()
-    .trim()
-    .refine(
-      (val) => !val || (/^\d+$/.test(val) && Number(val) <= 99),
-      "Use a whole number between 0 and 99",
-    ),
+  yearsExperience: boundedNumberSchema(0, 70, "Use a whole number between 0 and 70"),
+  careerExperience: z.string().trim().max(2000, "Career experience must be 2,000 characters or fewer").optional(),
   certifications: z.array(certificationSchema),
-  avatarUrl: z.union([
-    z.string().trim().url("Enter a valid URL"),
+  portfolioUrl: optionalUrlSchema.optional(),
+  transformationPhotos: z
+    .array(
+      z.object({
+        url: optionalUrlSchema,
+      }),
+    )
+    .default([]),
+  featuredReviews: z.string().trim().max(1000, "Featured reviews must be 1,000 characters or fewer").optional(),
+  bio: z.string().trim().max(1000, "Bio must be 1,000 characters or fewer"),
+  offlineAvailability: z.union([z.enum(["yes", "no", "hybrid"]), z.literal("")]).optional(),
+  availabilityWeekdayStart: z.union([
+    z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
     z.literal(""),
   ]),
-  socialLinks: z
-    .object({
-      instagram: z.union([
-        z.string().trim().url("Enter a valid URL"),
-        z.literal(""),
-      ]),
-      facebook: z.union([
-        z.string().trim().url("Enter a valid URL"),
-        z.literal(""),
-      ]),
-      twitter: z.union([
-        z.string().trim().url("Enter a valid URL"),
-        z.literal(""),
-      ]),
-      linkedin: z.union([
-        z.string().trim().url("Enter a valid URL"),
-        z.literal(""),
-      ]),
-    })
-    .optional(),
+  availabilityWeekdayEnd: z.union([
+    z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
+    z.literal(""),
+  ]),
+  availabilityStartHour: z.union([z.enum(timeOptions), z.literal("")]),
+  availabilityEndHour: z.union([z.enum(timeOptions), z.literal("")]),
+  priceFrom: boundedNumberSchema(0, Number.MAX_SAFE_INTEGER, "Use a whole number at or above 0"),
+  priceTo: boundedNumberSchema(0, Number.MAX_SAFE_INTEGER, "Use a whole number at or above 0"),
 });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;
@@ -78,46 +145,192 @@ export type ProfileFormData = z.infer<typeof profileSchema>;
 export const emptyProfile: ProfileFormData = {
   firstName: "",
   lastName: "",
-  email: "",
+  avatarUrl: "",
   phone: "",
-  bio: "",
+  age: "",
+  gender: "",
+  location: "",
   specialties: "",
   yearsExperience: "",
+  careerExperience: "",
   certifications: [],
-  avatarUrl: "",
-  socialLinks: { instagram: "", facebook: "", twitter: "", linkedin: "" },
+  portfolioUrl: "",
+  transformationPhotos: [{ url: "" }],
+  featuredReviews: "",
+  bio: "",
+  offlineAvailability: "",
+  availabilityWeekdayStart: "",
+  availabilityWeekdayEnd: "",
+  availabilityStartHour: "",
+  availabilityEndHour: "",
+  priceFrom: "",
+  priceTo: "",
 };
 
 export function specialtyLabel(value: string): string {
-  return (
-    specialtyOptions.find((specialty) => specialty.value === value)?.label ??
-    value
+  return specialtyOptions.find((specialty) => specialty.value === value)?.label ?? value;
+}
+
+export function formatAvailabilityHours(data: Pick<ProfileFormData, "availabilityWeekdayStart" | "availabilityWeekdayEnd" | "availabilityStartHour" | "availabilityEndHour">): string {
+  const { availabilityWeekdayStart, availabilityWeekdayEnd, availabilityStartHour, availabilityEndHour } = data;
+
+  if (
+    !availabilityWeekdayStart ||
+    !availabilityWeekdayEnd ||
+    !availabilityStartHour ||
+    !availabilityEndHour
+  ) {
+    return "";
+  }
+
+  return `${availabilityWeekdayStart}–${availabilityWeekdayEnd} · ${availabilityStartHour} – ${availabilityEndHour}`;
+}
+
+export function parseAvailabilityHours(
+  availabilityHours: string | null | undefined,
+): Pick<
+  ProfileFormData,
+  | "availabilityWeekdayStart"
+  | "availabilityWeekdayEnd"
+  | "availabilityStartHour"
+  | "availabilityEndHour"
+> {
+  if (!availabilityHours) {
+    return {
+      availabilityWeekdayStart: "",
+      availabilityWeekdayEnd: "",
+      availabilityStartHour: "",
+      availabilityEndHour: "",
+    };
+  }
+
+  const match = availabilityHours.match(
+    /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)–(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s*[·•]\s*(.+?)\s*[–-]\s*(.+)$/,
   );
+
+  if (!match) {
+    return {
+      availabilityWeekdayStart: "",
+      availabilityWeekdayEnd: "",
+      availabilityStartHour: "",
+      availabilityEndHour: "",
+    };
+  }
+
+  const [, availabilityWeekdayStart, availabilityWeekdayEnd, availabilityStartHour, availabilityEndHour] = match;
+
+  return {
+    availabilityWeekdayStart:
+      availabilityWeekdayStart as ProfileFormData["availabilityWeekdayStart"],
+    availabilityWeekdayEnd:
+      availabilityWeekdayEnd as ProfileFormData["availabilityWeekdayEnd"],
+    availabilityStartHour: availabilityStartHour.trim() as ProfileFormData["availabilityStartHour"],
+    availabilityEndHour: availabilityEndHour.trim() as ProfileFormData["availabilityEndHour"],
+  };
+}
+
+function cleanText(value: string | null | undefined): string {
+  return value?.trim() ?? "";
+}
+
+function cleanOptionalText(value: string | null | undefined): string | undefined {
+  const nextValue = cleanText(value);
+  return nextValue ? nextValue : undefined;
+}
+
+function cleanUrl(value: string | null | undefined): string | undefined {
+  const nextValue = cleanText(value);
+  return nextValue ? nextValue : undefined;
+}
+
+function cleanNumber(value: string | undefined): number | undefined {
+  if (!value || value.trim() === "") {
+    return undefined;
+  }
+
+  const nextValue = Number(value);
+  return Number.isFinite(nextValue) ? nextValue : undefined;
+}
+
+function cleanTextArray(values: Array<string | null | undefined> | undefined): string[] {
+  return (values ?? [])
+    .map((value) => cleanText(value))
+    .filter((value) => value.length > 0);
 }
 
 export function toFormValues(coach: Coach): ProfileFormData {
   return {
     firstName: coach.firstName ?? "",
     lastName: coach.lastName ?? "",
-    email: coach.email ?? "",
+    avatarUrl: coach.avatarUrl ?? "",
     phone: coach.phone ?? "",
-    bio: coach.bio ?? "",
+    age: coach.age?.toString() ?? "",
+    gender: coach.gender ?? "",
+    location: coach.location ?? "",
     specialties: coach.specialties?.join(", ") ?? "",
     yearsExperience: coach.yearsExperience?.toString() ?? "",
+    careerExperience: coach.careerExperience ?? "",
     certifications:
       coach.certifications?.map((cert) => ({
-        name: cert.name,
-        issuer: cert.issuer,
-        year: cert.year.toString(),
+        name: cert.name ?? "",
+        issuer: cert.issuer ?? "",
+        issueDate: cert.issueDate ?? "",
+        expiryDate: cert.expiryDate ?? "",
+        fileUrl: cert.fileUrl ?? "",
         credentialUrl: cert.credentialUrl ?? "",
       })) ?? [],
-    avatarUrl: coach.avatarUrl ?? "",
-    socialLinks: {
-      instagram: coach.socialLinks?.instagram ?? "",
-      facebook: coach.socialLinks?.facebook ?? "",
-      twitter: coach.socialLinks?.twitter ?? "",
-      linkedin: coach.socialLinks?.linkedin ?? "",
-    },
+    portfolioUrl: coach.portfolioUrl ?? "",
+    transformationPhotos: coach.transformationPhotos?.length
+      ? coach.transformationPhotos.map((url) => ({ url }))
+      : [{ url: "" }],
+    featuredReviews: coach.featuredReviews ?? "",
+    bio: coach.bio ?? "",
+    offlineAvailability: coach.offlineAvailability ?? "",
+    ...parseAvailabilityHours(coach.availabilityHours),
+    priceFrom: coach.priceFrom?.toString() ?? "",
+    priceTo: coach.priceTo?.toString() ?? "",
+  };
+}
+
+export function toUpdateCoachPayload(data: ProfileFormData): UpdateCoachPayload {
+  const availabilityHours = formatAvailabilityHours(data);
+  const transformationPhotos = cleanTextArray(
+    data.transformationPhotos.map((photo) => photo.url),
+  );
+  const certifications = data.certifications
+    .map((cert) => ({
+      name: cert.name.trim(),
+      issuer: cleanOptionalText(cert.issuer),
+      issueDate: cleanOptionalText(cert.issueDate),
+      expiryDate: cleanOptionalText(cert.expiryDate),
+      fileUrl: cleanUrl(cert.fileUrl),
+      credentialUrl: cleanUrl(cert.credentialUrl),
+    }))
+    .filter((cert) => cert.name.length > 0);
+
+  return {
+    firstName: cleanText(data.firstName),
+    lastName: cleanText(data.lastName),
+    avatarUrl: cleanUrl(data.avatarUrl),
+    phone: cleanOptionalText(data.phone),
+    age: cleanNumber(data.age),
+    gender: data.gender || undefined,
+    location: cleanOptionalText(data.location),
+    specialties: data.specialties
+      .split(",")
+      .map((specialty) => specialty.trim())
+      .filter(Boolean),
+    yearsExperience: cleanNumber(data.yearsExperience),
+    careerExperience: cleanOptionalText(data.careerExperience),
+    certifications,
+    portfolioUrl: cleanUrl(data.portfolioUrl),
+    transformationPhotos,
+    featuredReviews: cleanOptionalText(data.featuredReviews),
+    bio: cleanOptionalText(data.bio),
+    offlineAvailability: data.offlineAvailability || undefined,
+    availabilityHours: availabilityHours || undefined,
+    priceFrom: cleanNumber(data.priceFrom),
+    priceTo: cleanNumber(data.priceTo),
   };
 }
 
