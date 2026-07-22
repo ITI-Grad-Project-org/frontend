@@ -1,14 +1,21 @@
+import { useState } from "react";
+import { Trash2, Dumbbell, User2Icon, Utensils, Mail, Phone, Calendar } from "lucide-react";
+import { toast } from "react-toastify";
 import CardMain from "./CardMain";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { Dumbbell, User2Icon, Utensils, Mail, Phone, Calendar } from "lucide-react";
 import type { ClientConnection } from "@/types/client";
-import { toast } from "react-toastify";
+import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
+import { deleteClient } from "@/services/clients";
 
 interface ClientCardProps {
   connection: ClientConnection;
+  onDeleted?: () => void | Promise<void>;
 }
 
-function ClientCard({ connection }: ClientCardProps) {
+function ClientCard({ connection, onDeleted }: ClientCardProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   if (!connection || !connection.client) {
     return null;
   }
@@ -49,6 +56,22 @@ function ClientCard({ connection }: ClientCardProps) {
     toast.info(`Creating custom nutrition for ${fullName}`);
   };
 
+  const handleDeleteClient = async () => {
+    setIsDeleting(true);
+
+    try {
+      await deleteClient(connection.id);
+      toast.success(`${fullName} was removed from your tenant.`);
+      setIsDeleteDialogOpen(false);
+      await onDeleted?.();
+    } catch (error) {
+      console.error(error);
+      toast.error("We could not remove this client. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const getStatusBadgeStyles = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":
@@ -63,28 +86,40 @@ function ClientCard({ connection }: ClientCardProps) {
   return (
     <CardMain className="w-full flex flex-col justify-between gap-5 p-6 transition-all duration-300 hover:shadow-lg border border-border bg-card rounded-3xl">
       <div className="flex flex-col gap-4">
-        {/* Top row: Avatar & Name */}
-        <div className="flex gap-4 items-center">
+        <div className="flex justify-between">
           <Avatar className="w-16 h-16 border-2 border-border shadow-sm shrink-0">
             <AvatarImage src={client.avatarUrl || ""} className="object-cover" />
             <AvatarFallback className="bg-muted text-muted-foreground">
               <User2Icon className="w-8 h-8" />
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-xl font-bold tracking-tight text-foreground max-w-37.5 sm:max-w-none" title={fullName}>
-                {fullName}
-              </p>
-              <span
-                className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${getStatusBadgeStyles(
-                  status
-                )}`}
-              >
-                {status}
-              </span>
+          <button
+            type="button"
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-destructive/20 bg-destructive/5 text-destructive transition hover:bg-destructive/10 active:scale-[0.98]"
+            aria-label="Remove client"
+            title="Remove client"
+          >
+            <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+        </div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex gap-4 items-center min-w-0">
+            <div className="flex flex-col min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xl font-bold tracking-tight text-foreground max-w-37.5 sm:max-w-none" title={fullName}>
+                  {fullName}
+                </p>
+                <span
+                  className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border ${getStatusBadgeStyles(
+                    status
+                  )}`}
+                >
+                  {status}
+                </span>
+              </div>
+              {infoText && <p className="text-sm font-medium text-muted-foreground">{infoText}</p>}
             </div>
-            {infoText && <p className="text-sm font-medium text-muted-foreground">{infoText}</p>}
           </div>
         </div>
 
@@ -124,22 +159,33 @@ function ClientCard({ connection }: ClientCardProps) {
       </div>
 
       {/* Action buttons */}
-      <div className="grid grid-cols-1  gap-3 mt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-2">
         <button
           onClick={handleCreatePlan}
-          className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold cursor-pointer bg-ink text-ink-foreground rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all border border-transparent shadow-sm"
+          className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold cursor-pointer bg-ink text-ink-foreground rounded-xl hover:opacity-90 active:scale-[0.98] transition-all border border-transparent shadow-sm"
         >
-          <Dumbbell className="w-4 h-4" strokeWidth={2.5} />
+          <Dumbbell className="w-3.5 h-3.5" strokeWidth={2.5} />
           <span className="whitespace-nowrap">Custom plan</span>
         </button>
         <button
           onClick={handleCreateNutrition}
-          className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold cursor-pointer bg-brand text-brand-foreground rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all border border-transparent shadow-sm"
+          className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold cursor-pointer bg-brand text-brand-foreground rounded-xl hover:opacity-90 active:scale-[0.98] transition-all border border-transparent shadow-sm"
         >
-          <Utensils className="w-4 h-4" strokeWidth={2.5} />
+          <Utensils className="w-3.5 h-3.5" strokeWidth={2.5} />
           <span className="whitespace-nowrap">Custom nutrition</span>
         </button>
       </div>
+
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        title="Remove this client?"
+        description="This will remove the client from your tenant only. Their account will stay active."
+        confirmLabel="Remove client"
+        cancelLabel="Cancel"
+        isConfirming={isDeleting}
+        onConfirm={handleDeleteClient}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+      />
     </CardMain>
   );
 }

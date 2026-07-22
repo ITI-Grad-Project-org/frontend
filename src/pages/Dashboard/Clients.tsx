@@ -64,6 +64,7 @@ export default function Clients() {
           loading={clients.loading}
           error={clients.error}
           onRetry={() => clients.refetch(true)}
+          onClientDeleted={() => clients.refetch(true)}
         />
       )}
 
