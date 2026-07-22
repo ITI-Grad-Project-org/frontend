@@ -1,4 +1,4 @@
-import { Calendar, CheckCircle2, Clock3, Globe2, IdCard, User as UserIcon, XCircle } from "lucide-react";
+import { Calendar, CheckCircle2, Clock3, Globe2, User as UserIcon, XCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Coach } from "@/types/auth";
 

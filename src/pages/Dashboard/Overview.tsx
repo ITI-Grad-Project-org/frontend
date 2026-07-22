@@ -1,37 +1,36 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { lazy, Suspense } from "react";
+// import { lazy, Suspense } from "react";
 
-import CardBrand from "@/components/cards/CardBrand";
-import CardInk from "@/components/cards/CardInk";
-import CardMain from "@/components/cards/CardMain";
-import { Chip } from "@/components/ui/Chip";
-import { Heart } from "lucide-react";
+// import CardBrand from "@/components/cards/CardBrand";
+// import CardInk from "@/components/cards/CardInk";
+// import CardMain from "@/components/cards/CardMain";
+// import { Chip } from "@/components/ui/Chip";
+// import { Heart } from "lucide-react";
 
-const ChartBarDefault = lazy(() =>
-    import("@/components/charts/examples/example").then((m) => ({
-        default: m.ChartBarDefault,
-    })),
-);
+// const ChartBarDefault = lazy(() =>
+//     import("@/components/charts/examples/example").then((m) => ({
+//         default: m.ChartBarDefault,
+//     })),
+// );
 
-const ChartAreaInteractive = lazy(() =>
-    import("@/components/charts/examples/example2").then((m) => ({
-        default: m.ChartAreaInteractive,
-    })),
-);
+// const ChartAreaInteractive = lazy(() =>
+//     import("@/components/charts/examples/example2").then((m) => ({
+//         default: m.ChartAreaInteractive,
+//     })),
+// );
 
-const ChartAreaInteractive2 = lazy(() =>
-    import("@/components/charts/examples/example2 copy").then((m) => ({
-        default: m.ChartAreaInteractive2,
-    })),
-);
+// const ChartAreaInteractive2 = lazy(() =>
+//     import("@/components/charts/examples/example2 copy").then((m) => ({
+//         default: m.ChartAreaInteractive2,
+//     })),
+// );
 
-function ChartSkeleton({ className = "" }: { className?: string }) {
-    return (
-        <div
-            className={`h-87.5 w-full rounded-3xl bg-muted animate-pulse ${className}`}
-        />
-    );
-}
+// function ChartSkeleton({ className = "" }: { className?: string }) {
+//     return (
+//         <div
+//             className={`h-87.5 w-full rounded-3xl bg-muted animate-pulse ${className}`}
+//         />
+//     );
+// }
 
 function Overview() {
     return (

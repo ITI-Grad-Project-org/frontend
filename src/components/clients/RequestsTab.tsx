@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import InvitationSkeleton from "@/components/skeletons/InvitationSkeleton";
-import { RefreshCw, User, Check, X } from "lucide-react";
+import { RefreshCw, Check, X } from "lucide-react";
 import type { JoinRequest } from "@/types/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -79,8 +79,8 @@ export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject
                             key={status}
                             onClick={() => setStatusFilter(status)}
                             className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl capitalize transition-all cursor-pointer ${isActive
-                                    ? "bg-card text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                                ? "bg-card text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                                 }`}
                         >
                             {status}

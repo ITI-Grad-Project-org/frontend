@@ -1,5 +1,3 @@
-import React from 'react'
-
 function InvitationSkeleton() {
     return (
         <div className="w-full flex items-center justify-between p-5 border border-border bg-card rounded-2xl animate-pulse">
