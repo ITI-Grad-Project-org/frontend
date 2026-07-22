@@ -4,9 +4,17 @@ import { useTheme } from "@/theme";
 
 interface ProfileHeaderProps {
     onSignOut: () => void;
+    eyebrow?: string;
+    title?: string;
+    description?: string;
 }
 
-export function ProfileHeader({ onSignOut }: ProfileHeaderProps) {
+export function ProfileHeader({
+    onSignOut,
+    eyebrow = "Coach profile",
+    title = "Your profile",
+    description = "Review and update the coaching details your clients see.",
+}: ProfileHeaderProps) {
     const { isDark } = useTheme();
 
     return (
@@ -35,9 +43,9 @@ export function ProfileHeader({ onSignOut }: ProfileHeaderProps) {
             </header>
 
             <div className="mb-8 animate-text">
-                <p className="text-sm font-semibold text-brand">Coach profile</p>
-                <h1 className="mt-2 text-3xl font-extrabold">Your profile</h1>
-                <p className="max-w-2xl mt-2 text-sm text-muted-foreground">Review and update the coaching details your clients see.</p>
+                <p className="text-sm font-semibold text-brand">{eyebrow}</p>
+                <h1 className="mt-2 text-3xl font-extrabold">{title}</h1>
+                <p className="max-w-2xl mt-2 text-sm text-muted-foreground">{description}</p>
             </div>
         </>
     );

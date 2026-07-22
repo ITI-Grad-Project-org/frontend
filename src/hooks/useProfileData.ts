@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router";
@@ -19,7 +19,11 @@ import {
   type ProfileFormData,
 } from "../schemas/profileSchema";
 
-export function useProfileData() {
+interface UseProfileDataOptions {
+  onSuccessfulSave?: () => void;
+}
+
+export function useProfileData({ onSuccessfulSave }: UseProfileDataOptions = {}) {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
@@ -39,7 +43,7 @@ export function useProfileData() {
 
   const { reset, setValue, handleSubmit } = form;
 
-  const updateSpecialties = (
+  const updateSpecialties = useCallback((
     nextSpecialties: string[],
     shouldDirty: boolean,
   ) => {
@@ -48,7 +52,7 @@ export function useProfileData() {
       shouldDirty,
       shouldValidate: true,
     });
-  };
+  }, [setValue]);
 
   useEffect(() => {
     let isActive = true;
@@ -78,7 +82,7 @@ export function useProfileData() {
     return () => {
       isActive = false;
     };
-  }, [reset, setUser, setValue]);
+  }, [reset, setUser, updateSpecialties]);
 
   const addSpecialty = (nextSpecialty: string) => {
     if (!specialties.includes(nextSpecialty)) {
@@ -113,6 +117,7 @@ export function useProfileData() {
       reset(toFormValues(refreshedCoach));
       updateSpecialties(refreshedCoach.specialties ?? [], false);
       toast.success("Profile updated successfully!");
+      onSuccessfulSave?.();
     } catch (error) {
       const errorMessage = getApiErrorMessage(
         error,

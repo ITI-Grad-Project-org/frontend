@@ -10,6 +10,7 @@ import { registerCoach } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
 import { signUpSchema, type SignUpFormData } from "@/schemas/auth";
+import { markProfileSetupFlowActive } from "@/lib/profile-setup";
 
 
 function Field({ label, error, ...props }: { label: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
@@ -49,6 +50,7 @@ function SignUp() {
             });
 
             setSession(session);
+            markProfileSetupFlowActive();
             toast.success("Account created successfully.");
             toast.success("Please Fill The Missing info");
             navigate("/profile", { replace: true });
