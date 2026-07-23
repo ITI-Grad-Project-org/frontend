@@ -3,6 +3,7 @@ import type {
     CreateClientProgramPayload,
     ClientProgramDraft,
     ClientProgramTree,
+    UpdateClientProgramPayload,
 } from "@/types/plans";
 
 export async function createClientProgramDraft(
@@ -22,4 +23,19 @@ export async function getClientProgram(programId: string): Promise<ClientProgram
         `/plans/training/client-programs/${programId}`,
     );
     return data;
+}
+
+export async function updateClientProgramDraft(
+    programId: string,
+    payload: UpdateClientProgramPayload,
+): Promise<ClientProgramDraft> {
+    const { data } = await api.patch<ClientProgramDraft>(
+        `/plans/training/client-programs/${programId}`,
+        payload,
+    );
+    return data;
+}
+
+export async function archiveClientProgramDraft(programId: string): Promise<void> {
+    await api.delete(`/plans/training/client-programs/${programId}`);
 }

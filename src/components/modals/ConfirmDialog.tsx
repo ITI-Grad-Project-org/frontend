@@ -8,6 +8,7 @@ type ConfirmDialogProps = {
     description: string;
     confirmLabel?: string;
     cancelLabel?: string;
+    pendingLabel?: string;
     isConfirming?: boolean;
     onConfirm: () => void;
     onCancel: () => void;
@@ -20,6 +21,7 @@ export function ConfirmDialog({
     description,
     confirmLabel = "Confirm",
     cancelLabel = "Cancel",
+    pendingLabel = "Deleting…",
     isConfirming = false,
     onConfirm,
     onCancel,
@@ -62,7 +64,7 @@ export function ConfirmDialog({
                         disabled={isConfirming}
                         className="flex-1 cursor-pointer rounded-xl bg-destructive px-4 py-2.5 text-sm font-semibold text-destructive-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {isConfirming ? "Deleting…" : confirmLabel}
+                        {isConfirming ? pendingLabel : confirmLabel}
                     </button>
                 </div>
             </div>

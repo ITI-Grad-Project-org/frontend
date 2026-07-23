@@ -19,6 +19,14 @@ export type CreateClientProgramPayload = {
     startDate: string;
 };
 
+export type UpdateClientProgramPayload = {
+    name?: string;
+    description?: string;
+    goal?: PlanGoal;
+    difficulty?: PlanDifficulty;
+    startDate?: string;
+};
+
 export type ClientProgramDraft = {
     id: string;
     tenantId: string;

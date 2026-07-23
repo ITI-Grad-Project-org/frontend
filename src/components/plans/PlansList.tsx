@@ -6,9 +6,18 @@ interface PlansListProps {
     clientNameMap: Map<string, string>;
     loading: boolean;
     error: string;
+    onEditDraft: (program: ClientProgramDraft) => void;
+    onDeleteDraft: (program: ClientProgramDraft) => void;
 }
 
-export function PlansList({ programs, clientNameMap, loading, error }: PlansListProps) {
+export function PlansList({
+    programs,
+    clientNameMap,
+    loading,
+    error,
+    onEditDraft,
+    onDeleteDraft,
+}: PlansListProps) {
     if (loading) {
         return (
             <div className="mt-6 grid gap-4 xl:grid-cols-2">
@@ -46,6 +55,8 @@ export function PlansList({ programs, clientNameMap, loading, error }: PlansList
                     key={program.id}
                     program={program}
                     clientName={clientNameMap.get(program.membershipId) ?? "Unknown client"}
+                    onEditDraft={onEditDraft}
+                    onDeleteDraft={onDeleteDraft}
                 />
             ))}
         </div>

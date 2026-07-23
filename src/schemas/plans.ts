@@ -37,6 +37,16 @@ export const createClientProgramSchema = z.object({
 
 export type CreateClientProgramFormData = z.infer<typeof createClientProgramSchema>;
 
+export const updateClientProgramSchema = z.object({
+    name: z.string().trim().min(2, "Plan name is required").max(150, "Plan name must be 150 characters or fewer"),
+    description: optionalDescriptionSchema.optional(),
+    goal: z.enum(["fat_loss", "muscle_gain", "recomposition", "strength", "endurance", "general_health", "yoga_mobility"]),
+    difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+    startDate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
+});
+
+export type UpdateClientProgramFormData = z.infer<typeof updateClientProgramSchema>;
+
 export const defaultCreateClientProgramValues: CreateClientProgramFormData = {
     membershipId: "",
     name: "",
