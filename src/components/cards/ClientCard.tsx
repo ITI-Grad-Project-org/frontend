@@ -10,9 +10,10 @@ import { deleteClient } from "@/services/clients";
 interface ClientCardProps {
   connection: ClientConnection;
   onDeleted?: () => void | Promise<void>;
+  onCreatePlan?: (connection: ClientConnection) => void;
 }
 
-function ClientCard({ connection, onDeleted }: ClientCardProps) {
+function ClientCard({ connection, onDeleted, onCreatePlan }: ClientCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -49,7 +50,10 @@ function ClientCard({ connection, onDeleted }: ClientCardProps) {
     : "";
 
   const handleCreatePlan = () => {
-    toast.info(`Creating custom plan for ${fullName}`);
+    onCreatePlan?.(connection);
+    if (!onCreatePlan) {
+      toast.info(`Creating custom plan for ${fullName}`);
+    }
   };
 
   const handleCreateNutrition = () => {

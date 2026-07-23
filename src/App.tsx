@@ -5,6 +5,7 @@ import Homepage from "./pages/Homepage";
 import DefaultPage from "./pages/DefaultPage";
 import Overview from "./pages/Dashboard/Overview";
 import Plans from "./pages/Dashboard/Plans";
+import PlanBuilder from "./pages/Dashboard/PlanBuilder";
 import Nutrition from "./pages/Dashboard/Nutrition";
 import Exercises from "./pages/Dashboard/Exercises";
 import Meals from "./pages/Dashboard/Meals";
@@ -83,6 +84,7 @@ function App() {
               <Route path="overview" element={<Overview />} />
               <Route path="clients" element={<Clients />} />
               <Route path="plans" element={<Plans />} />
+              <Route path="plans/:programId" element={<PlanBuilder />} />
               <Route path="nutrition" element={<Nutrition />} />
               <Route path="exercises" element={<Exercises />} />
               <Route path="meals" element={<Meals />} />

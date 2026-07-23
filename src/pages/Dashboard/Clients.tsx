@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { UserRoundPlus } from "lucide-react";
 import InviteClientModal from "@/components/modals/InviteClientModal";
+import { CreatePlanModal } from "@/components/modals/CreatePlanModal";
 import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
 import { useClientsData } from "@/hooks/useClientsData";
 
@@ -13,6 +15,10 @@ export type TabType = "clients" | "invitations" | "requests";
 export default function Clients() {
   const [activeTab, setActiveTab] = useState<TabType>("clients");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [selectedClientName, setSelectedClientName] = useState<string>("Unknown client");
+  const navigate = useNavigate();
 
   const { clients, invitations, joinRequests, actions } = useClientsData();
 
@@ -65,6 +71,12 @@ export default function Clients() {
           error={clients.error}
           onRetry={() => clients.refetch(true)}
           onClientDeleted={() => clients.refetch(true)}
+          onCreatePlan={(connection) => {
+            setSelectedClientId(connection.id);
+            const fullName = `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim();
+            setSelectedClientName(fullName || connection.client.email || "Unknown client");
+            setIsCreatePlanModalOpen(true);
+          }}
         />
       )}
 
@@ -96,6 +108,24 @@ export default function Clients() {
         onSuccess={() => {
           invitations.refetch(true);
           setActiveTab("invitations");
+        }}
+      />
+
+      <CreatePlanModal
+        open={isCreatePlanModalOpen}
+        clients={clients.data}
+        selectedClientId={selectedClientId}
+        onClose={() => {
+          setIsCreatePlanModalOpen(false);
+          setSelectedClientId(null);
+          setSelectedClientName("Unknown client");
+        }}
+        onCreated={(draft) => {
+          navigate(`/dashboard/plans/${draft.id}`, {
+            state: {
+              clientName: selectedClientName,
+            },
+          });
         }}
       />
 
