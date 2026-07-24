@@ -7,7 +7,10 @@ interface PlansListProps {
     loading: boolean;
     error: string;
     onEditDraft: (program: ClientProgramDraft) => void;
-    onDeleteDraft: (program: ClientProgramDraft) => void;
+    onPublish: (program: ClientProgramDraft) => void;
+    onReschedule: (program: ClientProgramDraft) => void;
+    onCancel: (program: ClientProgramDraft) => void;
+    onArchive: (program: ClientProgramDraft) => void;
 }
 
 export function PlansList({
@@ -16,7 +19,10 @@ export function PlansList({
     loading,
     error,
     onEditDraft,
-    onDeleteDraft,
+    onPublish,
+    onReschedule,
+    onCancel,
+    onArchive,
 }: PlansListProps) {
     if (loading) {
         return (
@@ -40,7 +46,9 @@ export function PlansList({
     if (programs.length === 0) {
         return (
             <div className="mt-6 rounded-3xl border border-dashed border-border bg-muted/20 p-8 text-center">
-                <p className="text-lg font-medium text-muted-foreground">No programs match your filters</p>
+                <p className="text-lg font-medium text-muted-foreground">
+                    No programs match your filters
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground/70">
                     Try clearing the search or adjusting the filters.
                 </p>
@@ -56,7 +64,10 @@ export function PlansList({
                     program={program}
                     clientName={clientNameMap.get(program.membershipId) ?? "Unknown client"}
                     onEditDraft={onEditDraft}
-                    onDeleteDraft={onDeleteDraft}
+                    onPublish={onPublish}
+                    onReschedule={onReschedule}
+                    onCancel={onCancel}
+                    onArchive={onArchive}
                 />
             ))}
         </div>

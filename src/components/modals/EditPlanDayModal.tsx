@@ -18,7 +18,6 @@ type Props = {
 type FormValues = {
     name: string;
     notes: string;
-    isRestDay: boolean;
 };
 
 const fieldCls =
@@ -36,7 +35,6 @@ function EditPlanDayModalContent({ programId, day, onClose, onUpdated }: Omit<Pr
         defaultValues: {
             name: "",
             notes: "",
-            isRestDay: false,
         },
     });
 
@@ -48,7 +46,6 @@ function EditPlanDayModalContent({ programId, day, onClose, onUpdated }: Omit<Pr
         reset({
             name: day.name ?? "",
             notes: day.notes ?? "",
-            isRestDay: day.isRestDay,
         });
     }, [day, reset]);
 
@@ -60,7 +57,6 @@ function EditPlanDayModalContent({ programId, day, onClose, onUpdated }: Omit<Pr
         const payload: UpdateProgramDayPayload = {
             name: values.name.trim() || null,
             notes: values.notes.trim() || null,
-            isRestDay: values.isRestDay,
         };
 
         setIsSubmittingLocal(true);
@@ -128,16 +124,6 @@ function EditPlanDayModalContent({ programId, day, onClose, onUpdated }: Omit<Pr
                             className={`${fieldCls} min-h-28 resize-y`}
                             placeholder="Focus on controlled reps"
                         />
-                    </label>
-
-                    <label className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3">
-                        <input {...register("isRestDay")} type="checkbox" className="size-4" />
-                        <div>
-                            <p className="text-sm font-semibold text-foreground">Rest day</p>
-                            <p className="text-xs text-muted-foreground">
-                                Mark this day as rest when it should not contain exercises.
-                            </p>
-                        </div>
                     </label>
                 </div>
 

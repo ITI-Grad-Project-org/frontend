@@ -213,7 +213,8 @@ export function usePlansData() {
     () => ({
       total: programs.length,
       drafts: programs.filter((program) => program.status === "draft").length,
-      archived: programs.filter((program) => program.isArchived).length,
+      canceled: programs.filter((program) => program.status === "cancelled")
+        .length,
       activeClients: clients.length,
     }),
     [clients.length, programs],

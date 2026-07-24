@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import { DragDropProvider, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/react";
-import { CalendarDays, Edit3, Layers3, Trash2 } from "lucide-react";
+import { CalendarDays, Edit3, Layers3, Moon, Send, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
-import { deletePlannedExercise, getClientProgram, updatePlannedExercise } from "@/services/plans";
+import { deletePlannedExercise, getClientProgram, publishClientProgram, updatePlannedExercise, updateProgramDay } from "@/services/plans";
 import { useExercisesData } from "@/hooks/useExercisesData";
 import AddDayExerciseModal from "@/components/modals/AddDayExerciseModal";
+import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
 import CreateExerciseAndAddToDayModal from "@/components/modals/CreateExerciseAndAddToDayModal";
 import EditPlanDayModal from "@/components/modals/EditPlanDayModal";
 import EditPlannedExerciseModal from "@/components/modals/EditPlannedExerciseModal";
@@ -242,10 +243,10 @@ function BuilderExerciseCard({
                 dropRef(node);
             }}
             className={`group flex items-start justify-between gap-3 rounded-2xl border bg-background px-3 py-2.5 shadow-sm transition ${isDragging
-                    ? "border-primary opacity-50"
-                    : isDropTarget
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
+                ? "border-primary opacity-50"
+                : isDropTarget
+                    ? "border-primary bg-primary/5"
+                    : "border-border"
                 }`}
         >
             <button
@@ -288,12 +289,14 @@ function DayCard({
     onCreateExercise,
     onExerciseEdit,
     onExerciseDelete,
+    onToggleRestDay,
 }: {
     day: BuilderDay;
     onEdit: (day: BuilderDay) => void;
     onCreateExercise: (day: BuilderDay) => void;
     onExerciseEdit: (exercise: BuilderPlannedExercise) => void;
     onExerciseDelete: (exercise: BuilderPlannedExercise) => void;
+    onToggleRestDay: (day: BuilderDay) => void;
 }) {
     const { ref, isDropTarget } = useDroppable({
         id: day.id,
@@ -304,7 +307,7 @@ function DayCard({
     return (
         <section
             ref={ref}
-            className={`flex h-[34rem] w-[20rem] flex-shrink-0 flex-col overflow-hidden rounded-3xl border p-4 shadow-sm transition ${day.isRestDay
+            className={`flex h-180 w-[20rem] shrink-0 flex-col overflow-hidden rounded-3xl border p-4 shadow-sm transition ${day.isRestDay
                 ? "border-border bg-muted/35 opacity-80"
                 : isDropTarget
                     ? "border-primary bg-primary/5"
@@ -339,27 +342,31 @@ function DayCard({
                     <Edit3 className="size-3.5" />
                     Edit day
                 </button>
+                <button
+                    type="button"
+                    onClick={() => onToggleRestDay(day)}
+                    className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-semibold transition ${day.isRestDay
+                        ? "border-amber-400/30 bg-amber-400/10 text-amber-600 hover:bg-amber-400/20 dark:text-amber-400"
+                        : "border-border text-foreground hover:bg-muted"
+                        }`}
+                    title={day.isRestDay ? "Mark as training day" : "Mark as rest day"}
+                >
+                    <Moon className="size-3.5" />
+                    {day.isRestDay ? "Rest day" : "Set rest"}
+                </button>
             </div>
 
-            <div className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-                <div className="rounded-2xl bg-muted/40 px-3 py-2">
-                    <span className="block text-[11px] font-semibold uppercase tracking-[0.14em]">
-                        Rest
-                    </span>
-                    <span className="mt-1 block text-foreground">
-                        {day.isRestDay ? "Yes" : "No"}
-                    </span>
-                </div>
-                <div className="rounded-2xl bg-muted/40 px-3 py-2">
-                    <span className="block text-[11px] font-semibold uppercase tracking-[0.14em]">
+            <div className="mt-4 grid gap-2 text-xs text-muted-foreground">
+                <div>
+                    <span className="block font-semibold uppercase tracking-[0.14em]">
                         Scheduled
                     </span>
                     <span className="mt-1 block text-foreground">
                         {formatDate(day.scheduledDate)}
                     </span>
                 </div>
-                <div className="rounded-2xl bg-muted/40 px-3 py-2 sm:col-span-2">
-                    <span className="block text-[11px] font-semibold uppercase tracking-[0.14em]">
+                <div>
+                    <span className="block font-semibold uppercase tracking-[0.14em]">
                         Notes
                     </span>
                     <span className="mt-1 block text-foreground">
@@ -432,6 +439,8 @@ export default function PlanBuilder() {
     const [exerciseToDelete, setExerciseToDelete] = useState<BuilderPlannedExercise | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
+    const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
     const clientName = (location.state as { clientName?: string } | null)?.clientName ?? "Unknown client";
     const {
         filteredExercises,
@@ -637,6 +646,38 @@ export default function PlanBuilder() {
         setDayToEdit(null);
     }
 
+    async function handleToggleRestDay(day: BuilderDay) {
+        if (!program?.id) return;
+
+        const next = !day.isRestDay;
+        // Optimistic update
+        updateLocalDay(day.id, { isRestDay: next });
+
+        try {
+            await updateProgramDay(program.id, day.id, { isRestDay: next });
+        } catch (err) {
+            // Roll back on failure
+            updateLocalDay(day.id, { isRestDay: day.isRestDay });
+            toast.error(getApiErrorMessage(err, "Could not update the rest day status."));
+        }
+    }
+
+    async function handlePublishConfirm() {
+        if (!program?.id) return;
+
+        setIsPublishing(true);
+        try {
+            const updated = await publishClientProgram(program.id);
+            setProgram((prev) => prev ? { ...prev, status: updated.status, schedulePhase: updated.schedulePhase } : prev);
+            toast.success("Plan published successfully.");
+            setIsPublishConfirmOpen(false);
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, "Could not publish this plan. Please try again."));
+        } finally {
+            setIsPublishing(false);
+        }
+    }
+
     function handleExerciseUpdated(updatedExercise: PlannedExercise) {
         setBuilderWeeks((prevWeeks) =>
             prevWeeks.map((week) => ({
@@ -684,23 +725,24 @@ export default function PlanBuilder() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        Plan Builder
-                    </p>
-                    <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">
-                        {program ? (
-                            <div>
-                                <div>{program.name}</div>
-                                <div className="mt-1 flex flex-wrap items-center gap-1.5 text-base font-normal text-muted-foreground">
-                                    <span>For {clientName}</span>
-                                    <span>·</span>
-                                    <span>{program.goal}</span>
-                                    <span>·</span>
-                                    <span>{program.difficulty}</span>
-                                    {/* {program.status && (
+        <>
+            <div className="space-y-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                            Plan Builder
+                        </p>
+                        <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">
+                            {program ? (
+                                <div>
+                                    <div>{program.name}</div>
+                                    <div className="mt-1 flex flex-wrap items-center gap-1.5 text-base font-normal text-muted-foreground">
+                                        <span>For {clientName}</span>
+                                        <span>·</span>
+                                        <span>{program.goal}</span>
+                                        <span>·</span>
+                                        <span>{program.difficulty}</span>
+                                        {/* {program.status && (
                                         <>
                                             <span>·</span>
                                             <span className="capitalize font-medium text-foreground/80">
@@ -708,242 +750,272 @@ export default function PlanBuilder() {
                                             </span>
                                         </>
                                     )} */}
-                                </div>
-                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-muted-foreground">
-                                    <span>
-                                        <span className="font-semibold text-foreground">Start date</span>{": "}
-                                        {formatDate(program.startDate)}
-                                    </span>
-                                    <span>
-                                        <span className="font-semibold text-foreground">End date</span>{": "}
-                                        {formatDate(program.endDate)}
-                                    </span>
-                                    <span>
-                                        <span className="font-semibold text-foreground">Status</span>{": "}
-                                        {program.status ?? "—"}
-                                    </span>
-                                    <span>
-                                        <span className="font-semibold text-foreground">Archived</span>{": "}
-                                        {program.isArchived ? "Yes" : "No"}
-                                    </span>
-                                </div>
-                            </div>
-                        ) : (
-                            "Loading plan..."
-                        )}
-                    </h1>
-                </div>
-            </div>
-
-            <div>
-                <Link
-                    to="/dashboard/plans"
-                    className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
-                >
-                    ← Back to plans
-                </Link>
-            </div>
-
-            {isLoading && (
-                <div className="rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                    Loading plan...
-                </div>
-            )}
-
-            {!isLoading && error && (
-                <div className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
-                    {error}
-                </div>
-            )}
-
-            {!isLoading && program && (
-                <DragDropProvider onDragEnd={handleDragEnd}>
-                    <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-                        <aside className="flex max-h-[calc(100vh-14rem)] flex-col rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card)">
-                            <div className="flex items-center gap-2">
-                                {/* <div className="rounded-2xl bg-primary/10 p-2 text-primary">
-                                    <ChevronRight className="size-4 rotate-90" />
-                                </div> */}
-                                <div>
-                                    <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                        Exercise Library
-                                    </p>
-                                    <p className="mt-0.5 text-xs text-muted-foreground">
-                                        Drag one card onto a day.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-4 flex-1 space-y-2 overflow-y-auto pr-1">
-                                {exercisesLoading ? (
-                                    <p className="rounded-2xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
-                                        Loading exercises...
-                                    </p>
-                                ) : exercisesError ? (
-                                    <p className="rounded-2xl border border-destructive/20 bg-destructive/5 px-3 py-6 text-center text-sm text-destructive">
-                                        {exercisesError}
-                                    </p>
-                                ) : filteredExercises.length === 0 ? (
-                                    <p className="rounded-2xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
-                                        No exercises found.
-                                    </p>
-                                ) : (
-                                    filteredExercises.map((exercise) => (
-                                        <LibraryExerciseCard key={exercise.id} exercise={exercise} />
-                                    ))
-                                )}
-                            </div>
-                        </aside>
-
-                        <div className="space-y-4">
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-card px-4 py-3 shadow-(--shadow-card)">
-                                <div>
-                                    <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                        Weeks
-                                    </p>
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                        Choose the week you want to edit.
-                                    </p>
-                                </div>
-
-                                <Select
-                                    value={selectedWeekId}
-                                    onValueChange={setSelectedWeekId}
-                                    disabled={!builderWeeks.length}
-                                >
-                                    <SelectTrigger className="min-w-44 rounded-2xl border-border bg-background px-4 py-2.5">
-                                        <SelectValue placeholder="Select week" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {builderWeeks.map((week) => (
-                                            <SelectItem key={week.id} value={week.id}>
-                                                Week {week.weekNumber}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {selectedWeek ? (
-                                <div className="rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card)">
-                                    <div className="flex flex-wrap items-start justify-between gap-3">
-                                        <div>
-                                            <h2 className="text-xl font-bold text-foreground">
-                                                Week {selectedWeek.weekNumber}
-                                            </h2>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                {selectedWeek.notes ? selectedWeek.notes : "No notes"}
-                                            </p>
-                                        </div>
-                                        <div className="inline-flex items-center gap-2 rounded-full bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
-                                            <CalendarDays className="size-3.5" />
-                                            {selectedWeek.days.length} days
-                                        </div>
                                     </div>
-
-                                    <div className="mt-4 overflow-x-auto pb-2">
-                                        <div className="flex min-w-max items-start gap-3">
-                                            {selectedWeek.days.map((day) => (
-                                                <DayCard
-                                                    key={day.id}
-                                                    day={day}
-                                                    onEdit={(nextDay) => setDayToEdit(nextDay)}
-                                                    onCreateExercise={(nextDay) =>
-                                                        setCreateExerciseTarget({
-                                                            dayId: nextDay.id,
-                                                            dayLabel: `Day ${nextDay.dayNumber}${nextDay.name ? ` · ${nextDay.name}` : ""}`,
-                                                            defaultPosition: nextDay.exercises.length + 1,
-                                                        })
-                                                    }
-                                                    onExerciseEdit={(exercise) => setExerciseToEdit(exercise)}
-                                                    onExerciseDelete={(exercise) => setExerciseToDelete(exercise)}
-                                                />
-                                            ))}
-                                        </div>
+                                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-muted-foreground">
+                                        <span>
+                                            <span className="font-semibold text-foreground">Start date</span>{": "}
+                                            {formatDate(program.startDate)}
+                                        </span>
+                                        <span>
+                                            <span className="font-semibold text-foreground">End date</span>{": "}
+                                            {formatDate(program.endDate)}
+                                        </span>
+                                        <span>
+                                            <span className="font-semibold text-foreground">Status</span>{": "}
+                                            {program.status ?? "—"}
+                                        </span>
+                                        <span>
+                                            <span className="font-semibold text-foreground">Archived</span>{": "}
+                                            {program.isArchived ? "Yes" : "No"}
+                                        </span>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground">
-                                    No weeks available for this plan.
-                                </div>
+                                "Loading plan..."
                             )}
-                        </div>
+                        </h1>
                     </div>
 
-                    <DragOverlay>
-                        {(source) => {
-                            const exercise = getOverlayExercise(source.data);
-                            return exercise ? <LibraryExercisePreview exercise={exercise} /> : null;
-                        }}
-                    </DragOverlay>
-                </DragDropProvider>
-            )}
-
-            <AddDayExerciseModal
-                open={!!pendingDrop}
-                programId={program?.id ?? null}
-                programDayId={pendingDrop?.dayId ?? null}
-                dayLabel={pendingDrop?.dayLabel ?? ""}
-                exercise={pendingDrop?.exercise ?? null}
-                defaultPosition={pendingDrop?.defaultPosition ?? 1}
-                onClose={() => setPendingDrop(null)}
-                onAdded={handleAddSuccess}
-            />
-
-            <EditPlanDayModal
-                open={!!dayToEdit}
-                programId={program?.id ?? null}
-                day={dayToEdit}
-                onClose={() => setDayToEdit(null)}
-                onUpdated={handleDayUpdated}
-            />
-
-            <EditPlannedExerciseModal
-                key={exerciseToEdit?.id ?? "closed"}
-                open={!!exerciseToEdit}
-                programId={program?.id ?? null}
-                exercise={exerciseToEdit}
-                onClose={() => setExerciseToEdit(null)}
-                onUpdated={handleExerciseUpdated}
-
-            />
-
-            <CreateExerciseAndAddToDayModal
-                open={!!createExerciseTarget}
-                programId={program?.id ?? null}
-                programDayId={createExerciseTarget?.dayId ?? null}
-                dayLabel={createExerciseTarget?.dayLabel ?? ""}
-                defaultPosition={createExerciseTarget?.defaultPosition ?? 1}
-                onClose={() => setCreateExerciseTarget(null)}
-                onAdded={handleCreateSuccess}
-            />
-
-            {exerciseToDelete && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-sm rounded-3xl border border-border bg-background p-6 shadow-2xl">
-                        <h3 className="text-lg font-bold text-foreground">Delete exercise?</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                            This will remove {exerciseToDelete.exerciseName} from the day.
-                        </p>
-                        <div className="mt-6 flex items-center justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setExerciseToDelete(null)}
-                                className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleDeleteExercise}
-                                className="rounded-2xl bg-destructive px-4 py-3 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </div>
+                    {/* Publish button — draft only */}
+                    {program?.status === "draft" && (
+                        <button
+                            type="button"
+                            onClick={() => setIsPublishConfirmOpen(true)}
+                            className="inline-flex items-center gap-2 rounded-2xl bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition hover:opacity-90"
+                        >
+                            <Send className="size-4" />
+                            Publish plan
+                        </button>
+                    )}
                 </div>
-            )}
-        </div>
+
+                <div>
+                    <Link
+                        to="/dashboard/plans"
+                        className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
+                    >
+                        ← Back to plans
+                    </Link>
+                </div>
+
+                {isLoading && (
+                    <div className="rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground">
+                        Loading plan...
+                    </div>
+                )}
+
+                {!isLoading && error && (
+                    <div className="rounded-3xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
+                        {error}
+                    </div>
+                )}
+
+                {!isLoading && program && (
+                    <DragDropProvider onDragEnd={handleDragEnd}>
+                        <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+                            <aside className="flex max-h-[calc(100vh-14rem)] flex-col rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card)">
+                                <div className="flex items-center gap-2">
+                                    {/* <div className="rounded-2xl bg-primary/10 p-2 text-primary">
+                                    <ChevronRight className="size-4 rotate-90" />
+                                </div> */}
+                                    <div>
+                                        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                            Exercise Library
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                            Drag one card onto a day.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 flex-1 space-y-2 overflow-y-auto pr-1">
+                                    {exercisesLoading ? (
+                                        <p className="rounded-2xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
+                                            Loading exercises...
+                                        </p>
+                                    ) : exercisesError ? (
+                                        <p className="rounded-2xl border border-destructive/20 bg-destructive/5 px-3 py-6 text-center text-sm text-destructive">
+                                            {exercisesError}
+                                        </p>
+                                    ) : filteredExercises.length === 0 ? (
+                                        <p className="rounded-2xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
+                                            No exercises found.
+                                        </p>
+                                    ) : (
+                                        filteredExercises.map((exercise) => (
+                                            <LibraryExerciseCard key={exercise.id} exercise={exercise} />
+                                        ))
+                                    )}
+                                </div>
+                            </aside>
+
+                            <div className="space-y-4">
+                                <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-border bg-card px-4 py-3 shadow-(--shadow-card)">
+                                    <div>
+                                        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                            Weeks
+                                        </p>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            Choose the week you want to edit.
+                                        </p>
+                                    </div>
+
+                                    <Select
+                                        value={selectedWeekId}
+                                        onValueChange={setSelectedWeekId}
+                                        disabled={!builderWeeks.length}
+                                    >
+                                        <SelectTrigger className="min-w-44 rounded-2xl border-border bg-background px-4 py-2.5">
+                                            <SelectValue placeholder="Select week" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {builderWeeks.map((week) => (
+                                                <SelectItem key={week.id} value={week.id}>
+                                                    Week {week.weekNumber}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {selectedWeek ? (
+                                    <div className="rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card)">
+                                        <div className="flex flex-wrap items-start justify-between gap-3">
+                                            <div>
+                                                <h2 className="text-xl font-bold text-foreground">
+                                                    Week {selectedWeek.weekNumber}
+                                                </h2>
+                                                <p className="mt-1 text-sm text-muted-foreground">
+                                                    {selectedWeek.notes ? selectedWeek.notes : "No notes"}
+                                                </p>
+                                            </div>
+                                            <div className="inline-flex items-center gap-2 rounded-full bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                                                <CalendarDays className="size-3.5" />
+                                                {selectedWeek.days.length} days
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 overflow-x-auto pb-2">
+                                            <div className="flex min-w-max items-start gap-3">
+                                                {selectedWeek.days.map((day) => (
+                                                    <DayCard
+                                                        key={day.id}
+                                                        day={day}
+                                                        onEdit={(nextDay) => setDayToEdit(nextDay)}
+                                                        onToggleRestDay={(nextDay) => void handleToggleRestDay(nextDay)}
+                                                        onCreateExercise={(nextDay) =>
+                                                            setCreateExerciseTarget({
+                                                                dayId: nextDay.id,
+                                                                dayLabel: `Day ${nextDay.dayNumber}${nextDay.name ? ` · ${nextDay.name}` : ""}`,
+                                                                defaultPosition: nextDay.exercises.length + 1,
+                                                            })
+                                                        }
+                                                        onExerciseEdit={(exercise) => setExerciseToEdit(exercise)}
+                                                        onExerciseDelete={(exercise) => setExerciseToDelete(exercise)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="rounded-3xl border border-border bg-card p-6 text-sm text-muted-foreground">
+                                        No weeks available for this plan.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <DragOverlay>
+                            {(source) => {
+                                const exercise = getOverlayExercise(source.data);
+                                return exercise ? <LibraryExercisePreview exercise={exercise} /> : null;
+                            }}
+                        </DragOverlay>
+                    </DragDropProvider>
+                )}
+
+                <AddDayExerciseModal
+                    open={!!pendingDrop}
+                    programId={program?.id ?? null}
+                    programDayId={pendingDrop?.dayId ?? null}
+                    dayLabel={pendingDrop?.dayLabel ?? ""}
+                    exercise={pendingDrop?.exercise ?? null}
+                    defaultPosition={pendingDrop?.defaultPosition ?? 1}
+                    onClose={() => setPendingDrop(null)}
+                    onAdded={handleAddSuccess}
+                />
+
+                <EditPlanDayModal
+                    open={!!dayToEdit}
+                    programId={program?.id ?? null}
+                    day={dayToEdit}
+                    onClose={() => setDayToEdit(null)}
+                    onUpdated={handleDayUpdated}
+                />
+
+                <EditPlannedExerciseModal
+                    key={exerciseToEdit?.id ?? "closed"}
+                    open={!!exerciseToEdit}
+                    programId={program?.id ?? null}
+                    exercise={exerciseToEdit}
+                    onClose={() => setExerciseToEdit(null)}
+                    onUpdated={handleExerciseUpdated}
+
+                />
+
+                <CreateExerciseAndAddToDayModal
+                    open={!!createExerciseTarget}
+                    programId={program?.id ?? null}
+                    programDayId={createExerciseTarget?.dayId ?? null}
+                    dayLabel={createExerciseTarget?.dayLabel ?? ""}
+                    defaultPosition={createExerciseTarget?.defaultPosition ?? 1}
+                    onClose={() => setCreateExerciseTarget(null)}
+                    onAdded={handleCreateSuccess}
+                />
+
+                {exerciseToDelete && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                        <div className="w-full max-w-sm rounded-3xl border border-border bg-background p-6 shadow-2xl">
+                            <h3 className="text-lg font-bold text-foreground">Delete exercise?</h3>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                This will remove {exerciseToDelete.exerciseName} from the day.
+                            </p>
+                            <div className="mt-6 flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setExerciseToDelete(null)}
+                                    className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDeleteExercise}
+                                    className="rounded-2xl bg-destructive px-4 py-3 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <ConfirmDialog
+                open={isPublishConfirmOpen}
+                title="Publish this plan?"
+                description={
+                    program
+                        ? `"${program.name}" will be sent to ${clientName}. You can still cancel it afterwards.`
+                        : ""
+                }
+                confirmLabel="Publish plan"
+                cancelLabel="Not yet"
+                pendingLabel="Publishing…"
+                isConfirming={isPublishing}
+                onConfirm={() => void handlePublishConfirm()}
+                onCancel={() => setIsPublishConfirmOpen(false)}
+            />
+        </>
     );
 }

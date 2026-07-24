@@ -102,7 +102,7 @@ export function PlansFilters({
                             <option value="all">All statuses</option>
                             <option value="draft">Draft</option>
                             <option value="published">Published</option>
-                            <option value="archived">Archived</option>
+                            <option value="cancelled">Cancelled</option>
                         </select>
                     </label>
 
