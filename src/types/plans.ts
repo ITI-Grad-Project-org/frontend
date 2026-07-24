@@ -49,6 +49,104 @@ export type ClientProgramDraft = {
 
 export type ClientProgramExerciseNode = Record<string, unknown>;
 
+export type PlannedExerciseSet = {
+    id: string;
+    setNumber: number;
+    setType: "working" | "warmup" | "drop_set" | "amrap" | "to_failure";
+    repsMin: number | null;
+    repsMax: number | null;
+    durationSeconds?: number | null;
+    weightKg: number | null;
+    intensityType?: "rpe" | "rir" | "percent_1rm" | null;
+    intensityValue?: number | null;
+};
+
+export type PlannedExercise = {
+    id: string;
+    programDayId: string;
+    exerciseId: string;
+    exerciseName: string;
+    position: number;
+    supersetGroup: number | null;
+    restSeconds: number;
+    tempo: string | null;
+    coachNotes: string | null;
+    sets: PlannedExerciseSet[];
+};
+
+export type AddLibraryExerciseToDayPayload = {
+    exerciseId: string;
+    position?: number;
+    supersetGroup?: number | null;
+    restSeconds?: number;
+    tempo?: string | null;
+    coachNotes?: string | null;
+    sets: Array<{
+        setType: "working" | "warmup" | "drop_set" | "amrap" | "to_failure";
+        repsMin?: number | null;
+        repsMax?: number | null;
+        weightKg?: number | null;
+        intensityType?: "rpe" | "rir" | "percent_1rm" | null;
+        intensityValue?: number | null;
+    }>;
+};
+
+export type CreateExerciseInLibraryAndAddToDayPayload = {
+    exercise: {
+        name: string;
+        category: string;
+        primaryMuscle: string;
+        secondaryMuscles?: string[];
+        equipment?: string[];
+        demoVideoUrl?: string | null;
+        demoGifUrl?: string | null;
+        thumbnailUrl?: string | null;
+        instructionSteps: string[];
+    };
+    prescription: {
+        position?: number;
+        supersetGroup?: number | null;
+        restSeconds?: number;
+        tempo?: string | null;
+        coachNotes?: string | null;
+        sets: Array<{
+            setType: PlannedExerciseSet["setType"];
+            repsMin?: number | null;
+            repsMax?: number | null;
+            durationSeconds?: number | null;
+            weightKg?: number | null;
+            intensityType?: PlannedExerciseSet["intensityType"];
+            intensityValue?: number | null;
+        }>;
+    };
+};
+
+export type UpdateProgramDayPayload = {
+    name?: string | null;
+    notes?: string | null;
+    isRestDay?: boolean;
+};
+
+export type UpdatePlannedExercisePayload = {
+    position?: number;
+    supersetGroup?: number | null;
+    restSeconds?: number;
+    tempo?: string | null;
+    coachNotes?: string | null;
+};
+
+export type ReplacePlannedExerciseSetsPayload = {
+    sets: Array<{
+        setType: PlannedExerciseSet["setType"];
+        repsMin?: number | null;
+        repsMax?: number | null;
+        durationSeconds?: number | null;
+        weightKg?: number | null;
+        intensityType?: PlannedExerciseSet["intensityType"];
+        intensityValue?: number | null;
+    }>;
+};
+
 export type ClientProgramDay = {
     id: string;
     tenantId: string;

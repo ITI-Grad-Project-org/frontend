@@ -1,8 +1,14 @@
 import { api } from "@/lib/api";
 import type {
+    AddLibraryExerciseToDayPayload,
+    CreateExerciseInLibraryAndAddToDayPayload,
     CreateClientProgramPayload,
     ClientProgramDraft,
     ClientProgramTree,
+    PlannedExercise,
+    ReplacePlannedExerciseSetsPayload,
+    UpdatePlannedExercisePayload,
+    UpdateProgramDayPayload,
     UpdateClientProgramPayload,
 } from "@/types/plans";
 
@@ -23,6 +29,73 @@ export async function getClientProgram(programId: string): Promise<ClientProgram
         `/plans/training/client-programs/${programId}`,
     );
     return data;
+}
+
+export async function addLibraryExerciseToDay(
+    programId: string,
+    programDayId: string,
+    payload: AddLibraryExerciseToDayPayload,
+): Promise<PlannedExercise> {
+    const { data } = await api.post<PlannedExercise>(
+        `/plans/training/client-programs/${programId}/days/${programDayId}/exercises/from-library`,
+        payload,
+    );
+    return data;
+}
+
+export async function createExerciseInLibraryAndAddToDay(
+    programId: string,
+    programDayId: string,
+    payload: CreateExerciseInLibraryAndAddToDayPayload,
+): Promise<{ exercise: unknown; plannedExercise: PlannedExercise }> {
+    const { data } = await api.post<{ exercise: unknown; plannedExercise: PlannedExercise }>(
+        `/plans/training/client-programs/${programId}/days/${programDayId}/exercises/create-in-library`,
+        payload,
+    );
+    return data;
+}
+
+export async function updateProgramDay(
+    programId: string,
+    programDayId: string,
+    payload: UpdateProgramDayPayload,
+): Promise<unknown> {
+    const { data } = await api.patch(
+        `/plans/training/client-programs/${programId}/days/${programDayId}`,
+        payload,
+    );
+    return data;
+}
+
+export async function updatePlannedExercise(
+    programId: string,
+    plannedExerciseId: string,
+    payload: UpdatePlannedExercisePayload,
+): Promise<PlannedExercise> {
+    const { data } = await api.patch<PlannedExercise>(
+        `/plans/training/client-programs/${programId}/exercises/${plannedExerciseId}`,
+        payload,
+    );
+    return data;
+}
+
+export async function replacePlannedExerciseSets(
+    programId: string,
+    plannedExerciseId: string,
+    payload: ReplacePlannedExerciseSetsPayload,
+): Promise<PlannedExercise["sets"]> {
+    const { data } = await api.put<PlannedExercise["sets"]>(
+        `/plans/training/client-programs/${programId}/exercises/${plannedExerciseId}/sets`,
+        payload,
+    );
+    return data;
+}
+
+export async function deletePlannedExercise(
+    programId: string,
+    plannedExerciseId: string,
+): Promise<void> {
+    await api.delete(`/plans/training/client-programs/${programId}/exercises/${plannedExerciseId}`);
 }
 
 export async function updateClientProgramDraft(

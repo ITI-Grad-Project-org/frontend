@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import { DragDropProvider, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/react";
-import { ChevronRight, CalendarDays, Layers3, Trash2 } from "lucide-react";
+import { CalendarDays, Edit3, Layers3, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
-import { getClientProgram } from "@/services/plans";
+import { deletePlannedExercise, getClientProgram, updatePlannedExercise } from "@/services/plans";
 import { useExercisesData } from "@/hooks/useExercisesData";
-import type { ClientProgramDay, ClientProgramTree, ClientProgramWeek } from "@/types/plans";
+import AddDayExerciseModal from "@/components/modals/AddDayExerciseModal";
+import CreateExerciseAndAddToDayModal from "@/components/modals/CreateExerciseAndAddToDayModal";
+import EditPlanDayModal from "@/components/modals/EditPlanDayModal";
+import EditPlannedExerciseModal from "@/components/modals/EditPlannedExerciseModal";
+import type {
+    ClientProgramDay,
+    ClientProgramTree,
+    ClientProgramWeek,
+    PlannedExercise,
+    PlannedExerciseSet,
+} from "@/types/plans";
 import type { Exercise } from "@/types/exercise";
 import {
     Select,
@@ -15,14 +26,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-type BuilderPlannedExercise = {
-    id: string;
-    exerciseId: string;
-    exerciseName: string;
-    position: number;
-    restSeconds: number;
-    notes: string | null;
-};
+type BuilderPlannedExercise = PlannedExercise;
+
+type BuilderSetType = PlannedExerciseSet["setType"];
+type BuilderIntensityType = NonNullable<PlannedExerciseSet["intensityType"]>;
 
 type BuilderDay = Omit<ClientProgramDay, "exercises"> & {
     exercises: BuilderPlannedExercise[];
@@ -49,31 +56,14 @@ function formatDate(value: string | null | undefined) {
     }).format(date);
 }
 
-function formatDateTime(value: string | null | undefined) {
-    if (!value) {
-        return "—";
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-
-    return new Intl.DateTimeFormat("en-CA", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(date);
-}
-
-function normalizeExercises(nodes: ClientProgramDay["exercises"]): BuilderPlannedExercise[] {
+function normalizeExercises(dayId: string, nodes: ClientProgramDay["exercises"]): BuilderPlannedExercise[] {
     return nodes.map((node, index) => {
         const typedNode = node as Record<string, unknown>;
+        const rawSets = Array.isArray(typedNode.sets) ? typedNode.sets : [];
 
         return {
             id: String(typedNode.id ?? `exercise-${index + 1}`),
+            programDayId: String(typedNode.programDayId ?? dayId),
             exerciseId: String(typedNode.exerciseId ?? typedNode.id ?? `exercise-${index + 1}`),
             exerciseName: String(
                 typedNode.exerciseName ??
@@ -82,8 +72,54 @@ function normalizeExercises(nodes: ClientProgramDay["exercises"]): BuilderPlanne
                 `Exercise ${index + 1}`,
             ),
             position: Number(typedNode.position ?? index + 1),
+            supersetGroup:
+                typedNode.supersetGroup === null || typedNode.supersetGroup === undefined
+                    ? null
+                    : Number(typedNode.supersetGroup),
             restSeconds: Number(typedNode.restSeconds ?? 90),
-            notes: (typedNode.notes as string | null | undefined) ?? null,
+            tempo: (typedNode.tempo as string | null | undefined) ?? null,
+            coachNotes:
+                (typedNode.coachNotes as string | null | undefined) ??
+                (typedNode.notes as string | null | undefined) ??
+                null,
+            sets: rawSets.map((set, setIndex) => {
+                const setNode = set as Record<string, unknown>;
+
+                return {
+                    id: String(setNode.id ?? `set-${index + 1}-${setIndex + 1}`),
+                    setNumber: Number(setNode.setNumber ?? setIndex + 1),
+                    setType: (
+                        setNode.setType === "warmup" ||
+                            setNode.setType === "drop_set" ||
+                            setNode.setType === "amrap" ||
+                            setNode.setType === "to_failure"
+                            ? setNode.setType
+                            : "working"
+                    ) as BuilderSetType,
+                    repsMin:
+                        setNode.repsMin === null || setNode.repsMin === undefined
+                            ? null
+                            : Number(setNode.repsMin),
+                    repsMax:
+                        setNode.repsMax === null || setNode.repsMax === undefined
+                            ? null
+                            : Number(setNode.repsMax),
+                    weightKg:
+                        setNode.weightKg === null || setNode.weightKg === undefined
+                            ? null
+                            : Number(setNode.weightKg),
+                    intensityType:
+                        setNode.intensityType === "rpe" ||
+                            setNode.intensityType === "rir" ||
+                            setNode.intensityType === "percent_1rm"
+                            ? (setNode.intensityType as BuilderIntensityType)
+                            : null,
+                    intensityValue:
+                        setNode.intensityValue === null || setNode.intensityValue === undefined
+                            ? null
+                            : Number(setNode.intensityValue),
+                } satisfies PlannedExerciseSet;
+            }),
         };
     });
 }
@@ -93,13 +129,43 @@ function buildWeeks(weeks: ClientProgramTree["weeks"]): BuilderWeek[] {
         ...week,
         days: week.days.map((day) => ({
             ...day,
-            exercises: normalizeExercises(day.exercises),
+            exercises: normalizeExercises(day.id, day.exercises),
         })),
     }));
 }
 
 function getExerciseSummary(exercise: Exercise) {
     return exercise.primaryMuscle.replaceAll("_", " ");
+}
+
+function getExerciseDragData(exercise: PlannedExercise, dayId: string) {
+    return {
+        kind: "planned-exercise" as const,
+        exercise,
+        dayId,
+    };
+}
+
+function reorderPlannedExercises(
+    exercises: PlannedExercise[],
+    draggedId: string,
+    targetId: string,
+): PlannedExercise[] {
+    const ordered = exercises.slice().sort((a, b) => a.position - b.position);
+    const fromIndex = ordered.findIndex((exercise) => exercise.id === draggedId);
+    const toIndex = ordered.findIndex((exercise) => exercise.id === targetId);
+
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) {
+        return ordered;
+    }
+
+    const [moved] = ordered.splice(fromIndex, 1);
+    ordered.splice(toIndex, 0, moved);
+
+    return ordered.map((exercise, index) => ({
+        ...exercise,
+        position: index + 1,
+    }));
 }
 
 function getOverlayExercise(data: unknown): Exercise | null {
@@ -151,41 +217,87 @@ function LibraryExercisePreview({ exercise }: { exercise: Exercise }) {
 
 function BuilderExerciseCard({
     exercise,
-    onRemove,
+    dayId,
+    onEdit,
+    onDelete,
 }: {
     exercise: BuilderPlannedExercise;
-    onRemove: (plannedExerciseId: string) => void;
+    dayId: string;
+    onEdit: (exercise: BuilderPlannedExercise) => void;
+    onDelete: (exercise: BuilderPlannedExercise) => void;
 }) {
+    const { ref, isDragging } = useDraggable({
+        id: exercise.id,
+        data: getExerciseDragData(exercise, dayId),
+    });
+    const { ref: dropRef, isDropTarget } = useDroppable({
+        id: exercise.id,
+        data: getExerciseDragData(exercise, dayId),
+    });
+
     return (
-        <div className="flex items-start justify-between gap-3 rounded-2xl border border-border bg-background px-3 py-2.5 shadow-sm">
-            <div>
-                <p className="font-semibold text-foreground">{exercise.exerciseName}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                    {exercise.restSeconds}s rest
-                    {exercise.notes ? ` · ${exercise.notes}` : ""}
-                </p>
-            </div>
+        <div
+            ref={(node) => {
+                ref(node);
+                dropRef(node);
+            }}
+            className={`group flex items-start justify-between gap-3 rounded-2xl border bg-background px-3 py-2.5 shadow-sm transition ${isDragging
+                    ? "border-primary opacity-50"
+                    : isDropTarget
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                }`}
+        >
             <button
                 type="button"
-                onClick={() => onRemove(exercise.id)}
-                className="rounded-full p-1 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                aria-label={`Remove ${exercise.exerciseName}`}
+                onClick={() => onEdit(exercise)}
+                className="flex-1 text-left"
             >
-                <Trash2 className="size-3.5" />
+                <p className="font-semibold text-foreground">{exercise.exerciseName}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                    {exercise.sets.length} set{exercise.sets.length === 1 ? "" : "s"} · {exercise.restSeconds}s rest
+                    {exercise.coachNotes ? ` · ${exercise.coachNotes}` : ""}
+                </p>
             </button>
+
+            <div className="flex items-center gap-1">
+                <button
+                    type="button"
+                    onClick={() => onEdit(exercise)}
+                    className="rounded-full p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                    aria-label={`Edit ${exercise.exerciseName}`}
+                >
+                    <Edit3 className="size-3.5" />
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onDelete(exercise)}
+                    className="rounded-full p-1.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={`Remove ${exercise.exerciseName}`}
+                >
+                    <Trash2 className="size-3.5" />
+                </button>
+            </div>
         </div>
     );
 }
 
 function DayCard({
     day,
-    onRemove,
+    onEdit,
+    onCreateExercise,
+    onExerciseEdit,
+    onExerciseDelete,
 }: {
     day: BuilderDay;
-    onRemove: (plannedExerciseId: string) => void;
+    onEdit: (day: BuilderDay) => void;
+    onCreateExercise: (day: BuilderDay) => void;
+    onExerciseEdit: (exercise: BuilderPlannedExercise) => void;
+    onExerciseDelete: (exercise: BuilderPlannedExercise) => void;
 }) {
     const { ref, isDropTarget } = useDroppable({
         id: day.id,
+        data: { kind: "day" as const, dayId: day.id },
         disabled: day.isRestDay,
     });
 
@@ -216,6 +328,17 @@ function DayCard({
                 >
                     {day.isRestDay ? "Rest" : "Training"}
                 </span>
+            </div>
+
+            <div className="mt-3 flex items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => onEdit(day)}
+                    className="inline-flex items-center gap-2 rounded-2xl border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
+                >
+                    <Edit3 className="size-3.5" />
+                    Edit day
+                </button>
             </div>
 
             <div className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
@@ -250,6 +373,15 @@ function DayCard({
                 Exercises
             </div>
 
+            <button
+                type="button"
+                onClick={() => onCreateExercise(day)}
+                className="mt-2 inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-background px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
+            >
+                <Edit3 className="size-3.5" />
+                Create new exercise
+            </button>
+
             <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-2xl border border-dashed border-border/70 bg-muted/20 p-3 pr-2">
                 {day.isRestDay ? (
                     <p className="m-auto text-center text-sm text-muted-foreground">
@@ -267,7 +399,9 @@ function DayCard({
                             <BuilderExerciseCard
                                 key={exercise.id}
                                 exercise={exercise}
-                                onRemove={onRemove}
+                                dayId={day.id}
+                                onEdit={onExerciseEdit}
+                                onDelete={onExerciseDelete}
                             />
                         ))
                 )}
@@ -282,10 +416,29 @@ export default function PlanBuilder() {
     const [program, setProgram] = useState<ClientProgramTree | null>(null);
     const [builderWeeks, setBuilderWeeks] = useState<BuilderWeek[]>([]);
     const [selectedWeekId, setSelectedWeekId] = useState("");
+    const [pendingDrop, setPendingDrop] = useState<{
+        exercise: Exercise;
+        dayId: string;
+        dayLabel: string;
+        defaultPosition: number;
+    } | null>(null);
+    const [createExerciseTarget, setCreateExerciseTarget] = useState<{
+        dayId: string;
+        dayLabel: string;
+        defaultPosition: number;
+    } | null>(null);
+    const [dayToEdit, setDayToEdit] = useState<BuilderDay | null>(null);
+    const [exerciseToEdit, setExerciseToEdit] = useState<BuilderPlannedExercise | null>(null);
+    const [exerciseToDelete, setExerciseToDelete] = useState<BuilderPlannedExercise | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const clientName = (location.state as { clientName?: string } | null)?.clientName ?? "Unknown client";
-    const { filteredExercises, loading: exercisesLoading, error: exercisesError } = useExercisesData();
+    const {
+        filteredExercises,
+        loading: exercisesLoading,
+        error: exercisesError,
+        actions: { handleRetry: refetchExercises },
+    } = useExercisesData();
 
     useEffect(() => {
         let isActive = true;
@@ -348,55 +501,186 @@ export default function PlanBuilder() {
         [builderWeeks, selectedWeekId],
     );
 
+    function updateLocalDay(dayId: string, patch: Partial<BuilderDay>) {
+        setBuilderWeeks((prevWeeks) =>
+            prevWeeks.map((week) => ({
+                ...week,
+                days: week.days.map((day) => (day.id === dayId ? { ...day, ...patch } : day)),
+            })),
+        );
+    }
+
+    function findDayById(dayId: string) {
+        for (const week of builderWeeks) {
+            const day = week.days.find((weekDay) => weekDay.id === dayId);
+            if (day) {
+                return day;
+            }
+        }
+
+        return null;
+    }
+
     function handleDragEnd(event: any) {
         if (event.canceled) {
             return;
         }
 
         const { source, target } = event.operation;
-        const exercise = getOverlayExercise(source?.data);
-        if (!exercise || !target) {
+        const sourceData = source?.data;
+        const targetData = target?.data;
+        if (!sourceData || !target) {
             return;
         }
 
-        const targetDayId = String(target.id);
+        const exercise = getOverlayExercise(sourceData);
+        if (exercise) {
+            if (!targetData || targetData.kind !== "day") {
+                return;
+            }
 
-        setBuilderWeeks((prevWeeks) =>
-            prevWeeks.map((week) => ({
-                ...week,
-                days: week.days.map((day) => {
-                    if (day.id !== targetDayId || day.isRestDay) {
-                        return day;
-                    }
+            const targetDayId = String(target.id);
+            const targetDay = findDayById(targetDayId);
 
-                    const newExercise: BuilderPlannedExercise = {
-                        id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                        exerciseId: exercise.id,
-                        exerciseName: exercise.name,
-                        position: day.exercises.length + 1,
-                        restSeconds: 90,
-                        notes: null,
-                    };
+            if (!targetDay) {
+                toast.error("We could not find that day.");
+                return;
+            }
 
-                    return {
-                        ...day,
-                        exercises: [...day.exercises, newExercise],
-                    };
-                }),
-            })),
-        );
+            if (targetDay.isRestDay) {
+                toast.error("Unmark the day as rest before adding exercises.");
+                return;
+            }
+
+            setPendingDrop({
+                exercise,
+                dayId: targetDayId,
+                dayLabel: `Day ${targetDay.dayNumber}${targetDay.name ? ` · ${targetDay.name}` : ""}`,
+                defaultPosition: targetDay.exercises.length + 1,
+            });
+            return;
+        }
+
+        const draggedExercise = sourceData as { kind?: string; exercise?: BuilderPlannedExercise; dayId?: string };
+        const targetExercise = targetData as { kind?: string; exercise?: BuilderPlannedExercise; dayId?: string };
+
+        if (draggedExercise.kind !== "planned-exercise" || targetExercise.kind !== "planned-exercise") {
+            return;
+        }
+
+        if (!draggedExercise.exercise || !targetExercise.exercise || draggedExercise.dayId !== targetExercise.dayId) {
+            return;
+        }
+
+        const draggedExerciseItem = draggedExercise.exercise;
+        const targetExerciseItem = targetExercise.exercise;
+
+        if (draggedExerciseItem.id === targetExerciseItem.id) {
+            return;
+        }
+
+        void (async () => {
+            try {
+                const updated = await updatePlannedExercise(program?.id ?? "", draggedExerciseItem.id, {
+                    position: targetExerciseItem.position,
+                });
+
+                setBuilderWeeks((prevWeeks) =>
+                    prevWeeks.map((week) => ({
+                        ...week,
+                        days: week.days.map((day) =>
+                            day.id === draggedExercise.dayId
+                                ? {
+                                    ...day,
+                                    exercises: reorderPlannedExercises(
+                                        day.exercises.map((exercise) =>
+                                            exercise.id === updated.id ? { ...exercise, ...updated } : exercise,
+                                        ),
+                                        updated.id,
+                                        targetExerciseItem.id,
+                                    ),
+                                }
+                                : day,
+                        ),
+                    })),
+                );
+            } catch (error) {
+                toast.error(getApiErrorMessage(error, "We could not reorder this exercise."));
+            }
+        })();
     }
 
-    function handleRemove(plannedExerciseId: string) {
+    function handleAddSuccess(plannedExercise: PlannedExercise) {
         setBuilderWeeks((prevWeeks) =>
             prevWeeks.map((week) => ({
                 ...week,
                 days: week.days.map((day) => ({
                     ...day,
-                    exercises: day.exercises.filter((exercise) => exercise.id !== plannedExerciseId),
+                    exercises:
+                        day.id === plannedExercise.programDayId
+                            ? [...day.exercises, plannedExercise].sort((a, b) => a.position - b.position)
+                            : day.exercises,
                 })),
             })),
         );
+        setPendingDrop(null);
+    }
+
+    function handleCreateSuccess(plannedExercise: PlannedExercise) {
+        handleAddSuccess(plannedExercise);
+        setCreateExerciseTarget(null);
+        refetchExercises();
+    }
+
+    function handleDayUpdated(updatedDay: Partial<ClientProgramDay> & { id: string }) {
+        updateLocalDay(updatedDay.id, updatedDay as Partial<BuilderDay>);
+        setDayToEdit(null);
+    }
+
+    function handleExerciseUpdated(updatedExercise: PlannedExercise) {
+        setBuilderWeeks((prevWeeks) =>
+            prevWeeks.map((week) => ({
+                ...week,
+                days: week.days.map((day) =>
+                    day.id === updatedExercise.programDayId
+                        ? {
+                            ...day,
+                            exercises: day.exercises
+                                .map((exercise) => (exercise.id === updatedExercise.id ? updatedExercise : exercise))
+                                .sort((a, b) => a.position - b.position),
+                        }
+                        : day,
+                ),
+            })),
+        );
+        setExerciseToEdit(null);
+    }
+
+    function handleDeleteExercise() {
+        if (!exerciseToDelete || !program?.id) {
+            return;
+        }
+
+        const exercise = exerciseToDelete;
+
+        void (async () => {
+            try {
+                await deletePlannedExercise(program.id, exercise.id);
+                setBuilderWeeks((prevWeeks) =>
+                    prevWeeks.map((week) => ({
+                        ...week,
+                        days: week.days.map((day) => ({
+                            ...day,
+                            exercises: day.exercises.filter((item) => item.id !== exercise.id),
+                        })),
+                    })),
+                );
+                toast.success("Exercise deleted.");
+                setExerciseToDelete(null);
+            } catch (error) {
+                toast.error(getApiErrorMessage(error, "We could not delete this exercise."));
+            }
+        })();
     }
 
     return (
@@ -563,7 +847,16 @@ export default function PlanBuilder() {
                                                 <DayCard
                                                     key={day.id}
                                                     day={day}
-                                                    onRemove={handleRemove}
+                                                    onEdit={(nextDay) => setDayToEdit(nextDay)}
+                                                    onCreateExercise={(nextDay) =>
+                                                        setCreateExerciseTarget({
+                                                            dayId: nextDay.id,
+                                                            dayLabel: `Day ${nextDay.dayNumber}${nextDay.name ? ` · ${nextDay.name}` : ""}`,
+                                                            defaultPosition: nextDay.exercises.length + 1,
+                                                        })
+                                                    }
+                                                    onExerciseEdit={(exercise) => setExerciseToEdit(exercise)}
+                                                    onExerciseDelete={(exercise) => setExerciseToDelete(exercise)}
                                                 />
                                             ))}
                                         </div>
@@ -584,6 +877,72 @@ export default function PlanBuilder() {
                         }}
                     </DragOverlay>
                 </DragDropProvider>
+            )}
+
+            <AddDayExerciseModal
+                open={!!pendingDrop}
+                programId={program?.id ?? null}
+                programDayId={pendingDrop?.dayId ?? null}
+                dayLabel={pendingDrop?.dayLabel ?? ""}
+                exercise={pendingDrop?.exercise ?? null}
+                defaultPosition={pendingDrop?.defaultPosition ?? 1}
+                onClose={() => setPendingDrop(null)}
+                onAdded={handleAddSuccess}
+            />
+
+            <EditPlanDayModal
+                open={!!dayToEdit}
+                programId={program?.id ?? null}
+                day={dayToEdit}
+                onClose={() => setDayToEdit(null)}
+                onUpdated={handleDayUpdated}
+            />
+
+            <EditPlannedExerciseModal
+                key={exerciseToEdit?.id ?? "closed"}
+                open={!!exerciseToEdit}
+                programId={program?.id ?? null}
+                exercise={exerciseToEdit}
+                onClose={() => setExerciseToEdit(null)}
+                onUpdated={handleExerciseUpdated}
+
+            />
+
+            <CreateExerciseAndAddToDayModal
+                open={!!createExerciseTarget}
+                programId={program?.id ?? null}
+                programDayId={createExerciseTarget?.dayId ?? null}
+                dayLabel={createExerciseTarget?.dayLabel ?? ""}
+                defaultPosition={createExerciseTarget?.defaultPosition ?? 1}
+                onClose={() => setCreateExerciseTarget(null)}
+                onAdded={handleCreateSuccess}
+            />
+
+            {exerciseToDelete && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                    <div className="w-full max-w-sm rounded-3xl border border-border bg-background p-6 shadow-2xl">
+                        <h3 className="text-lg font-bold text-foreground">Delete exercise?</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            This will remove {exerciseToDelete.exerciseName} from the day.
+                        </p>
+                        <div className="mt-6 flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setExerciseToDelete(null)}
+                                className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteExercise}
+                                className="rounded-2xl bg-destructive px-4 py-3 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
