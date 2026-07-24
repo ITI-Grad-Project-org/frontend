@@ -7,6 +7,7 @@ import { replacePlannedExerciseSets, updatePlannedExercise } from "@/services/pl
 // import type { PlannedExercise } from "@/types/plans";
 import { Plus, X } from "lucide-react";
 import { z } from "zod";
+import { TempoTooltip } from "./TempoTooltip";
 
 const SET_TYPES = ["warmup", "working", "drop_set", "amrap", "to_failure"] as const;
 const INTENSITY_TYPES = ["rpe", "rir", "percent_1rm"] as const;
@@ -424,7 +425,9 @@ function EditPlannedExerciseModalContent({
                         </label>
 
                         <div className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Tempo *</span>
+                            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                Tempo * <TempoTooltip />
+                            </span>
                             <div className="grid grid-cols-4 gap-2">
                                 {tempoParts.map((part: string | number | readonly string[] | undefined, index: number) => (
                                     <input

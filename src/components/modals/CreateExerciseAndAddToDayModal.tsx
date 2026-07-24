@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { z } from "zod";
+import { TempoTooltip } from "./TempoTooltip";
 import { getApiErrorMessage } from "@/lib/api";
 import { createExerciseInLibraryAndAddToDay } from "@/services/plans";
 import type { PlannedExercise } from "@/types/plans";
@@ -63,7 +64,7 @@ const createExerciseSchema = z.object({
         demoGifUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
         thumbnailUrl: z.union([z.string().trim().url("Enter a valid URL"), z.literal("")]).optional(),
         instructionSteps: z
-            .array(z.string().trim().min(1, "Instruction steps cannot be empty").max(500, "Instruction step is too long"))
+            .array(z.string().trim().min(1, "Each instruction step must contain a non-whitespace character").max(500, "Instruction step is too long"))
             .min(1, "Add at least one instruction step")
             .max(10, "You can add up to 10 instruction steps"),
     }),
@@ -214,9 +215,7 @@ function CreateExerciseAndAddToDayModalContent({
     const [demoVideoUrl, setDemoVideoUrl] = useState("");
     const [demoGifUrl, setDemoGifUrl] = useState("");
     const [thumbnailUrl, setThumbnailUrl] = useState("");
-    const [instructionSteps, setInstructionSteps] = useState<Array<{ id: string; value: string }>>([
-        { id: makeId(), value: "" },
-    ]);
+    const [instructionSteps, setInstructionSteps] = useState<Array<{ id: string; value: string }>>([]);
     const [position, setPosition] = useState(String(defaultPosition));
     const [supersetGroup, setSupersetGroup] = useState("");
     const [restSeconds, setRestSeconds] = useState("90");
@@ -281,7 +280,7 @@ function CreateExerciseAndAddToDayModalContent({
     };
 
     const addStep = () => setInstructionSteps((prev) => [...prev, { id: makeId(), value: "" }]);
-    const removeStep = (id: string) => setInstructionSteps((prev) => (prev.length > 1 ? prev.filter((step) => step.id !== id) : prev));
+    const removeStep = (id: string) => setInstructionSteps((prev) => prev.filter((step) => step.id !== id));
 
     const updateSet = <K extends keyof (typeof sets)[number]>(id: string, key: K, value: (typeof sets)[number][K]) => {
         setSets((prev) => prev.map((set) => (set.id === id ? { ...set, [key]: value } : set)));
@@ -327,7 +326,7 @@ function CreateExerciseAndAddToDayModalContent({
                 demoVideoUrl: demoVideoUrl.trim(),
                 demoGifUrl: demoGifUrl.trim(),
                 thumbnailUrl: thumbnailUrl.trim(),
-                instructionSteps: instructionSteps.map((step) => step.value),
+                instructionSteps: instructionSteps.map((step) => step.value).filter((v) => v.trim() !== ""),
             },
             prescription: {
                 position: parseRequiredNumber(position),
@@ -358,7 +357,20 @@ function CreateExerciseAndAddToDayModalContent({
 
         const parsed = createExerciseSchema.safeParse(payload);
         if (!parsed.success) {
-            toast.error(parsed.error.issues[0]?.message ?? "Please check the form.");
+            // Check specifically for instructionSteps issues and show a more actionable message
+            const instructionStepIssue = parsed.error.issues.find(
+                (issue) => issue.path.join(".") === "exercise.instructionSteps"
+            );
+            if (instructionStepIssue) {
+                toast.error(
+                    instructionStepIssue.message ===
+                        "Each instruction step must contain a non-whitespace character"
+                        ? "Each instruction step must contain at least one non-whitespace character."
+                        : instructionStepIssue.message
+                );
+            } else {
+                toast.error(parsed.error.issues[0]?.message ?? "Please check the form.");
+            }
             return;
         }
 
@@ -557,7 +569,7 @@ function CreateExerciseAndAddToDayModalContent({
 
                             <fieldset className="sm:col-span-2">
                                 <legend className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                    Instruction steps *
+                                    Instruction steps
                                 </legend>
                                 <div className="space-y-2">
                                     {instructionSteps.map((step, index) => (
@@ -570,17 +582,18 @@ function CreateExerciseAndAddToDayModalContent({
                                                 className={fieldCls}
                                                 placeholder={`Step ${index + 1}`}
                                             />
-                                            {instructionSteps.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeStep(step.id)}
-                                                    className="rounded-2xl border border-border px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted"
-                                                >
-                                                    Remove
-                                                </button>
-                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => removeStep(step.id)}
+                                                className="rounded-2xl border border-border px-3 text-sm font-semibold text-muted-foreground transition hover:bg-muted"
+                                            >
+                                                Remove
+                                            </button>
                                         </div>
                                     ))}
+                                    <div className="text-[11px] text-muted-foreground">
+                                        Add at least one step describing how to perform the exercise.
+                                    </div>
                                     <button
                                         type="button"
                                         onClick={addStep}
@@ -690,8 +703,8 @@ function CreateExerciseAndAddToDayModalContent({
                             </label>
 
                             <div className="block">
-                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                    Tempo *
+                                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                    Tempo * <TempoTooltip />
                                 </span>
                                 <div className="grid grid-cols-4 gap-2">
                                     {tempoParts.map((part, index) => (
