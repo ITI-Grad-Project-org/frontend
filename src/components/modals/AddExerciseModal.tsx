@@ -52,6 +52,7 @@ function AddExerciseModalContent({
   const [instructionSteps, setInstructionSteps] = useState<string[]>(
     exercise?.instructionSteps?.length ? [...exercise.instructionSteps] : [""]
   );
+  const [stepsError, setStepsError] = useState("");
 
   // useForm dynamically syncs initial form values with `values`
   const {
@@ -89,8 +90,10 @@ function AddExerciseModalContent({
     return [...prev, ""];
   });
 
-  const updateStep = (i: number, value: string) =>
+  const updateStep = (i: number, value: string) => {
     setInstructionSteps((prev) => prev.map((s, idx) => (idx === i ? value : s)));
+    if (value.trim()) setStepsError("");
+  };
 
   const removeStep = (i: number) => {
     if (instructionSteps.length <= 1) return;
@@ -101,6 +104,12 @@ function AddExerciseModalContent({
 
   const onSubmit = async (data: AddExerciseFormData) => {
     const steps = instructionSteps.filter((s) => s.trim());
+
+    if (steps.length === 0) {
+      setStepsError("Add at least one instruction step.");
+      return;
+    }
+    setStepsError("");
 
     const payload = {
       name: data.name,
@@ -305,9 +314,14 @@ function AddExerciseModalContent({
           {/* Instruction Steps */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">
-                Instruction steps
-              </label>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground">
+                  Instruction steps <span className="text-destructive">*</span>
+                </label>
+                {stepsError && (
+                  <p className="mt-0.5 text-xs text-destructive">{stepsError}</p>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={addStep}
@@ -317,7 +331,7 @@ function AddExerciseModalContent({
                 + Add step
               </button>
             </div>
-            <div className="space-y-2">
+            <div className={`space-y-2 rounded-xl border-2 p-3 transition-colors ${stepsError ? "border-destructive/40 bg-destructive/5" : "border-transparent"}`}>
               {instructionSteps.map((step, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="text-xs font-bold text-muted-foreground/50 w-5 text-center shrink-0">
@@ -350,8 +364,13 @@ function AddExerciseModalContent({
               Media URLs <span className="font-normal">(optional)</span>
             </label>
             <div className="space-y-2.5">
+              {/* Thumbnail Input */}
               <div>
+                <label htmlFor="thumbnailUrl" className="block text-xs text-muted-foreground mb-1">
+                  Thumbnail URL
+                </label>
                 <input
+                  id="thumbnailUrl"
                   {...register("thumbnailUrl")}
                   placeholder="https://example.com/exercise-thumb.webp"
                   type="url"
@@ -361,8 +380,14 @@ function AddExerciseModalContent({
                   <p className="mt-1 text-xs text-destructive">{errors.thumbnailUrl.message}</p>
                 )}
               </div>
+
+              {/* Video Demo Input */}
               <div>
+                <label htmlFor="demoVideoUrl" className="block text-xs text-muted-foreground mb-1">
+                  Demo Video URL
+                </label>
                 <input
+                  id="demoVideoUrl"
                   {...register("demoVideoUrl")}
                   placeholder="https://example.com/demo.mp4"
                   type="url"
@@ -372,8 +397,14 @@ function AddExerciseModalContent({
                   <p className="mt-1 text-xs text-destructive">{errors.demoVideoUrl.message}</p>
                 )}
               </div>
+
+              {/* GIF Demo Input */}
               <div>
+                <label htmlFor="demoGifUrl" className="block text-xs text-muted-foreground mb-1">
+                  Demo GIF URL
+                </label>
                 <input
+                  id="demoGifUrl"
                   {...register("demoGifUrl")}
                   placeholder="https://example.com/demo.gif"
                   type="url"

@@ -146,6 +146,7 @@ function Plans() {
                     isRefreshing={isRefreshing}
                     totalPrograms={stats.total}
                     filteredPrograms={filteredPrograms.length}
+                    clients={clients}
                 />
                 <PlansList
                     programs={filteredPrograms}

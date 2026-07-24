@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import { DragDropProvider, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/react";
-import { CalendarDays, Edit3, Layers3, Moon, Send, Trash2 } from "lucide-react";
+import { CalendarDays, Edit3, GripVertical, Layers3, MonitorSmartphone, Moon, Send, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { deletePlannedExercise, getClientProgram, publishClientProgram, updatePlannedExercise, updateProgramDay } from "@/services/plans";
@@ -183,35 +183,52 @@ function getOverlayExercise(data: unknown): Exercise | null {
 }
 
 function LibraryExerciseCard({ exercise }: { exercise: Exercise }) {
-    const { ref, isDragging } = useDraggable({
+    const { ref: dragRef, isDragging } = useDraggable({
         id: exercise.id,
         data: exercise,
     });
 
     return (
-        <button
-            ref={ref}
-            type="button"
-            className={`w-full cursor-grab select-none rounded-2xl border px-3 py-2.5 text-left shadow-sm transition active:cursor-grabbing ${isDragging
+        <div
+            className={`flex items-center gap-2 rounded-2xl border bg-background shadow-sm transition ${isDragging
                 ? "border-primary bg-primary/5 opacity-40"
-                : "border-border bg-background hover:border-foreground/20 hover:bg-muted/40"
+                : "border-border hover:border-foreground/20 hover:bg-muted/40"
                 }`}
         >
-            <p className="font-semibold text-foreground">{exercise.name}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground capitalize">
-                {getExerciseSummary(exercise)}
-            </p>
-        </button>
+            {/* Drag handle */}
+            <button
+                ref={dragRef}
+                type="button"
+                className="shrink-0 cursor-grab touch-none rounded-l-2xl px-2 py-3 text-muted-foreground/50 transition hover:text-muted-foreground active:cursor-grabbing"
+                aria-label={`Drag ${exercise.name}`}
+                tabIndex={-1}
+            >
+                <GripVertical className="size-4" />
+            </button>
+
+            {/* Content — not part of the drag sensor */}
+            <div className="min-w-0 flex-1 select-none py-2.5 pr-3">
+                <p className="font-semibold text-foreground">{exercise.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground capitalize">
+                    {getExerciseSummary(exercise)}
+                </p>
+            </div>
+        </div>
     );
 }
 
 function LibraryExercisePreview({ exercise }: { exercise: Exercise }) {
     return (
-        <div className="cursor-grabbing select-none rounded-2xl border border-primary bg-background px-3 py-2.5 text-sm shadow-lg">
-            <p className="font-semibold text-foreground">{exercise.name}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground capitalize">
-                {getExerciseSummary(exercise)}
-            </p>
+        <div className="flex cursor-grabbing select-none items-center gap-2 rounded-2xl border border-primary bg-background shadow-lg">
+            <div className="shrink-0 px-2 py-3 text-muted-foreground/50">
+                <GripVertical className="size-4" />
+            </div>
+            <div className="min-w-0 flex-1 py-2.5 pr-3 text-sm">
+                <p className="font-semibold text-foreground">{exercise.name}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground capitalize">
+                    {getExerciseSummary(exercise)}
+                </p>
+            </div>
         </div>
     );
 }
@@ -227,7 +244,7 @@ function BuilderExerciseCard({
     onEdit: (exercise: BuilderPlannedExercise) => void;
     onDelete: (exercise: BuilderPlannedExercise) => void;
 }) {
-    const { ref, isDragging } = useDraggable({
+    const { ref: dragRef, isDragging } = useDraggable({
         id: exercise.id,
         data: getExerciseDragData(exercise, dayId),
     });
@@ -238,30 +255,45 @@ function BuilderExerciseCard({
 
     return (
         <div
-            ref={(node) => {
-                ref(node);
-                dropRef(node);
-            }}
-            className={`group flex items-start justify-between gap-3 rounded-2xl border bg-background px-3 py-2.5 shadow-sm transition ${isDragging
+            ref={dropRef}
+            className={`group flex items-start gap-2 rounded-2xl border bg-background px-2 py-2.5 shadow-sm transition ${isDragging
                 ? "border-primary opacity-50"
                 : isDropTarget
                     ? "border-primary bg-primary/5"
                     : "border-border"
                 }`}
         >
+            {/* Drag handle — only this element triggers the drag */}
+            <button
+                ref={dragRef}
+                type="button"
+                className="mt-0.5 shrink-0 cursor-grab touch-none rounded-lg p-1 text-muted-foreground/50 transition hover:text-muted-foreground active:cursor-grabbing"
+                aria-label="Drag to reorder"
+                tabIndex={-1}
+            >
+                <GripVertical className="size-4" />
+            </button>
+
+            {/* Position + content */}
             <button
                 type="button"
                 onClick={() => onEdit(exercise)}
-                className="flex-1 text-left"
+                className="min-w-0 flex-1 text-left"
             >
-                <p className="font-semibold text-foreground">{exercise.exerciseName}</p>
+                <p className="font-semibold text-foreground">
+                    <span className="mr-1 text-xs font-bold text-muted-foreground">
+                        #{exercise.position}
+                    </span>
+                    {exercise.exerciseName}
+                </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                     {exercise.sets.length} set{exercise.sets.length === 1 ? "" : "s"} · {exercise.restSeconds}s rest
                     {exercise.coachNotes ? ` · ${exercise.coachNotes}` : ""}
                 </p>
             </button>
 
-            <div className="flex items-center gap-1">
+            {/* Action buttons */}
+            <div className="flex shrink-0 items-center gap-1">
                 <button
                     type="button"
                     onClick={() => onEdit(exercise)}
@@ -290,6 +322,7 @@ function DayCard({
     onExerciseEdit,
     onExerciseDelete,
     onToggleRestDay,
+    isReordering,
 }: {
     day: BuilderDay;
     onEdit: (day: BuilderDay) => void;
@@ -297,6 +330,7 @@ function DayCard({
     onExerciseEdit: (exercise: BuilderPlannedExercise) => void;
     onExerciseDelete: (exercise: BuilderPlannedExercise) => void;
     onToggleRestDay: (day: BuilderDay) => void;
+    isReordering: boolean;
 }) {
     const { ref, isDropTarget } = useDroppable({
         id: day.id,
@@ -389,7 +423,18 @@ function DayCard({
                 Create new exercise
             </button>
 
-            <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-2xl border border-dashed border-border/70 bg-muted/20 p-3 pr-2">
+            <div className="mt-3 relative flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-2xl border border-dashed border-border/70 bg-muted/20 p-3 pr-2">
+                {isReordering && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/60 backdrop-blur-[2px]">
+                        <div className="flex items-center gap-2 rounded-xl bg-card px-3 py-2 text-xs font-semibold text-muted-foreground shadow-sm border border-border">
+                            <svg className="size-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                            </svg>
+                            Saving order…
+                        </div>
+                    </div>
+                )}
                 {day.isRestDay ? (
                     <p className="m-auto text-center text-sm text-muted-foreground">
                         Rest days do not accept exercises.
@@ -441,6 +486,7 @@ export default function PlanBuilder() {
     const [error, setError] = useState("");
     const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
+    const [reorderingDayId, setReorderingDayId] = useState<string | null>(null);
     const clientName = (location.state as { clientName?: string } | null)?.clientName ?? "Unknown client";
     const {
         filteredExercises,
@@ -588,33 +634,51 @@ export default function PlanBuilder() {
             return;
         }
 
+        const dayId = draggedExercise.dayId!;
+
+        // Build the reordered list and derive the dragged item's new position
+        const currentDay = findDayById(dayId);
+        if (!currentDay) return;
+
+        const reordered = reorderPlannedExercises(
+            currentDay.exercises,
+            draggedExerciseItem.id,
+            targetExerciseItem.id,
+        );
+        const newPosition = reordered.find((e) => e.id === draggedExerciseItem.id)!.position;
+
+        // Snapshot for rollback
+        const snapshot = currentDay.exercises.slice();
+
+        // Optimistic update
+        setBuilderWeeks((prevWeeks) =>
+            prevWeeks.map((week) => ({
+                ...week,
+                days: week.days.map((day) =>
+                    day.id === dayId ? { ...day, exercises: reordered } : day,
+                ),
+            })),
+        );
+
+        setReorderingDayId(dayId);
         void (async () => {
             try {
-                const updated = await updatePlannedExercise(program?.id ?? "", draggedExerciseItem.id, {
-                    position: targetExerciseItem.position,
+                await updatePlannedExercise(program?.id ?? "", draggedExerciseItem.id, {
+                    position: newPosition,
                 });
-
+            } catch (error) {
+                // Roll back
                 setBuilderWeeks((prevWeeks) =>
                     prevWeeks.map((week) => ({
                         ...week,
                         days: week.days.map((day) =>
-                            day.id === draggedExercise.dayId
-                                ? {
-                                    ...day,
-                                    exercises: reorderPlannedExercises(
-                                        day.exercises.map((exercise) =>
-                                            exercise.id === updated.id ? { ...exercise, ...updated } : exercise,
-                                        ),
-                                        updated.id,
-                                        targetExerciseItem.id,
-                                    ),
-                                }
-                                : day,
+                            day.id === dayId ? { ...day, exercises: snapshot } : day,
                         ),
                     })),
                 );
-            } catch (error) {
                 toast.error(getApiErrorMessage(error, "We could not reorder this exercise."));
+            } finally {
+                setReorderingDayId(null);
             }
         })();
     }
@@ -724,6 +788,42 @@ export default function PlanBuilder() {
         })();
     }
 
+    const [isMobile, setIsMobile] = useState(() =>
+        typeof window !== "undefined" && window.matchMedia("(max-width: 1024px)").matches,
+    );
+
+    useEffect(() => {
+        const mq = window.matchMedia("(max-width: 1024px)");
+        const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+        mq.addEventListener("change", handler);
+        return () => mq.removeEventListener("change", handler);
+    }, []);
+
+    if (isMobile) {
+        return (
+            <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-brand/10 text-brand">
+                    <MonitorSmartphone className="size-8" />
+                </div>
+                <div className="max-w-xs">
+                    <h2 className="text-xl font-black tracking-tight text-foreground">
+                        Best on a larger screen
+                    </h2>
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                        The Plan Builder uses an advanced drag-and-drop workout editor designed for
+                        precision. For the best experience, open it on a tablet or desktop.
+                    </p>
+                </div>
+                <Link
+                    to="/dashboard/plans"
+                    className="inline-flex items-center gap-2 rounded-2xl border border-border px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                >
+                    ← Back to plans
+                </Link>
+            </div>
+        );
+    }
+
     return (
         <>
             <div className="space-y-6">
@@ -813,7 +913,7 @@ export default function PlanBuilder() {
                 {!isLoading && program && (
                     <DragDropProvider onDragEnd={handleDragEnd}>
                         <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-                            <aside className="flex max-h-[calc(100vh-14rem)] flex-col rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card)">
+                            <aside className="flex max-h-[calc(100vh+10rem)] flex-col rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card)">
                                 <div className="flex items-center gap-2">
                                     {/* <div className="rounded-2xl bg-primary/10 p-2 text-primary">
                                     <ChevronRight className="size-4 rotate-90" />
@@ -903,6 +1003,7 @@ export default function PlanBuilder() {
                                                         day={day}
                                                         onEdit={(nextDay) => setDayToEdit(nextDay)}
                                                         onToggleRestDay={(nextDay) => void handleToggleRestDay(nextDay)}
+                                                        isReordering={reorderingDayId === day.id}
                                                         onCreateExercise={(nextDay) =>
                                                             setCreateExerciseTarget({
                                                                 dayId: nextDay.id,

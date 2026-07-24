@@ -5,6 +5,7 @@ import {
 } from "@/schemas/plans";
 import type { PlansFilters as PlansFiltersState } from "@/hooks/usePlansData";
 import { formatFilterLabel } from "@/hooks/usePlansData";
+import type { ClientConnection } from "@/types/client";
 
 interface PlansFiltersProps {
     filters: PlansFiltersState;
@@ -14,6 +15,7 @@ interface PlansFiltersProps {
     isRefreshing: boolean;
     totalPrograms: number;
     filteredPrograms: number;
+    clients: ClientConnection[];
 }
 
 export function PlansFilters({
@@ -24,7 +26,16 @@ export function PlansFilters({
     isRefreshing,
     totalPrograms,
     filteredPrograms,
+    clients,
 }: PlansFiltersProps) {
+    // Helper to get client display name
+    const getClientName = (connection: ClientConnection) => {
+        return (
+            `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim() ||
+            connection.client.email
+        );
+    };
+
     return (
         <section className="rounded-3xl p-6">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -58,6 +69,22 @@ export function PlansFilters({
                                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                             />
                         </div>
+                    </label>
+
+                    <label className="block">
+                        <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Client</span>
+                        <select
+                            value={filters.membershipId}
+                            onChange={(event) => onFiltersChange({ membershipId: event.target.value })}
+                            className="w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm outline-none focus:border-brand"
+                        >
+                            <option value="all">All clients</option>
+                            {clients.map((connection) => (
+                                <option key={connection.id} value={connection.id}>
+                                    {getClientName(connection)}
+                                </option>
+                            ))}
+                        </select>
                     </label>
 
                     <label className="block">
@@ -139,6 +166,11 @@ export function PlansFilters({
                     {filters.status !== "all" && (
                         <span className="rounded-full bg-muted px-3 py-1 font-medium">
                             Status: {formatFilterLabel(filters.status)}
+                        </span>
+                    )}
+                    {filters.membershipId !== "all" && (
+                        <span className="rounded-full bg-muted px-3 py-1 font-medium">
+                            Client: {getClientName(clients.find((c) => c.id === filters.membershipId)!)}
                         </span>
                     )}
                     {filters.showArchived && (

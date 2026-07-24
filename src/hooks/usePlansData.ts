@@ -13,6 +13,7 @@ export type PlansFilters = {
   goal: string;
   difficulty: string;
   status: string;
+  membershipId: string;
   showArchived: boolean;
 };
 
@@ -21,6 +22,7 @@ const defaultFilters: PlansFilters = {
   goal: "all",
   difficulty: "all",
   status: "all",
+  membershipId: "all",
   showArchived: false,
 };
 
@@ -171,6 +173,13 @@ export function usePlansData() {
     );
   }, [clients]);
 
+  // Map membershipId to client name for easier lookup
+  const clientMembershipMap = useMemo(() => {
+    return new Map(
+      clients.map((connection) => [connection.id, getClientName(connection)]),
+    );
+  }, [clients]);
+
   const filteredPrograms = useMemo(() => {
     const normalizedSearch = filters.searchTerm.trim().toLowerCase();
 
@@ -189,6 +198,9 @@ export function usePlansData() {
         program.difficulty === filters.difficulty;
       const matchesStatus =
         filters.status === "all" || program.status === filters.status;
+      const matchesClient =
+        filters.membershipId === "all" ||
+        program.membershipId === filters.membershipId;
       const matchesArchived = filters.showArchived || !program.isArchived;
 
       return (
@@ -196,6 +208,7 @@ export function usePlansData() {
         matchesGoal &&
         matchesDifficulty &&
         matchesStatus &&
+        matchesClient &&
         matchesArchived
       );
     });
@@ -205,6 +218,7 @@ export function usePlansData() {
     filters.goal,
     filters.searchTerm,
     filters.status,
+    filters.membershipId,
     filters.showArchived,
     programs,
   ]);
@@ -233,5 +247,6 @@ export function usePlansData() {
     refreshData,
     resetFilters,
     clientNameMap,
+    clientMembershipMap,
   };
 }

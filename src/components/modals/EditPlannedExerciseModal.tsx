@@ -7,7 +7,9 @@ import { replacePlannedExerciseSets, updatePlannedExercise } from "@/services/pl
 // import type { PlannedExercise } from "@/types/plans";
 import { Plus, X } from "lucide-react";
 import { z } from "zod";
-import { TempoTooltip } from "./TempoTooltip";
+import { IntensityTypeTooltip } from "../ui/IntensityTypeTooltip";
+import { TempoTooltip } from "../ui/TempoTooltip";
+import { SetTypeTooltip } from "../ui/SetTypeTooltip";
 
 const SET_TYPES = ["warmup", "working", "drop_set", "amrap", "to_failure"] as const;
 const INTENSITY_TYPES = ["rpe", "rir", "percent_1rm"] as const;
@@ -492,8 +494,9 @@ function EditPlannedExerciseModalContent({
 
                                     <div className="space-y-4">
                                         <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                                            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                                 Set type *
+                                                <SetTypeTooltip />
                                             </span>
                                             <select
                                                 value={set.setType}
@@ -616,8 +619,9 @@ function EditPlannedExerciseModalContent({
                                             </label>
 
                                             <label className="block">
-                                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                                                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                                     Intensity type
+                                                    <IntensityTypeTooltip />
                                                 </span>
                                                 <select
                                                     value={set.intensityType}

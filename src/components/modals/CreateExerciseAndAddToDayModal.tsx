@@ -4,10 +4,12 @@ import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { z } from "zod";
-import { TempoTooltip } from "./TempoTooltip";
+import { IntensityTypeTooltip } from "../ui/IntensityTypeTooltip";
+import { TempoTooltip } from "../ui/TempoTooltip";
 import { getApiErrorMessage } from "@/lib/api";
 import { createExerciseInLibraryAndAddToDay } from "@/services/plans";
 import type { PlannedExercise } from "@/types/plans";
+import { SetTypeTooltip } from "../ui/SetTypeTooltip";
 
 const CATEGORY_VALUES = ["strength", "cardio", "mobility", "plyometric", "core"] as const;
 const MUSCLE_VALUES = [
@@ -774,8 +776,9 @@ function CreateExerciseAndAddToDayModalContent({
                                     </div>
                                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                         <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                                            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                                 Set type *
+                                                <SetTypeTooltip />
                                             </span>
                                             <select
                                                 id={`create-exercise-set-type-${index + 1}`}
@@ -793,88 +796,6 @@ function CreateExerciseAndAddToDayModalContent({
                                                 ))}
                                             </select>
                                         </label>
-
-                                        {/* <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                Reps min *
-                                            </span>
-                                            <input
-                                                id={`create-exercise-reps-min-${index + 1}`}
-                                                name={`create-exercise-reps-min-${index + 1}`}
-                                                value={set.repsMin}
-                                                onChange={(event) => updateSet(set.id, "repsMin", event.target.value)}
-                                                type="number"
-                                                min={1}
-                                                max={1000}
-                                                className={fieldCls}
-                                            />
-                                            <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 1 to 1000.</p>
-                                        </label>
-
-                                        <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                Reps max *
-                                            </span>
-                                            <input
-                                                id={`create-exercise-reps-max-${index + 1}`}
-                                                name={`create-exercise-reps-max-${index + 1}`}
-                                                value={set.repsMax}
-                                                onChange={(event) => updateSet(set.id, "repsMax", event.target.value)}
-                                                type="number"
-                                                min={1}
-                                                max={1000}
-                                                className={fieldCls}
-                                            />
-                                            <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 1 to 1000.</p>
-                                        </label>
-
-                                        <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                Duration seconds *
-                                            </span>
-                                            <input
-                                                id={`create-exercise-duration-seconds-${index + 1}`}
-                                                name={`create-exercise-duration-seconds-${index + 1}`}
-                                                value={set.durationSeconds}
-                                                onChange={(event) => updateSet(set.id, "durationSeconds", event.target.value)}
-                                                type="number"
-                                                min={1}
-                                                max={21600}
-                                                className={fieldCls}
-                                            />
-                                            <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 1 to 21600.</p>
-                                        </label> */}
-
-                                        {/* <div className="block sm:col-span-2 lg:col-span-3">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                Prescribed by *
-                                            </span>
-                                            <div className="inline-flex rounded-2xl border border-border bg-background p-1">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => updateSet(set.id, "mode", "reps")}
-                                                    className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${set.mode === "reps"
-                                                        ? "bg-brand text-brand-foreground"
-                                                        : "text-muted-foreground hover:text-foreground"
-                                                        }`}
-                                                >
-                                                    Reps
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => updateSet(set.id, "mode", "duration")}
-                                                    className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition ${set.mode === "duration"
-                                                        ? "bg-brand text-brand-foreground"
-                                                        : "text-muted-foreground hover:text-foreground"
-                                                        }`}
-                                                >
-                                                    Duration
-                                                </button>
-                                            </div>
-                                            <p className="mt-1 text-[11px] text-muted-foreground">
-                                                A set is prescribed by reps or duration, never both.
-                                            </p>
-                                        </div> */}
                                         <div className="block sm:col-span-2 lg:col-span-3">
                                             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
                                                 Prescribed by {set.setType === "working" || set.setType === "warmup" ? "*" : ""}
@@ -998,49 +919,10 @@ function CreateExerciseAndAddToDayModalContent({
                                             <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 0 to 1000.</p>
                                         </label>
 
-                                        {/* <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                Intensity type *
-                                            </span>
-                                            <select
-                                                id={`create-exercise-intensity-type-${index + 1}`}
-                                                name={`create-exercise-intensity-type-${index + 1}`}
-                                                value={set.intensityType}
-                                                onChange={(event) =>
-                                                    updateSet(set.id, "intensityType", event.target.value as (typeof INTENSITY_TYPES)[number])
-                                                }
-                                                className={fieldCls}
-                                            >
-                                                {INTENSITY_TYPES.map((value) => (
-                                                    <option key={value} value={value}>
-                                                        {value}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <p className="mt-1 text-[11px] text-muted-foreground">Allowed: rpe, rir, percent_1rm.</p>
-                                        </label>
-
                                         <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                Intensity value *
-                                            </span>
-                                            <input
-                                                id={`create-exercise-intensity-value-${index + 1}`}
-                                                name={`create-exercise-intensity-value-${index + 1}`}
-                                                value={set.intensityValue}
-                                                onChange={(event) => updateSet(set.id, "intensityValue", event.target.value)}
-                                                type="number"
-                                                min={0}
-                                                max={100}
-                                                step="0.5"
-                                                className={fieldCls}
-                                            />
-                                            <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 0 to 100.</p>
-                                        </label> */}
-
-                                        <label className="block">
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                                            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                                 Intensity type
+                                                <IntensityTypeTooltip />
                                             </span>
                                             <select
                                                 id={`create-exercise-intensity-type-${index + 1}`}
