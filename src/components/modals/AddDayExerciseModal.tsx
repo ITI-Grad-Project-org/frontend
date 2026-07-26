@@ -1,149 +1,30 @@
-import { useState, useMemo, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
+import { Plus, DumbbellIcon, X } from "lucide-react";
 import { getApiErrorMessage } from "@/lib/api";
 import { addLibraryExerciseToDay } from "@/services/plans";
 import type { Exercise } from "@/types/exercise";
 import type { PlannedExercise } from "@/types/plans";
-import { Plus, DumbbellIcon, X } from "lucide-react";
-import { z } from "zod";
-import { IntensityTypeTooltip } from "../ui/IntensityTypeTooltip";
-import { TempoTooltip } from "../ui/TempoTooltip";
-import { SetTypeTooltip } from "../ui/SetTypeTooltip";
+import { TempoTooltip } from "@/components/ui/TempoTooltip";
+import {
+    addDayExerciseFormSchema,
+    defaultAddDayExerciseValues,
+    makeDefaultSet,
+} from "@/schemas/addDayExercise";
+import type { AddDayExerciseFormValues, AddDayExerciseSubmitValues } from "@/schemas/addDayExercise";
+import { ConnectedSetRow } from "../plans/ConnectedSetRow";
 
-const SET_TYPES = ["warmup", "working", "drop_set", "amrap", "to_failure"] as const;
-const INTENSITY_TYPES = ["rpe", "rir", "percent_1rm"] as const;
+// ─── Styles ───────────────────────────────────────────────────────────────────
 
-const INTENSITY_RANGES: Record<(typeof INTENSITY_TYPES)[number], { min: number; max: number }> = {
-    rpe: { min: 1, max: 10 },
-    rir: { min: 0, max: 10 },
-    percent_1rm: { min: 1, max: 100 },
-};
+const fieldCls =
+    "w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand disabled:cursor-not-allowed disabled:bg-muted/50";
+const fieldErrorCls = "border-destructive focus:border-destructive";
+const errorMsgCls = "mt-1.5 text-xs text-destructive";
 
-function hasAtMostDecimals(value: number, maxDecimals: number) {
-    if (!value) return true;
-    const decimalPart = value.toString().split(".")[1];
-    return !decimalPart || decimalPart.length <= maxDecimals;
-}
 
-function makeId() {
-    return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function parseRequiredNumber(value: string) {
-    const trimmed = value.trim();
-    return trimmed === "" ? Number.NaN : Number(trimmed);
-}
-
-function parseOptionalNumber(value: string) {
-    const trimmed = value.trim();
-    return trimmed === "" ? null : Number(trimmed);
-}
-
-const setSchema = z
-    .object({
-        setType: z.enum(SET_TYPES),
-        repsMin: z.number().int().min(1).max(1000).nullable(),
-        repsMax: z.number().int().min(1).max(1000).nullable(),
-        durationSeconds: z.number().int().min(1).max(21600).nullable(),
-        weightKg: z.number().min(0).max(1000).nullable(),
-        intensityType: z.enum(INTENSITY_TYPES).nullable(),
-        intensityValue: z.number().nullable(),
-    })
-    .superRefine((set, ctx) => {
-        const hasReps = set.repsMin !== null || set.repsMax !== null;
-        const hasDuration = set.durationSeconds !== null;
-        const targetIsOptional =
-            set.setType === "amrap" || set.setType === "to_failure" || set.setType === "drop_set";
-
-        if (hasReps && hasDuration) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "A set must be prescribed by reps or duration, not both",
-                path: ["durationSeconds"],
-            });
-        }
-
-        if (!targetIsOptional && !hasReps && !hasDuration) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Working and warmup sets need either reps or a duration",
-                path: ["repsMin"],
-            });
-        }
-
-        if (set.repsMax !== null && set.repsMin === null) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Reps max requires reps min",
-                path: ["repsMax"],
-            });
-        }
-
-        if (set.repsMin !== null && set.repsMax !== null && set.repsMax < set.repsMin) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Reps max cannot be lower than reps min",
-                path: ["repsMax"],
-            });
-        }
-
-        if ((set.intensityType === null) !== (set.intensityValue === null)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Intensity type and value must be set together",
-                path: ["intensityValue"],
-            });
-        }
-
-        if (set.intensityType !== null && set.intensityValue !== null) {
-            const range = INTENSITY_RANGES[set.intensityType];
-            if (set.intensityValue < range.min || set.intensityValue > range.max) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    message: `${set.intensityType.toUpperCase()} must be between ${range.min} and ${range.max}`,
-                    path: ["intensityValue"],
-                });
-            }
-        }
-
-        if (set.weightKg !== null && !hasAtMostDecimals(set.weightKg, 2)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Weight can have at most two decimal places",
-                path: ["weightKg"],
-            });
-        }
-
-        if (set.intensityValue !== null && !hasAtMostDecimals(set.intensityValue, 2)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: "Intensity value can have at most two decimal places",
-                path: ["intensityValue"],
-            });
-        }
-    });
-
-const addExerciseSchema = z.object({
-    position: z.number().int().min(1).max(30),
-    supersetGroup: z.number().int().min(1).max(30).nullable(),
-    restSeconds: z.number().int().min(0).max(3600),
-    tempo: z.string().regex(/^([0-9Xx]-){3}[0-9Xx]$/, "Tempo must use four digit-or-X phases such as 3-1-X-0"),
-    coachNotes: z.string().trim().max(5000).nullable(),
-    sets: z.array(setSchema).min(1, "Add at least one set").max(20, "You can add up to 20 sets"),
-});
-
-type EditableSet = {
-    id: string;
-    mode: "reps" | "duration";
-    setType: (typeof SET_TYPES)[number];
-    repsMin: string;
-    repsMax: string;
-    durationSeconds: string;
-    weightKg: string;
-    intensityType: (typeof INTENSITY_TYPES)[number] | "";
-    intensityValue: string;
-};
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type Props = {
     open: boolean;
@@ -156,37 +37,7 @@ type Props = {
     onAdded: (plannedExercise: PlannedExercise) => void;
 };
 
-const fieldCls =
-    "w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand disabled:cursor-not-allowed disabled:bg-muted/50";
-
-const setTypeOptions = [
-    { value: "warmup", label: "warmup" },
-    { value: "working", label: "working" },
-    { value: "drop_set", label: "drop_set" },
-    { value: "amrap", label: "amrap" },
-    { value: "to_failure", label: "to_failure" },
-] as const;
-
-const intensityTypeOptions = [
-    { value: "", label: "None" },
-    { value: "rpe", label: "rpe" },
-    { value: "rir", label: "rir" },
-    { value: "percent_1rm", label: "percent_1rm" },
-] as const;
-
-function makeDefaultSet(): EditableSet {
-    return {
-        id: makeId(),
-        mode: "reps",
-        setType: "working",
-        repsMin: "",
-        repsMax: "",
-        durationSeconds: "",
-        weightKg: "",
-        intensityType: "",
-        intensityValue: "",
-    };
-}
+// ─── Modal content ────────────────────────────────────────────────────────────
 
 function AddDayExerciseModalContent({
     programId,
@@ -197,89 +48,46 @@ function AddDayExerciseModalContent({
     onClose,
     onAdded,
 }: Omit<Props, "open">) {
-    const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
-    const [position, setPosition] = useState(String(defaultPosition));
-    const [supersetGroup, setSupersetGroup] = useState("");
-    const [restSeconds, setRestSeconds] = useState("90");
-    const [tempoParts, setTempoParts] = useState(["0", "0", "0", "0"]);
-    const [coachNotes, setCoachNotes] = useState("");
-    const [sets, setSets] = useState<EditableSet[]>([makeDefaultSet()]);
+    const {
+        register,
+        control,
+        handleSubmit,
+        setValue,
+        formState: { errors, isSubmitting },
+    } = useForm<AddDayExerciseFormValues>({
+        resolver: zodResolver(addDayExerciseFormSchema),
+        defaultValues: { ...defaultAddDayExerciseValues, position: String(defaultPosition) },
+    });
 
-    const tempo = useMemo(() => tempoParts.join("-"), [tempoParts]);
+    const { fields, append, remove } = useFieldArray({ control, name: "sets" });
 
-    const handleTempoChange = (index: number, value: string) => {
-        const next = value.replace(/[^0-9xX]/g, "").slice(0, 1).toUpperCase();
-        setTempoParts((prev) => prev.map((part, i) => (i === index ? next : part)));
-    };
-
-    const updateSet = <K extends keyof EditableSet>(id: string, key: K, value: EditableSet[K]) => {
-        setSets((prev) =>
-            prev.map((set) => {
-                if (set.id !== id) return set;
-                const nextSet = { ...set, [key]: value };
-                if (key === "intensityType" && value === "") {
-                    nextSet.intensityValue = "";
-                }
-                return nextSet;
-            }),
-        );
-    };
-
-    const addSet = () => setSets((prev) => [...prev, makeDefaultSet()]);
-
-    const removeSet = (id: string) =>
-        setSets((prev) => (prev.length > 1 ? prev.filter((set) => set.id !== id) : prev));
+    const isPending = isSubmitting;
 
     const handleClose = () => {
-        if (!isSubmittingLocal) onClose();
+        if (!isPending) onClose();
     };
 
-    const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-
+    const onSubmit = async (values: AddDayExerciseSubmitValues) => {
         if (!programId || !programDayId || !exercise) return;
 
-        const payload = {
-            position: parseRequiredNumber(position),
-            supersetGroup: parseOptionalNumber(supersetGroup),
-            restSeconds: parseRequiredNumber(restSeconds),
-            tempo,
-            coachNotes: coachNotes.trim() || null,
-            sets: sets.map((set) => ({
-                setType: set.setType,
-                repsMin: set.mode === "reps" ? parseOptionalNumber(set.repsMin) : null,
-                repsMax: set.mode === "reps" ? parseOptionalNumber(set.repsMax) : null,
-                durationSeconds: set.mode === "duration" ? parseOptionalNumber(set.durationSeconds) : null,
-                weightKg: parseOptionalNumber(set.weightKg),
-                intensityType: set.intensityType === "" ? null : set.intensityType,
-                intensityValue: parseOptionalNumber(set.intensityValue),
-            })),
-        };
-
-        const parsed = addExerciseSchema.safeParse(payload);
-        if (!parsed.success) {
-            toast.error(parsed.error.issues[0]?.message ?? "Please check the form.");
-            return;
-        }
-
-        setIsSubmittingLocal(true);
+        const tempo = `${values.tempo0}-${values.tempo1}-${values.tempo2}-${values.tempo3}`;
 
         try {
             const plannedExercise = await addLibraryExerciseToDay(programId, programDayId, {
                 exerciseId: exercise.id,
-                position: parsed.data.position,
-                supersetGroup: parsed.data.supersetGroup,
-                restSeconds: parsed.data.restSeconds,
-                tempo: parsed.data.tempo,
-                coachNotes: parsed.data.coachNotes,
-                sets: parsed.data.sets.map((set) => ({
+                position: values.position,
+                supersetGroup: values.supersetGroup,
+                restSeconds: values.restSeconds,
+                tempo,
+                coachNotes: values.coachNotes.trim() || null,
+                sets: values.sets.map((set) => ({
                     setType: set.setType,
-                    repsMin: set.repsMin ?? null,
-                    repsMax: set.repsMax ?? null,
-                    durationSeconds: set.durationSeconds ?? null,
-                    weightKg: set.weightKg ?? null,
-                    intensityType: set.intensityType ?? null,
-                    intensityValue: set.intensityValue ?? null,
+                    repsMin: set.mode === "reps" ? set.repsMin : null,
+                    repsMax: set.mode === "reps" ? set.repsMax : null,
+                    durationSeconds: set.mode === "duration" ? set.durationSeconds : null,
+                    weightKg: set.weightKg,
+                    intensityType: set.intensityType === "" ? null : set.intensityType,
+                    intensityValue: set.intensityValue,
                 })),
             });
 
@@ -287,11 +95,7 @@ function AddDayExerciseModalContent({
             onAdded(plannedExercise);
             onClose();
         } catch (error) {
-            toast.error(
-                getApiErrorMessage(error, "We could not add this exercise to the day. Please try again."),
-            );
-        } finally {
-            setIsSubmittingLocal(false);
+            toast.error(getApiErrorMessage(error, "We could not add this exercise to the day. Please try again."));
         }
     };
 
@@ -304,9 +108,10 @@ function AddDayExerciseModalContent({
         >
             <form
                 className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-2xl animate-in fade-in zoom-in-95 duration-200"
-                onClick={(event) => event.stopPropagation()}
-                onSubmit={onSubmit}
+                onClick={(e) => e.stopPropagation()}
+                onSubmit={handleSubmit(onSubmit)}
             >
+                {/* Header */}
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border p-6 pb-4">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -322,6 +127,7 @@ function AddDayExerciseModalContent({
                     <button
                         type="button"
                         onClick={handleClose}
+                        aria-label="Close"
                         className="cursor-pointer rounded-xl border border-border p-2 transition-colors hover:bg-muted"
                     >
                         <X size={18} />
@@ -329,6 +135,7 @@ function AddDayExerciseModalContent({
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6">
+                    {/* Exercise badge */}
                     <div className="rounded-3xl border border-border bg-muted/20 p-4">
                         <div className="flex items-start gap-3">
                             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-muted-foreground">
@@ -343,85 +150,108 @@ function AddDayExerciseModalContent({
                         </div>
                     </div>
 
+                    {/* Prescription fields */}
                     <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                        <label className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Position *</span>
-                            <input
-                                value={position}
-                                onChange={(e) => setPosition(e.target.value)}
-                                type="number"
-                                min={1}
-                                max={30}
-                                className={fieldCls}
-                            />
-                            <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 1 to 30.</p>
-                        </label>
+                        {/* Position */}
+                        <div>
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Position *</span>
+                                <input
+                                    {...register("position")}
+                                    type="number" min={1} max={30} disabled={isPending}
+                                    className={`${fieldCls} ${errors.position ? fieldErrorCls : ""}`}
+                                />
+                            </label>
+                            {errors.position
+                                ? <p className={errorMsgCls} role="alert">{errors.position.message}</p>
+                                : <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 1 to 30.</p>
+                            }
+                        </div>
 
-                        <label className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Rest seconds *</span>
-                            <input
-                                value={restSeconds}
-                                onChange={(e) => setRestSeconds(e.target.value)}
-                                type="number"
-                                min={0}
-                                max={3600}
-                                className={fieldCls}
-                            />
-                            <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 0 to 3600 seconds.</p>
-                        </label>
+                        {/* Rest seconds */}
+                        <div>
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Rest seconds *</span>
+                                <input
+                                    {...register("restSeconds")}
+                                    type="number" min={0} max={3600} disabled={isPending}
+                                    className={`${fieldCls} ${errors.restSeconds ? fieldErrorCls : ""}`}
+                                />
+                            </label>
+                            {errors.restSeconds
+                                ? <p className={errorMsgCls} role="alert">{errors.restSeconds.message}</p>
+                                : <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 0 to 3600 seconds.</p>
+                            }
+                        </div>
 
-                        <label className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Superset group</span>
-                            <input
-                                value={supersetGroup}
-                                onChange={(e) => setSupersetGroup(e.target.value)}
-                                type="number"
-                                min={1}
-                                max={30}
-                                className={fieldCls}
-                            />
-                            <p className="mt-1 text-[11px] text-muted-foreground">Optional. Allowed range: 1 to 30.</p>
-                        </label>
+                        {/* Superset group */}
+                        <div>
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Superset group</span>
+                                <input
+                                    {...register("supersetGroup")}
+                                    type="number" min={1} max={30} disabled={isPending}
+                                    className={`${fieldCls} ${errors.supersetGroup ? fieldErrorCls : ""}`}
+                                />
+                            </label>
+                            {errors.supersetGroup
+                                ? <p className={errorMsgCls} role="alert">{errors.supersetGroup.message}</p>
+                                : <p className="mt-1 text-[11px] text-muted-foreground">Optional. Allowed range: 1 to 30.</p>
+                            }
+                        </div>
 
-                        <div className="block">
+                        {/* Tempo */}
+                        <div>
                             <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                                 Tempo * <TempoTooltip />
                             </span>
                             <div className="grid grid-cols-4 gap-2">
-                                {tempoParts.map((part, index) => (
+                                {(["tempo0", "tempo1", "tempo2", "tempo3"] as const).map((name) => (
                                     <input
-                                        key={`tempo-${index}`}
-                                        value={part}
-                                        onChange={(e) => handleTempoChange(index, e.target.value)}
-                                        className={`${fieldCls} text-center font-medium`}
+                                        key={name}
+                                        {...register(name)}
+                                        disabled={isPending}
+                                        className={`${fieldCls} text-center font-medium ${errors[name] ? fieldErrorCls : ""}`}
                                     />
                                 ))}
                             </div>
-                            <p className="mt-1 text-[11px] text-muted-foreground">Format: 4 digits or X (e.g. 3-1-X-0).</p>
+                            {(errors.tempo0 ?? errors.tempo1 ?? errors.tempo2 ?? errors.tempo3)
+                                ? <p className={errorMsgCls} role="alert">Each tempo phase must be a digit (0–9) or X.</p>
+                                : <p className="mt-1 text-[11px] text-muted-foreground">Format: 4 digits or X (e.g. 3-1-X-0).</p>
+                            }
                         </div>
 
-                        <label className="block sm:col-span-2">
-                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Coach notes</span>
-                            <textarea
-                                value={coachNotes}
-                                onChange={(e) => setCoachNotes(e.target.value)}
-                                rows={3}
-                                maxLength={5000}
-                                className={`${fieldCls} min-h-24 resize-y`}
-                            />
-                            <p className="mt-1 text-[11px] text-muted-foreground">Maximum 5000 characters.</p>
-                        </label>
+                        {/* Coach notes */}
+                        <div className="sm:col-span-2">
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Coach notes</span>
+                                <textarea
+                                    {...register("coachNotes")}
+                                    rows={3} disabled={isPending}
+                                    className={`${fieldCls} min-h-24 resize-y ${errors.coachNotes ? fieldErrorCls : ""}`}
+                                />
+                            </label>
+                            {errors.coachNotes
+                                ? <p className={errorMsgCls} role="alert">{errors.coachNotes.message}</p>
+                                : <p className="mt-1 text-[11px] text-muted-foreground">Maximum 5,000 characters.</p>
+                            }
+                        </div>
                     </div>
 
+                    {/* Sets */}
                     <div className="mt-8 flex items-center justify-between gap-3">
                         <div>
                             <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">SETS</h3>
-                            <p className="mt-0.5 text-xs text-muted-foreground">Every set field is required.</p>
+                            {errors.sets?.root
+                                ? <p className={errorMsgCls} role="alert">{errors.sets.root.message}</p>
+                                : <p className="mt-0.5 text-xs text-muted-foreground">Every set field is required.</p>
+                            }
                         </div>
                         <button
                             type="button"
-                            onClick={addSet}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted"
+                            onClick={() => append(makeDefaultSet())}
+                            disabled={isPending}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-60"
                         >
                             <Plus className="size-3.5" />
                             Add set
@@ -429,219 +259,38 @@ function AddDayExerciseModalContent({
                     </div>
 
                     <div className="mt-4 space-y-4">
-                        {sets.map((set, index) => {
-                            const intensityRange = set.intensityType ? INTENSITY_RANGES[set.intensityType] : null;
-
-                            return (
-                                <div key={set.id} className="rounded-3xl border border-border bg-card/50 p-5">
-                                    <div className="mb-4 flex items-center justify-between gap-3">
-                                        <p className="text-sm font-bold text-foreground">Set {index + 1}</p>
-                                        {sets.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSet(set.id)}
-                                                className="rounded-xl px-2 py-1 text-xs font-semibold text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
-                                            >
-                                                Remove
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <label className="block">
-                                            <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                                Set type *
-                                                <SetTypeTooltip />
-                                            </span>
-                                            <select
-                                                value={set.setType}
-                                                onChange={(e) =>
-                                                    updateSet(set.id, "setType", e.target.value as (typeof SET_TYPES)[number])
-                                                }
-                                                className={fieldCls}
-                                            >
-                                                {setTypeOptions.map((option) => (
-                                                    <option key={option.value} value={option.value}>
-                                                        {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </label>
-
-                                        <div>
-                                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                Prescribed by *
-                                            </span>
-                                            <div className="inline-flex rounded-full border border-border bg-muted/30 p-1">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => updateSet(set.id, "mode", "reps")}
-                                                    className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${set.mode === "reps"
-                                                        ? "bg-brand text-brand-foreground shadow-sm"
-                                                        : "text-muted-foreground hover:text-foreground"
-                                                        }`}
-                                                >
-                                                    Reps
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => updateSet(set.id, "mode", "duration")}
-                                                    className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${set.mode === "duration"
-                                                        ? "bg-brand text-brand-foreground shadow-sm"
-                                                        : "text-muted-foreground hover:text-foreground"
-                                                        }`}
-                                                >
-                                                    Duration
-                                                </button>
-                                            </div>
-                                            <p className="mt-1 text-[11px] text-muted-foreground">
-                                                Working and warmup sets need either reps or a duration.
-                                            </p>
-                                        </div>
-
-                                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                            {set.mode === "reps" ? (
-                                                <>
-                                                    <label className="block">
-                                                        <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                            Reps min *
-                                                        </span>
-                                                        <input
-                                                            value={set.repsMin}
-                                                            onChange={(e) => updateSet(set.id, "repsMin", e.target.value)}
-                                                            type="number"
-                                                            min={1}
-                                                            max={1000}
-                                                            className={fieldCls}
-                                                        />
-                                                        <p className="mt-1 text-[11px] text-muted-foreground">
-                                                            Allowed range: 1 to 1000.
-                                                        </p>
-                                                    </label>
-
-                                                    <label className="block">
-                                                        <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                            Reps max *
-                                                        </span>
-                                                        <input
-                                                            value={set.repsMax}
-                                                            onChange={(e) => updateSet(set.id, "repsMax", e.target.value)}
-                                                            type="number"
-                                                            min={1}
-                                                            max={1000}
-                                                            className={fieldCls}
-                                                        />
-                                                        <p className="mt-1 text-[11px] text-muted-foreground">
-                                                            Allowed range: 1 to 1000.
-                                                        </p>
-                                                    </label>
-                                                </>
-                                            ) : (
-                                                <label className="block">
-                                                    <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                        Duration seconds *
-                                                    </span>
-                                                    <input
-                                                        value={set.durationSeconds}
-                                                        onChange={(e) => updateSet(set.id, "durationSeconds", e.target.value)}
-                                                        type="number"
-                                                        min={1}
-                                                        max={21600}
-                                                        className={fieldCls}
-                                                    />
-                                                    <p className="mt-1 text-[11px] text-muted-foreground">
-                                                        Allowed range: 1 to 21600.
-                                                    </p>
-                                                </label>
-                                            )}
-
-                                            <label className="block">
-                                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                    Weight kg
-                                                </span>
-                                                <input
-                                                    value={set.weightKg}
-                                                    onChange={(e) => updateSet(set.id, "weightKg", e.target.value)}
-                                                    type="number"
-                                                    min={0}
-                                                    max={1000}
-                                                    step="0.01"
-                                                    className={fieldCls}
-                                                />
-                                                <p className="mt-1 text-[11px] text-muted-foreground">
-                                                    Allowed range: 0 to 1000.
-                                                </p>
-                                            </label>
-
-                                            <label className="block">
-                                                <span className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                                                    Intensity type
-                                                    <IntensityTypeTooltip />
-                                                </span>
-                                                <select
-                                                    value={set.intensityType}
-                                                    onChange={(e) =>
-                                                        updateSet(
-                                                            set.id,
-                                                            "intensityType",
-                                                            e.target.value as (typeof INTENSITY_TYPES)[number] | "",
-                                                        )
-                                                    }
-                                                    className={fieldCls}
-                                                >
-                                                    {intensityTypeOptions.map((option) => (
-                                                        <option key={option.value || "none"} value={option.value}>
-                                                            {option.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <p className="mt-1 text-[11px] text-muted-foreground">
-                                                    Optional. Allowed: rpe, rir, percent_1rm.
-                                                </p>
-                                            </label>
-
-                                            <label className="block">
-                                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                                                    Intensity value
-                                                </span>
-                                                <input
-                                                    value={set.intensityValue}
-                                                    disabled={!set.intensityType}
-                                                    onChange={(e) => updateSet(set.id, "intensityValue", e.target.value)}
-                                                    type="number"
-                                                    min={intensityRange?.min ?? 0}
-                                                    max={intensityRange?.max ?? 100}
-                                                    step="0.01"
-                                                    className={fieldCls}
-                                                />
-                                                <p className="mt-1 text-[11px] text-muted-foreground">
-                                                    {intensityRange
-                                                        ? `Allowed range: ${intensityRange.min} to ${intensityRange.max}.`
-                                                        : "Pick an intensity type to enter a value."}
-                                                </p>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {fields.map((field, index) => (
+                            <ConnectedSetRow
+                                key={field.id}
+                                index={index}
+                                control={control}
+                                register={register}
+                                setValue={setValue}
+                                setErrors={errors.sets?.[index] as Record<string, unknown> | undefined}
+                                isPending={isPending}
+                                canRemove={fields.length > 1}
+                                onRemove={() => remove(index)}
+                            />
+                        ))}
                     </div>
                 </div>
 
+                {/* Footer */}
                 <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border p-6 pt-4">
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                        disabled={isPending}
+                        className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-60"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
-                        disabled={isSubmittingLocal}
+                        disabled={isPending}
                         className="inline-flex items-center justify-center rounded-2xl bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {isSubmittingLocal ? "Adding…" : "Add to day"}
+                        {isPending ? "Adding…" : "Add to day"}
                     </button>
                 </div>
             </form>
@@ -649,10 +298,10 @@ function AddDayExerciseModalContent({
     );
 }
 
+// ─── Public export ────────────────────────────────────────────────────────────
+
 export default function AddDayExerciseModal(props: Props) {
-    if (!props.open || typeof document === "undefined") {
-        return null;
-    }
+    if (!props.open || typeof document === "undefined") return null;
 
     const resetKey = `${props.programDayId ?? ""}::${props.exercise?.id ?? ""}::${props.defaultPosition}`;
 

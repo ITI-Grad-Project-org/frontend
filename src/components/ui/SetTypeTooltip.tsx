@@ -78,7 +78,7 @@ export function SetTypeTooltip() {
                 size={13}
                 className="cursor-help text-muted-foreground transition-colors hover:text-foreground focus:text-foreground"
                 tabIndex={0}
-                aria-label="Set type guide"
+                aria-label="Understanding set types"
             />
 
             {isOpen &&
@@ -91,9 +91,9 @@ export function SetTypeTooltip() {
                         }}
                         className="fixed z-9999 w-80 -translate-x-1/2 rounded-2xl border border-border bg-popover p-3 shadow-xl pointer-events-none animate-in fade-in zoom-in-95 duration-150"
                     >
-                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            Set Type Guide
-                        </p>
+                        <h4 className="mb-2 text-sm font-bold text-foreground">
+                            Understanding the Set Types
+                        </h4>
                         <dl className="space-y-2 text-xs">
                             {setTypes.map(({ key, label, description }) => (
                                 <div key={key}>

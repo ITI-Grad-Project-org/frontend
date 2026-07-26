@@ -1,27 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { CalendarClock, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { rescheduleClientProgram } from "@/services/plans";
-import { getLocalDateInputValue } from "@/schemas/plans";
+import { rescheduleSchema, getLocalDateInputValue } from "@/schemas/plans";
+import type { RescheduleFormData } from "@/schemas/plans";
 import type { ClientProgramDraft } from "@/types/plans";
 
-const rescheduleSchema = z.object({
-    startDate: z
-        .string()
-        .trim()
-        .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
-        .refine(
-            (val) => val >= getLocalDateInputValue(),
-            "Start date cannot be in the past",
-        ),
-});
-
-type RescheduleFormData = z.infer<typeof rescheduleSchema>;
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type Props = {
     open: boolean;
@@ -30,16 +19,15 @@ type Props = {
     onRescheduled: (updated: ClientProgramDraft) => void | Promise<void>;
 };
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const fieldCls =
     "w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand";
+const errorMsgCls = "mt-1 text-xs text-destructive";
 
-function ReschedulePlanModalContent({
-    program,
-    onClose,
-    onRescheduled,
-}: Omit<Props, "open">) {
-    const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
+// ─── Modal content ────────────────────────────────────────────────────────────
 
+function ReschedulePlanModalContent({ program, onClose, onRescheduled }: Omit<Props, "open">) {
     const {
         register,
         handleSubmit,
@@ -57,23 +45,17 @@ function ReschedulePlanModalContent({
 
     const onSubmit = async (values: RescheduleFormData) => {
         if (!program) return;
-
-        setIsSubmittingLocal(true);
         try {
             const updated = await rescheduleClientProgram(program.id, values.startDate);
             toast.success("Plan rescheduled successfully.");
             await onRescheduled(updated);
             onClose();
         } catch (error) {
-            toast.error(
-                getApiErrorMessage(error, "Could not reschedule this plan. Please try again."),
-            );
-        } finally {
-            setIsSubmittingLocal(false);
+            toast.error(getApiErrorMessage(error, "Could not reschedule this plan. Please try again."));
         }
     };
 
-    const isPending = isSubmitting || isSubmittingLocal;
+    const isPending = isSubmitting;
 
     return (
         <div
@@ -100,8 +82,8 @@ function ReschedulePlanModalContent({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="cursor-pointer rounded-xl border border-border p-2 transition-colors hover:bg-muted"
                         aria-label="Close"
+                        className="cursor-pointer rounded-xl border border-border p-2 transition-colors hover:bg-muted"
                     >
                         <X size={18} />
                     </button>
@@ -109,15 +91,14 @@ function ReschedulePlanModalContent({
 
                 {/* Body */}
                 <div className="space-y-5 p-6">
-                    {/* Plan name context */}
+                    {/* Plan context */}
                     <div className="rounded-2xl border border-border bg-muted/20 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Plan
-                        </p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Plan</p>
                         <p className="mt-1 text-sm font-medium text-foreground">{program?.name}</p>
                         {program && (
                             <p className="mt-0.5 text-xs text-muted-foreground">
-                                Current start: {new Date(program.startDate).toLocaleDateString(undefined, {
+                                Current start:{" "}
+                                {new Date(program.startDate).toLocaleDateString(undefined, {
                                     month: "short",
                                     day: "numeric",
                                     year: "numeric",
@@ -128,20 +109,24 @@ function ReschedulePlanModalContent({
                         )}
                     </div>
 
-                    <label className="block">
-                        <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
-                            New start date *
-                        </span>
-                        <input
-                            {...register("startDate")}
-                            type="date"
-                            min={getLocalDateInputValue()}
-                            className={fieldCls}
-                        />
+                    {/* Start date field */}
+                    <div>
+                        <label className="block">
+                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+                                New start date *
+                            </span>
+                            <input
+                                {...register("startDate")}
+                                type="date"
+                                min={getLocalDateInputValue()}
+                                disabled={isPending}
+                                className={`${fieldCls} ${errors.startDate ? "border-destructive focus:border-destructive" : ""}`}
+                            />
+                        </label>
                         {errors.startDate && (
-                            <p className="mt-1 text-xs text-destructive">{errors.startDate.message}</p>
+                            <p className={errorMsgCls} role="alert">{errors.startDate.message}</p>
                         )}
-                    </label>
+                    </div>
                 </div>
 
                 {/* Footer */}
@@ -167,6 +152,8 @@ function ReschedulePlanModalContent({
         </div>
     );
 }
+
+// ─── Public export ────────────────────────────────────────────────────────────
 
 export function ReschedulePlanModal(props: Props) {
     if (!props.open || typeof document === "undefined") return null;

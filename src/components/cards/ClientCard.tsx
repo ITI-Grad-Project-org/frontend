@@ -151,7 +151,7 @@ function ClientCard({ connection, onDeleted, onCreatePlan }: ClientCardProps) {
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col items-start gap-1 p-3 bg-muted/40 rounded-2xl border border-border/40">
             <span className="text-xs font-semibold text-muted-foreground">Weight</span>
-            <span className="text-lg font-bold text-foreground">N/A</span>
+            <span className="text-lg font-bold text-foreground">{client.weightKg ? `${client.weightKg} KG` : "N/A"}</span>
           </div>
           <div className="flex flex-col items-start gap-1 p-3 bg-muted/40 rounded-2xl border border-border/40">
             <span className="text-xs font-semibold text-muted-foreground">Height</span>

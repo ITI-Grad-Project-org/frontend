@@ -8,6 +8,7 @@ export interface ClientDetail {
   dateOfBirth: string; // "YYYY-MM-DD"
   gender: string;
   heightCm: number;
+  weightKg: string;
   googleId: string | null;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;

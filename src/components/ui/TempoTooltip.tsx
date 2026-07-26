@@ -59,7 +59,7 @@ export function TempoTooltip() {
                 size={13}
                 className="cursor-help text-muted-foreground transition-colors hover:text-foreground focus:text-foreground"
                 tabIndex={0}
-                aria-label="Tempo value guide"
+                aria-label="Understanding tempo notation"
             />
 
             {isOpen &&
@@ -72,9 +72,9 @@ export function TempoTooltip() {
                         }}
                         className="fixed z-9999 w-72 -translate-x-1/2 rounded-2xl border border-border bg-popover p-3 shadow-xl pointer-events-none animate-in fade-in zoom-in-95 duration-150"
                     >
-                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            Tempo value guide
-                        </p>
+                        <h4 className="mb-2 text-sm font-bold text-foreground">
+                            Understanding the Tempo Notation
+                        </h4>
                         <table className="w-full border-collapse text-xs">
                             <tbody>
                                 {rows.map(({ key, desc }) => (

@@ -119,6 +119,10 @@ function normalizeExercises(dayId: string, nodes: ClientProgramDay["exercises"])
                         setNode.intensityValue === null || setNode.intensityValue === undefined
                             ? null
                             : Number(setNode.intensityValue),
+                    durationSeconds:
+                        setNode.durationSeconds === null || setNode.durationSeconds === undefined
+                            ? null
+                            : Number(setNode.durationSeconds),
                 } satisfies PlannedExerciseSet;
             }),
         };
