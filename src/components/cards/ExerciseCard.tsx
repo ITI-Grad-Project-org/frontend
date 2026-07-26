@@ -13,6 +13,8 @@ const categoryStyles: Record<string, string> = {
   core: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
 };
 
+const fallbackCategoryStyle = "bg-muted text-muted-foreground border-border";
+
 function toLabel(value: string) {
   return value
     .split("_")
@@ -47,8 +49,17 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Pr
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`View ${name}`}
       onClick={() => onClick(exercise)}
-      className="cursor-pointer text-left block w-full h-full transition-transform hover:-translate-y-1"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick(exercise);
+        }
+      }}
+      className="cursor-pointer text-left block w-full h-full rounded-3xl transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
     >
       <CardMain className="h-full justify-start gap-4">
         {/* Top row — thumbnail + actions */}
@@ -71,6 +82,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Pr
               onClick={(e) => { e.stopPropagation(); onEdit(exercise); }}
               className="cursor-pointer p-2 rounded-xl text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 active:scale-95 transition-all"
               title="Edit exercise"
+              aria-label={`Edit ${name}`}
             >
               <Pencil size={16} />
             </button>
@@ -78,6 +90,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Pr
               onClick={(e) => { e.stopPropagation(); onDelete(exercise); }}
               className="cursor-pointer p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all"
               title="Delete exercise"
+              aria-label={`Delete ${name}`}
             >
               <Trash2 size={16} />
             </button>
@@ -86,10 +99,13 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Pr
 
         {/* Name + muscle + category */}
         <div>
-          <h3 className="text-lg font-bold leading-tight text-foreground">{name}</h3>
+          <h3 className="text-lg font-bold leading-tight text-foreground line-clamp-1" title={name}>
+            {name}
+          </h3>
           <p className="mt-0.5 text-sm text-muted-foreground">{toLabel(primaryMuscle)}</p>
           <span
-            className={`inline-flex items-center mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${categoryStyles[category] ?? ""}`}
+            className={`inline-flex items-center mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full border ${categoryStyles[category] ?? fallbackCategoryStyle
+              }`}
           >
             {toLabel(category)}
           </span>
@@ -97,34 +113,44 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Pr
 
         {/* Secondary muscles */}
         {visibleSecondary.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {visibleSecondary.map((m) => (
-              <span
-                key={m}
-                className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
-              >
-                {toLabel(m)}
-              </span>
-            ))}
-            {extraCount > 0 && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                +{extraCount}
-              </span>
-            )}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+              Also targets
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {visibleSecondary.map((m) => (
+                <span
+                  key={m}
+                  className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
+                >
+                  {toLabel(m)}
+                </span>
+              ))}
+              {extraCount > 0 && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                  +{extraCount}
+                </span>
+              )}
+            </div>
           </div>
         )}
 
         {/* Equipment */}
         {hasEquipment && (
-          <div className="flex flex-wrap gap-1.5">
-            {equipment.map((e) => (
-              <span
-                key={e}
-                className="text-xs px-2 py-0.5 rounded-full border border-border bg-muted/40 text-muted-foreground"
-              >
-                {toLabel(e)}
-              </span>
-            ))}
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/60">
+              Equipment
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {equipment.map((e) => (
+                <span
+                  key={e}
+                  className="text-xs px-2 py-0.5 rounded-full border border-border bg-muted/40 text-muted-foreground"
+                >
+                  {toLabel(e)}
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </CardMain>

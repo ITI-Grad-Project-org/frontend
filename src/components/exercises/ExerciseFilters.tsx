@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 export const EXERCISE_CATEGORIES = [
     { value: "", label: "All" },
@@ -23,41 +23,58 @@ export function ExerciseFilters({
     onCategoryChange,
 }: ExerciseFiltersProps) {
     return (
-        <div className="flex flex-col gap-3 mb-8">
-            {/* Search Bar */}
-            <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl border border-border bg-card shadow-sm">
+        <div className="mb-8 flex flex-col gap-4 rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card) sm:p-5">
+            {/* Search Bar — inset field within the panel */}
+            <div
+                role="search"
+                className="flex items-center gap-2.5 rounded-2xl border border-border/60 bg-background px-4 py-3 transition-colors focus-within:border-brand/40"
+            >
                 <Search className="w-4 h-4 text-muted-foreground shrink-0" />
                 <input
+                    type="text"
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     placeholder="Search exercises…"
+                    aria-label="Search exercises"
                     className="flex-1 text-sm bg-transparent outline-none placeholder:text-muted-foreground"
                 />
                 {searchQuery && (
                     <button
+                        type="button"
                         onClick={() => onSearchChange("")}
-                        className="text-lg leading-none text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+                        className="shrink-0 rounded-lg p-0.5 text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
                         aria-label="Clear search"
                     >
-                        ×
+                        <X className="w-4 h-4" />
                     </button>
                 )}
             </div>
 
+            <div className="h-px bg-border" />
+
             {/* Category Chips */}
-            <div className="flex flex-wrap gap-2">
-                {EXERCISE_CATEGORIES.map((cat) => (
-                    <button
-                        key={cat.value}
-                        onClick={() => onCategoryChange(cat.value)}
-                        className={`px-4 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer ${categoryFilter === cat.value
+            <div
+                role="group"
+                aria-label="Filter by category"
+                className="flex flex-wrap gap-2"
+            >
+                {EXERCISE_CATEGORIES.map((cat) => {
+                    const isActive = categoryFilter === cat.value;
+                    return (
+                        <button
+                            key={cat.value}
+                            type="button"
+                            onClick={() => onCategoryChange(cat.value)}
+                            aria-pressed={isActive}
+                            className={`rounded-full px-4 py-2 text-sm font-semibold transition-all cursor-pointer active:scale-95 ${isActive
                                 ? "bg-ink text-ink-foreground shadow-sm"
                                 : "border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-                            }`}
-                    >
-                        {cat.label}
-                    </button>
-                ))}
+                                }`}
+                        >
+                            {cat.label}
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );

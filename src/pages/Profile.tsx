@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Save, Trash2 } from "lucide-react";
+import { Save, Trash2, User, Briefcase, Award } from "lucide-react";
 import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
 import { useProfileData } from "../hooks/useProfileData";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
@@ -10,6 +10,7 @@ import { CertificationsSection } from "../components/profile/CertificationsSecti
 import { ProfileSidebar } from "../components/profile/ProfileSidebar";
 import { clearProfileSetupFlowFlag, isProfileSetupFlowActive } from "@/lib/profile-setup";
 import { ProfileSetupWizard } from "@/components/profile/ProfileSetupWizard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function Profile() {
     const [isSetupFlow, setIsSetupFlow] = useState(() => isProfileSetupFlowActive());
@@ -104,20 +105,52 @@ function Profile() {
                     </div>
                 ) : (
                     <div className="grid gap-6 lg:grid-cols-3 animate-content">
-                        <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6 order-2 lg:order-1">
+                        <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-6 order-2 lg:order-1 lg:col-span-2">
                             <input type="hidden" {...register("specialties")} />
 
-                            <PersonalDetailsSection register={register} errors={errors} />
+                            <Tabs defaultValue="personal" className="w-full block">
+                                <TabsList className="flex h-12 w-full items-center justify-start rounded-xl bg-card p-1 text-muted-foreground mb-6">
+                                    <TabsTrigger
+                                        value="personal"
+                                        className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    >
+                                        <User className="w-4 h-4 mr-2 hidden sm:block" />
+                                        Personal
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="experience"
+                                        className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    >
+                                        <Briefcase className="w-4 h-4 mr-2 hidden sm:block" />
+                                        Experience
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="certifications"
+                                        className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    >
+                                        <Award className="w-4 h-4 mr-2 hidden sm:block" />
+                                        Credentials & pricing
+                                    </TabsTrigger>
+                                </TabsList>
 
-                            <CoachingExperienceSection
-                                register={register}
-                                errors={errors}
-                                specialties={specialties}
-                                onAddSpecialty={addSpecialty}
-                                onRemoveSpecialty={removeSpecialty}
-                            />
+                                <TabsContent value="personal" className="mt-0 outline-none">
+                                    <PersonalDetailsSection register={register} errors={errors} />
+                                </TabsContent>
 
-                            <CertificationsSection control={control} register={register} errors={errors} />
+                                <TabsContent value="experience" className="mt-0 outline-none">
+                                    <CoachingExperienceSection
+                                        register={register}
+                                        errors={errors}
+                                        specialties={specialties}
+                                        onAddSpecialty={addSpecialty}
+                                        onRemoveSpecialty={removeSpecialty}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value="certifications" className="mt-0 outline-none">
+                                    <CertificationsSection control={control} register={register} errors={errors} />
+                                </TabsContent>
+                            </Tabs>
 
                             {submissionError && (
                                 <p role="alert" className="p-3 text-sm rounded-xl bg-destructive/10 text-destructive">
@@ -125,7 +158,7 @@ function Profile() {
                                 </p>
                             )}
 
-                            <div className="flex flex-wrap items-center justify-between gap-4 pb-8">
+                            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 pb-8">
                                 <button
                                     type="button"
                                     disabled={isDeleting}
