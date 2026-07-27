@@ -22,9 +22,31 @@ export async function createClientProgramDraft(
   return data;
 }
 
-export async function getClientPrograms(): Promise<ClientProgramDraft[]> {
+export type GetClientProgramsParams = {
+  search?: string;
+  membershipId?: string;
+  status?: "draft" | "published" | "cancelled";
+  goal?: string;
+  difficulty?: string;
+  isArchived?: boolean;
+};
+
+export async function getClientPrograms(
+  params: GetClientProgramsParams = {},
+): Promise<ClientProgramDraft[]> {
+  // Build query params — omit keys with undefined / empty / falsy-default values
+  const query: Record<string, string> = {};
+
+  if (params.search?.trim()) query.search = params.search.trim();
+  if (params.membershipId) query.membershipId = params.membershipId;
+  if (params.status) query.status = params.status;
+  if (params.goal) query.goal = params.goal;
+  if (params.difficulty) query.difficulty = params.difficulty;
+  if (params.isArchived === true) query.isArchived = "true";
+
   const { data } = await api.get<ClientProgramDraft[]>(
     "/plans/training/client-programs",
+    { params: query },
   );
   return data;
 }

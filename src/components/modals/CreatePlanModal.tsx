@@ -208,7 +208,7 @@ function CreatePlanModalContent({
 
                         <label className="block">
                             <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Start date *</span>
-                            <input {...register("startDate")} type="date" className={fieldCls} />
+                            <input {...register("startDate")} type="date" min={getLocalDateInputValue()} className={fieldCls} />
                             {errors.startDate && <p className="mt-1 text-xs text-destructive">{errors.startDate.message}</p>}
                         </label>
                     </div>

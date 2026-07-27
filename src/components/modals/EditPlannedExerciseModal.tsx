@@ -139,6 +139,7 @@ function EditPlannedExerciseModalContent({
                             <label className="block">
                                 <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Position *</span>
                                 <input
+                                    readOnly
                                     {...register("position")}
                                     type="number" min={1} max={30} disabled={isPending}
                                     className={`${fieldCls} ${errors.position ? fieldErrorCls : ""}`}
@@ -146,7 +147,7 @@ function EditPlannedExerciseModalContent({
                             </label>
                             {errors.position
                                 ? <p className={errorMsgCls} role="alert">{errors.position.message}</p>
-                                : <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 1 to 30.</p>
+                                : <p className="mt-1 text-[11px] text-muted-foreground">drag the exercise to change its order for the client</p>
                             }
                         </div>
 

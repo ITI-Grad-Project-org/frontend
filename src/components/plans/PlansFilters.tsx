@@ -28,13 +28,9 @@ export function PlansFilters({
     filteredPrograms,
     clients,
 }: PlansFiltersProps) {
-    // Helper to get client display name
-    const getClientName = (connection: ClientConnection) => {
-        return (
-            `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim() ||
-            connection.client.email
-        );
-    };
+    const getClientName = (connection: ClientConnection) =>
+        `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim() ||
+        connection.client.email;
 
     return (
         <section className="rounded-3xl p-6">
@@ -57,73 +53,75 @@ export function PlansFilters({
             </div>
 
             <div className="mt-6 rounded-2xl border border-border bg-card p-4">
+                {/* ── Row 1: text inputs + selects ── */}
                 <div className="grid gap-3 xl:grid-cols-[1.5fr_repeat(4,minmax(0,1fr))]">
+                    {/* Search */}
                     <label className="block xl:col-span-1">
                         <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Search</span>
                         <div className="flex items-center gap-2 rounded-2xl border-2 border-border bg-card px-4 py-3 focus-within:border-brand">
                             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
                             <input
-                                value={filters.searchTerm}
-                                onChange={(event) => onFiltersChange({ searchTerm: event.target.value })}
-                                placeholder="Search by plan or client"
+                                value={filters.search}
+                                onChange={(e) => onFiltersChange({ search: e.target.value })}
+                                placeholder="Search by plan name"
                                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                             />
                         </div>
                     </label>
 
+                    {/* Client */}
                     <label className="block">
                         <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Client</span>
                         <select
                             value={filters.membershipId}
-                            onChange={(event) => onFiltersChange({ membershipId: event.target.value })}
+                            onChange={(e) => onFiltersChange({ membershipId: e.target.value })}
                             className="w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm outline-none focus:border-brand"
                         >
                             <option value="all">All clients</option>
-                            {clients.map((connection) => (
-                                <option key={connection.id} value={connection.id}>
-                                    {getClientName(connection)}
+                            {clients.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                    {getClientName(c)}
                                 </option>
                             ))}
                         </select>
                     </label>
 
+                    {/* Goal */}
                     <label className="block">
                         <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Goal</span>
                         <select
                             value={filters.goal}
-                            onChange={(event) => onFiltersChange({ goal: event.target.value })}
+                            onChange={(e) => onFiltersChange({ goal: e.target.value as PlansFiltersState["goal"] })}
                             className="w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm outline-none focus:border-brand"
                         >
                             <option value="all">All goals</option>
-                            {planGoalOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
+                            {planGoalOptions.map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
                             ))}
                         </select>
                     </label>
 
+                    {/* Difficulty */}
                     <label className="block">
                         <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Difficulty</span>
                         <select
                             value={filters.difficulty}
-                            onChange={(event) => onFiltersChange({ difficulty: event.target.value })}
+                            onChange={(e) => onFiltersChange({ difficulty: e.target.value as PlansFiltersState["difficulty"] })}
                             className="w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm outline-none focus:border-brand"
                         >
                             <option value="all">All difficulties</option>
-                            {planDifficultyOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
+                            {planDifficultyOptions.map((o) => (
+                                <option key={o.value} value={o.value}>{o.label}</option>
                             ))}
                         </select>
                     </label>
 
+                    {/* Status */}
                     <label className="block">
                         <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Status</span>
                         <select
                             value={filters.status}
-                            onChange={(event) => onFiltersChange({ status: event.target.value })}
+                            onChange={(e) => onFiltersChange({ status: e.target.value as PlansFiltersState["status"] })}
                             className="w-full rounded-2xl border-2 border-border bg-card px-4 py-3 text-sm outline-none focus:border-brand"
                         >
                             <option value="all">All statuses</option>
@@ -132,23 +130,34 @@ export function PlansFilters({
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </label>
+                </div>
 
-                    <label className="flex items-center gap-3 rounded-2xl border-2 border-border bg-card px-4 py-3 h-fit self-end">
+                {/* ── Row 2: checkbox toggles ── */}
+                <div className="mt-3 flex flex-wrap gap-3">
+                    {/* Show archived — triggers API re-fetch */}
+                    <label className="flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-border bg-card px-4 py-3 transition hover:border-brand/50">
                         <input
                             type="checkbox"
-                            checked={filters.showArchived}
-                            onChange={(event) => onFiltersChange({ showArchived: event.target.checked })}
+                            checked={filters.isArchived}
+                            onChange={(e) => onFiltersChange({ isArchived: e.target.checked })}
                             className="h-4 w-4 rounded border-border text-brand focus:ring-brand"
                         />
-                        <div>
-                            {/* <span className="block text-xs font-semibold text-muted-foreground">Archived</span> */}
-                            <span className="block text-sm text-foreground">
-                                Show archived plans
-                            </span>
-                        </div>
+                        <span className="text-sm text-foreground">Show archived plans</span>
+                    </label>
+
+                    {/* Show cancelled — client-side only */}
+                    <label className="flex cursor-pointer items-center gap-3 rounded-2xl border-2 border-border bg-card px-4 py-3 transition hover:border-brand/50">
+                        <input
+                            type="checkbox"
+                            checked={filters.showCancelled}
+                            onChange={(e) => onFiltersChange({ showCancelled: e.target.checked })}
+                            className="h-4 w-4 rounded border-border text-brand focus:ring-brand"
+                        />
+                        <span className="text-sm text-foreground">Show cancelled plans</span>
                     </label>
                 </div>
 
+                {/* ── Active filter pills ── */}
                 <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
                     <span className="rounded-full bg-muted px-3 py-1 font-medium">
                         Showing {filteredPrograms} of {totalPrograms}
@@ -173,9 +182,14 @@ export function PlansFilters({
                             Client: {getClientName(clients.find((c) => c.id === filters.membershipId)!)}
                         </span>
                     )}
-                    {filters.showArchived && (
+                    {filters.isArchived && (
                         <span className="rounded-full bg-muted px-3 py-1 font-medium">
-                            Archived: Showing archived plans
+                            Only archived
+                        </span>
+                    )}
+                    {filters.showCancelled && (
+                        <span className="rounded-full bg-muted px-3 py-1 font-medium">
+                            Showing cancelled
                         </span>
                     )}
                     <button

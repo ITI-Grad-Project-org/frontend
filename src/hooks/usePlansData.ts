@@ -1,30 +1,41 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { getClients } from "@/services/clients";
 import { getClientPrograms } from "@/services/plans";
 import type { ClientConnection } from "@/types/client";
-import type { ClientProgramDraft } from "@/types/plans";
+import type {
+  ClientProgramDraft,
+  PlanStatus,
+  PlanGoal,
+  PlanDifficulty,
+} from "@/types/plans";
 
-export type ArchivedFilter = "all" | "active" | "archived";
+// ─── Filter shape ─────────────────────────────────────────────────────────────
 
 export type PlansFilters = {
-  searchTerm: string;
-  goal: string;
-  difficulty: string;
-  status: string;
-  membershipId: string;
-  showArchived: boolean;
+  // API-backed filters — any change triggers a new network request
+  search: string;
+  membershipId: string; // "all" | uuid
+  status: PlanStatus | "all";
+  goal: PlanGoal | "all";
+  difficulty: PlanDifficulty | "all";
+  isArchived: boolean;
+  // Client-side only — filters the response, no network request
+  showCancelled: boolean;
 };
 
 const defaultFilters: PlansFilters = {
-  searchTerm: "",
+  search: "",
+  membershipId: "all",
+  status: "all",
   goal: "all",
   difficulty: "all",
-  status: "all",
-  membershipId: "all",
-  showArchived: false,
+  isArchived: false,
+  showCancelled: false,
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getClientName(connection: ClientConnection) {
   return (
@@ -52,6 +63,27 @@ export function formatPlanWindow(startDate: string, endDate: string) {
   })}`;
 }
 
+function buildProgramParams(
+  f: PlansFilters,
+): Parameters<typeof getClientPrograms>[0] {
+  const p: Parameters<typeof getClientPrograms>[0] = {};
+  if (f.search.trim()) p.search = f.search.trim();
+  if (f.membershipId !== "all") p.membershipId = f.membershipId;
+  if (f.status !== "all") p.status = f.status;
+  if (f.goal !== "all") p.goal = f.goal;
+  if (f.difficulty !== "all") p.difficulty = f.difficulty;
+  if (f.isArchived) p.isArchived = true;
+  return p;
+}
+
+function sortByCreatedDesc(data: ClientProgramDraft[]): ClientProgramDraft[] {
+  return [...data].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
 export function usePlansData() {
   const [clients, setClients] = useState<ClientConnection[]>([]);
   const [programs, setPrograms] = useState<ClientProgramDraft[]>([]);
@@ -60,32 +92,86 @@ export function usePlansData() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [filters, setFilters] = useState<PlansFilters>(defaultFilters);
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
+  // Incremented before every fetch — stale responses whose seq no longer
+  // matches seqRef.current are silently dropped.
+  const seqRef = useRef(0);
+
+  // Keep a ref to the latest filters so the effect callback always reads the
+  // current value without needing filters itself in the dependency array.
+  // showCancelled is intentionally excluded from triggering a fetch.
+  const filtersRef = useRef(filters);
+  useEffect(() => {
+    filtersRef.current = filters;
+  });
+
+  // ── Effect: fetch clients + programs together on mount and on every
+  //    API-backed filter change. Always fetching both avoids any ref-based
+  //    "is this the first run?" logic that breaks under React Strict Mode.
+  useEffect(() => {
+    const seq = ++seqRef.current;
+
+    Promise.all([
+      getClients(),
+      getClientPrograms(buildProgramParams(filtersRef.current)),
+    ])
+      .then(([clientData, programData]) => {
+        if (seq !== seqRef.current) return;
+
+        setIsLoading(false);
+        setLoadError("");
+        setClients(
+          Array.isArray(clientData)
+            ? clientData.filter((c) => c && c.client && c.status === "active")
+            : [],
+        );
+        setPrograms(
+          Array.isArray(programData) ? sortByCreatedDesc(programData) : [],
+        );
+      })
+      .catch((error) => {
+        if (seq !== seqRef.current) return;
+        const message = getApiErrorMessage(
+          error,
+          "Failed to load plans. Please try again.",
+        );
+        setIsLoading(false);
+        setLoadError(message);
+        toast.error(message);
+      });
+  }, [
+    // showCancelled intentionally omitted — it's a client-side filter
+    filters.search,
+    filters.membershipId,
+    filters.status,
+    filters.goal,
+    filters.difficulty,
+    filters.isArchived,
+  ]);
+
+  // ── Manual refresh — re-fetches clients + programs with current filters ───
+  const refreshData = useCallback(async () => {
+    const seq = ++seqRef.current;
+    setIsRefreshing(true);
     setLoadError("");
 
     try {
       const [clientData, programData] = await Promise.all([
         getClients(),
-        getClientPrograms(),
+        getClientPrograms(buildProgramParams(filters)),
       ]);
 
-      const activeClients = Array.isArray(clientData)
-        ? clientData.filter(
-            (connection) =>
-              connection && connection.client && connection.status === "active",
-          )
-        : [];
-      const normalizedPrograms = Array.isArray(programData)
-        ? [...programData].sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          )
-        : [];
+      if (seq !== seqRef.current) return;
 
-      setClients(activeClients);
-      setPrograms(normalizedPrograms);
+      setClients(
+        Array.isArray(clientData)
+          ? clientData.filter((c) => c && c.client && c.status === "active")
+          : [],
+      );
+      setPrograms(
+        Array.isArray(programData) ? sortByCreatedDesc(programData) : [],
+      );
     } catch (error) {
+      if (seq !== seqRef.current) return;
       const message = getApiErrorMessage(
         error,
         "Failed to load plans. Please try again.",
@@ -93,142 +179,38 @@ export function usePlansData() {
       setLoadError(message);
       toast.error(message);
     } finally {
-      setIsLoading(false);
+      if (seq === seqRef.current) setIsRefreshing(false);
     }
-  }, []);
+  }, [filters]);
 
-  useEffect(() => {
-    let isActive = true;
+  const resetFilters = useCallback(() => setFilters(defaultFilters), []);
 
-    void (async () => {
-      setIsLoading(true);
-      setLoadError("");
+  // ── Derived ───────────────────────────────────────────────────────────────
 
-      try {
-        const [clientData, programData] = await Promise.all([
-          getClients(),
-          getClientPrograms(),
-        ]);
+  const clientNameMap = useMemo(
+    () => new Map(clients.map((c) => [c.id, getClientName(c)])),
+    [clients],
+  );
 
-        if (!isActive) {
-          return;
-        }
+  const clientMembershipMap = useMemo(
+    () => new Map(clients.map((c) => [c.id, getClientName(c)])),
+    [clients],
+  );
 
-        const activeClients = Array.isArray(clientData)
-          ? clientData.filter(
-              (connection) =>
-                connection &&
-                connection.client &&
-                connection.status === "active",
-            )
-          : [];
-        const normalizedPrograms = Array.isArray(programData)
-          ? [...programData].sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime(),
-            )
-          : [];
-
-        setClients(activeClients);
-        setPrograms(normalizedPrograms);
-      } catch (error) {
-        if (isActive) {
-          const message = getApiErrorMessage(
-            error,
-            "Failed to load plans. Please try again.",
-          );
-          setLoadError(message);
-          toast.error(message);
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  const refreshData = useCallback(async () => {
-    setIsRefreshing(true);
-
-    try {
-      await loadData();
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [loadData]);
-
-  const resetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
-
-  const clientNameMap = useMemo(() => {
-    return new Map(
-      clients.map((connection) => [connection.id, getClientName(connection)]),
-    );
-  }, [clients]);
-
-  // Map membershipId to client name for easier lookup
-  const clientMembershipMap = useMemo(() => {
-    return new Map(
-      clients.map((connection) => [connection.id, getClientName(connection)]),
-    );
-  }, [clients]);
-
-  const filteredPrograms = useMemo(() => {
-    const normalizedSearch = filters.searchTerm.trim().toLowerCase();
-
-    return programs.filter((program) => {
-      const clientName = clientNameMap.get(program.membershipId) ?? "";
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        program.name.toLowerCase().includes(normalizedSearch) ||
-        (program.description ?? "").toLowerCase().includes(normalizedSearch) ||
-        clientName.toLowerCase().includes(normalizedSearch);
-
-      const matchesGoal =
-        filters.goal === "all" || program.goal === filters.goal;
-      const matchesDifficulty =
-        filters.difficulty === "all" ||
-        program.difficulty === filters.difficulty;
-      const matchesStatus =
-        filters.status === "all" || program.status === filters.status;
-      const matchesClient =
-        filters.membershipId === "all" ||
-        program.membershipId === filters.membershipId;
-      const matchesArchived = filters.showArchived || !program.isArchived;
-
-      return (
-        matchesSearch &&
-        matchesGoal &&
-        matchesDifficulty &&
-        matchesStatus &&
-        matchesClient &&
-        matchesArchived
-      );
-    });
-  }, [
-    clientNameMap,
-    filters.difficulty,
-    filters.goal,
-    filters.searchTerm,
-    filters.status,
-    filters.membershipId,
-    filters.showArchived,
-    programs,
-  ]);
+  // Client-side only: strip cancelled plans when the toggle is off
+  const filteredPrograms = useMemo(
+    () =>
+      filters.showCancelled
+        ? programs
+        : programs.filter((p) => p.status !== "cancelled"),
+    [programs, filters.showCancelled],
+  );
 
   const stats = useMemo(
     () => ({
       total: programs.length,
-      drafts: programs.filter((program) => program.status === "draft").length,
-      canceled: programs.filter((program) => program.status === "cancelled")
-        .length,
+      drafts: programs.filter((p) => p.status === "draft").length,
+      canceled: programs.filter((p) => p.status === "cancelled").length,
       activeClients: clients.length,
     }),
     [clients.length, programs],

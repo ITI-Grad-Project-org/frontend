@@ -81,7 +81,14 @@ function Plans() {
             setProgramToPublish(null);
             await refreshData();
         } catch (error) {
-            toast.error(getApiErrorMessage(error, "Could not publish this plan. Please try again."));
+            const status = (error as { response?: { status?: number } })?.response?.status;
+            if (status === 400) {
+                toast.error("Some days are missing exercises. Open the plan builder and fill every non-rest day before publishing.");
+            } else if (status === 409) {
+                toast.error(getApiErrorMessage(error, "This plan can't be published — it may already be published or its dates overlap another plan for this client."));
+            } else {
+                toast.error(getApiErrorMessage(error, "Could not publish this plan. Please try again."));
+            }
         } finally {
             setIsPublishing(false);
         }
@@ -102,7 +109,14 @@ function Plans() {
             setProgramToCancel(null);
             await refreshData();
         } catch (error) {
-            toast.error(getApiErrorMessage(error, "Could not cancel this plan. Please try again."));
+            const status = (error as { response?: { status?: number } })?.response?.status;
+            if (status === 409) {
+                toast.error("This plan is already cancelled.");
+                setProgramToCancel(null);
+                await refreshData();
+            } else {
+                toast.error(getApiErrorMessage(error, "Could not cancel this plan. Please try again."));
+            }
         } finally {
             setIsCancelling(false);
         }
@@ -205,7 +219,11 @@ function Plans() {
                 title="Cancel this plan?"
                 description={
                     programToCancel
-                        ? `"${programToCancel.name}" will be deactivated. The client will no longer see it. This cannot be undone.`
+                        ? programToCancel.status === "draft"
+                            ? `"${programToCancel.name}" is a draft and has never been sent to the client. Cancelling closes it without publishing. This cannot be undone.`
+                            : programToCancel.schedulePhase === "active"
+                                ? `"${programToCancel.name}" is currently active. Cancelling will immediately remove it from the client's plan, calendar, and day screens. This cannot be undone.`
+                                : `"${programToCancel.name}" will be deactivated and removed from the client's view. This cannot be undone.`
                         : ""
                 }
                 confirmLabel="Cancel plan"
