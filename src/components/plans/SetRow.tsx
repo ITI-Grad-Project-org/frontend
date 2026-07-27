@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Controller } from "react-hook-form";
-import type { Control, UseFormRegister } from "react-hook-form";
+import type { Control, FieldValues, UseFormRegister } from "react-hook-form";
 import { IntensityTypeTooltip } from "@/components/ui/IntensityTypeTooltip";
 import { SetTypeTooltip } from "@/components/ui/SetTypeTooltip";
 import { INTENSITY_RANGES, INTENSITY_TYPES, setTypeOptions, intensityTypeOptions } from "@/schemas/addDayExercise";
@@ -16,8 +16,8 @@ export const errorMsgCls = "mt-1.5 text-xs text-destructive";
 
 export type SetRowProps = {
     index: number;
-    control: Control<any>;
-    register: UseFormRegister<any>;
+    control: Control<FieldValues>;
+    register: UseFormRegister<FieldValues>;
     setErrors: Record<string, any> | undefined;
     /** Resolved via useWatch in the parent ConnectedSetRow */
     mode: "reps" | "duration";

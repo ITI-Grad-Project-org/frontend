@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useForm, useFieldArray } from "react-hook-form";
+import type { Control, FieldValues, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { Plus, X } from "lucide-react";
@@ -49,7 +50,7 @@ function EditPlannedExerciseModalContent({
         reset,
         setValue,
         formState: { errors, isSubmitting },
-    } = useForm<EditPlannedExerciseFormValues>({
+    } = useForm<EditPlannedExerciseFormValues, unknown, EditPlannedExerciseSubmitValues>({
         resolver: zodResolver(editPlannedExerciseFormSchema),
         defaultValues: exercise ? buildEditDefaultValues(exercise) : undefined,
     });
@@ -64,6 +65,11 @@ function EditPlannedExerciseModalContent({
     const { fields, append, remove } = useFieldArray({ control, name: "sets" });
 
     const isPending = isSubmitting;
+
+    // Cast to base FieldValues type for the shared ConnectedSetRow component
+    const fvControl = control as unknown as Control<FieldValues>;
+    const fvRegister = register as unknown as UseFormRegister<FieldValues>;
+    const fvSetValue = setValue as unknown as UseFormSetValue<FieldValues>;
 
     const onSubmit = async (values: EditPlannedExerciseSubmitValues) => {
         if (!programId || !exercise) return;
@@ -246,9 +252,9 @@ function EditPlannedExerciseModalContent({
                             <ConnectedSetRow
                                 key={field.id}
                                 index={index}
-                                control={control}
-                                register={register}
-                                setValue={setValue}
+                                control={fvControl}
+                                register={fvRegister}
+                                setValue={fvSetValue}
                                 setErrors={errors.sets?.[index] as Record<string, unknown> | undefined}
                                 isPending={isPending}
                                 canRemove={fields.length > 1}

@@ -305,7 +305,8 @@ function setToFormValues(
     repsMax: repsMax != null ? String(repsMax) : "",
     durationSeconds: duration != null ? String(duration) : "",
     weightKg: weight != null ? String(weight) : "",
-    intensityType: intensityTyp ?? "",
+    intensityType: (intensityTyp ??
+      "") as EditPlannedExerciseFormValues["sets"][number]["intensityType"],
     intensityValue: intensityVal != null ? String(intensityVal) : "",
   };
 }

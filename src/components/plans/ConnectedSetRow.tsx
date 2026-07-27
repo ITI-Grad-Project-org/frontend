@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { Control, UseFormRegister, UseFormSetValue } from "react-hook-form";
+import type { Control, FieldValues, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { useWatch } from "react-hook-form";
 import { SetRow } from "@/components/plans/SetRow";
 
 export type ConnectedSetRowProps = {
     index: number;
-    control: Control<any>;
-    register: UseFormRegister<any>;
-    setValue: UseFormSetValue<any>;
+    control: Control<FieldValues>;
+    register: UseFormRegister<FieldValues>;
+    setValue: UseFormSetValue<FieldValues>;
     setErrors: Record<string, any> | undefined;
     isPending: boolean;
     canRemove: boolean;

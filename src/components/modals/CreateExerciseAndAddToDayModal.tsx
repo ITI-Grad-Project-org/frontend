@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
+import type { Control, FieldValues, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { Plus, X } from "lucide-react";
@@ -63,7 +64,7 @@ function CreateExerciseAndAddToDayModalContent({
         handleSubmit,
         setValue,
         formState: { errors, isSubmitting },
-    } = useForm<CreateExerciseAndAddToDayFormValues>({
+    } = useForm<CreateExerciseAndAddToDayFormValues, unknown, CreateExerciseAndAddToDaySubmitValues>({
         resolver: zodResolver(createExerciseAndAddToDayFormSchema),
         defaultValues: getDefaultFormValues(defaultPosition),
     });
@@ -76,6 +77,11 @@ function CreateExerciseAndAddToDayModalContent({
 
     const isPending = isSubmitting;
     const handleClose = () => { if (!isPending) onClose(); };
+
+    // Cast to base FieldValues type for the shared ConnectedSetRow component
+    const fvControl = control as unknown as Control<FieldValues>;
+    const fvRegister = register as unknown as UseFormRegister<FieldValues>;
+    const fvSetValue = setValue as unknown as UseFormSetValue<FieldValues>;
 
     const onSubmit = async (values: CreateExerciseAndAddToDaySubmitValues) => {
         if (!programId || !programDayId) return;
@@ -400,9 +406,9 @@ function CreateExerciseAndAddToDayModalContent({
                                 <ConnectedSetRow
                                     key={field.id}
                                     index={index}
-                                    control={control}
-                                    register={register}
-                                    setValue={setValue}
+                                    control={fvControl}
+                                    register={fvRegister}
+                                    setValue={fvSetValue}
                                     setErrors={errors.sets?.[index] as Record<string, unknown> | undefined}
                                     isPending={isPending}
                                     canRemove={setFields.length > 1}
