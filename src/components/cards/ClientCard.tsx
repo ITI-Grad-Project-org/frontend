@@ -64,7 +64,7 @@ function ClientCard({ connection, onDeleted, onCreatePlan }: ClientCardProps) {
     setIsDeleting(true);
 
     try {
-      await deleteClient(connection.id);
+      await deleteClient(client.id);
       toast.success(`${fullName} was removed from your tenant.`);
       setIsDeleteDialogOpen(false);
       await onDeleted?.();
