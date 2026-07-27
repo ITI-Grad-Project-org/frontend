@@ -105,7 +105,8 @@ function Profile() {
                     </div>
                 ) : (
                     <div className="grid gap-6 lg:grid-cols-3 animate-content">
-                        <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-6 order-2 lg:order-1 lg:col-span-2">
+                        <ProfileSidebar user={user} />
+                        <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-6 lg:col-span-2">
                             <input type="hidden" {...register("specialties")} />
 
                             <Tabs defaultValue="personal" className="w-full block">
@@ -179,7 +180,7 @@ function Profile() {
                             </div>
                         </form>
 
-                        <ProfileSidebar user={user} />
+                        {/* <ProfileSidebar user={user} /> */}
                     </div>
                 )}
             </div>
