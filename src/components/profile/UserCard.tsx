@@ -12,7 +12,7 @@ export function UserCard({ user }: UserCardProps) {
     const labelClass = "text-muted-foreground";
     const priceRange =
         user?.priceFrom != null || user?.priceTo != null
-            ? `${user?.priceFrom ?? "?"} - ${user?.priceTo ?? "?"}`
+            ? `${user?.priceFrom ?? "?"} - ${user?.priceTo ?? "?"} ${user?.tenants?.[0]?.currency ?? ""}`
             : "N/A";
 
     return (

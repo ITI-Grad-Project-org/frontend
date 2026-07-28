@@ -135,7 +135,7 @@ function Profile() {
                                 </TabsList>
 
                                 <TabsContent value="personal" className="mt-0 outline-none">
-                                    <PersonalDetailsSection register={register} errors={errors} />
+                                    <PersonalDetailsSection register={register} control={control} errors={errors} />
                                 </TabsContent>
 
                                 <TabsContent value="experience" className="mt-0 outline-none">

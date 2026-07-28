@@ -90,7 +90,7 @@ export function ProfileSetupWizard({
             >
                 <input type="hidden" {...register("specialties")} />
 
-                {activeStep === 0 && <PersonalDetailsSection register={register} errors={errors as FieldErrors<ProfileFormData>} />}
+                {activeStep === 0 && <PersonalDetailsSection register={register} control={control} errors={errors as FieldErrors<ProfileFormData>} />}
 
                 {activeStep === 1 && (
                     <CoachingExperienceSection
