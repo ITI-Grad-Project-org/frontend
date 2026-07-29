@@ -15,7 +15,11 @@ export default function Exercises() {
     loading,
     error,
     hasActiveFilter,
+    isRefreshing,
     filters,
+    handleFiltersChange,
+    resetFilters,
+    refreshData,
     actions,
   } = useExercisesData();
 
@@ -55,24 +59,20 @@ export default function Exercises() {
         </button>
       </div>
 
-      {/* Search & Category Filter Controls */}
+      {/* Filters */}
       <ExerciseFilters
-        searchQuery={filters.searchQuery}
-        onSearchChange={filters.setSearchQuery}
-        categoryFilter={filters.categoryFilter}
-        onCategoryChange={filters.setCategoryFilter}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onResetFilters={resetFilters}
+        onRefresh={() => void refreshData()}
+        isRefreshing={isRefreshing}
+        totalExercises={exercises.length}
+        filteredCount={filteredExercises.length}
       />
 
-      {/* Section Heading & Counter */}
+      {/* Section Heading */}
       <div className="flex items-center gap-3">
         <h2 className="text-2xl font-bold text-foreground">Library</h2>
-        {!loading && !error && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-muted text-muted-foreground">
-            {hasActiveFilter
-              ? `${filteredExercises.length} of ${exercises.length}`
-              : exercises.length}
-          </span>
-        )}
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         Select an exercise to review its details, instructions, and media
@@ -88,7 +88,8 @@ export default function Exercises() {
         onOpenAdd={handleOpenAdd}
         onView={setViewingExercise}
         onEdit={handleOpenEdit}
-        onDelete={actions.setExerciseToDelete}
+        onArchive={actions.setExerciseToDelete}
+        onUnarchive={actions.handleUnarchive}
       />
 
       {/* Modals & Dialogs */}
@@ -101,9 +102,9 @@ export default function Exercises() {
 
       <ConfirmDialog
         open={actions.exerciseToDelete !== null}
-        title="Delete Exercise?"
-        description={`"${actions.exerciseToDelete?.name}" will be permanently removed from your library.`}
-        confirmLabel="Delete"
+        title="Archive Exercise?"
+        description={`"${actions.exerciseToDelete?.name}" will be archived and hidden from your active library. You can still find it by enabling "Include archived exercises".`}
+        confirmLabel="Archive"
         isConfirming={actions.isDeleting}
         onConfirm={actions.handleDeleteConfirm}
         onCancel={() => actions.setExerciseToDelete(null)}

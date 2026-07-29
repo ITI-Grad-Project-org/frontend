@@ -80,7 +80,7 @@ export default function Chat() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
-      <div className="flex flex-col gap-3 rounded-[2rem] border border-border/80 bg-card/90 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <div className="flex flex-col gap-3 rounded-4xl border border-border/80 bg-card/90 p-6 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/80">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -123,7 +123,7 @@ export default function Chat() {
       </div>
 
       <div className="grid min-h-0 flex-1 gap-6 overflow-hidden lg:grid-cols-[340px_minmax(0,1fr)]">
-        <aside className="flex min-h-0 flex-col overflow-hidden rounded-[2rem] border border-border/80 bg-card shadow-sm">
+        <aside className="flex min-h-0 flex-col overflow-hidden rounded-4xl border border-border/80 bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
             <div>
               <p className="text-sm font-semibold text-foreground">Conversations</p>
@@ -201,7 +201,7 @@ export default function Chat() {
           </ScrollArea>
         </aside>
 
-        <section className="flex min-h-0 flex-col overflow-hidden rounded-[2rem] border border-border/80 bg-card shadow-sm">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-4xl border border-border/80 bg-card shadow-sm">
           <div className="flex items-center justify-between gap-4 border-b border-border/70 px-5 py-4">
             <div className="flex min-w-0 items-center gap-3">
               <Avatar className="h-12 w-12 border border-border">
@@ -229,7 +229,7 @@ export default function Chat() {
           </div>
 
           <ScrollArea className="min-h-0 flex-1">
-            <div className="flex min-h-full flex-col gap-5 bg-[radial-gradient(circle_at_top,_rgba(0,0,0,0.04),_transparent_44%)] p-5">
+            <div className="flex min-h-full flex-col gap-5 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.04),transparent_44%)] p-5">
               {isLoadingThread ? (
                 <div className="space-y-4">
                   <div className="ml-auto h-16 w-3/4 animate-pulse rounded-[1.5rem] bg-muted/60" />
@@ -237,7 +237,7 @@ export default function Chat() {
                   <div className="ml-auto h-14 w-1/2 animate-pulse rounded-[1.5rem] bg-muted/60" />
                 </div>
               ) : !clientId ? (
-                <div className="flex min-h-[28rem] flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-border/70 bg-muted/20 px-8 text-center">
+                <div className="flex min-h-112 flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-border/70 bg-muted/20 px-8 text-center">
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <MessageCircleMore className="h-7 w-7" />
                   </div>
@@ -247,7 +247,7 @@ export default function Chat() {
                   </p>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="flex min-h-[28rem] flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-border/70 bg-muted/20 px-8 text-center">
+                <div className="flex min-h-112 flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-border/70 bg-muted/20 px-8 text-center">
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                     <MessageCircleMore className="h-7 w-7" />
                   </div>

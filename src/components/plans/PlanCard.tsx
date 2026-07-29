@@ -3,6 +3,7 @@ import { formatFilterLabel, formatPlanWindow } from "@/hooks/usePlansData";
 import { Link } from "react-router";
 import {
     Archive,
+    ArchiveRestore,
     CheckCircle2,
     CalendarClock,
     Pencil,
@@ -19,6 +20,7 @@ interface PlanCardProps {
     onReschedule?: (program: ClientProgramDraft) => void;
     onCancel?: (program: ClientProgramDraft) => void;
     onArchive?: (program: ClientProgramDraft) => void;
+    onUnarchive?: (program: ClientProgramDraft) => void;
 }
 
 // ─── Badge helpers ───────────────────────────────────────────────────────────
@@ -78,6 +80,7 @@ export function PlanCard({
     onReschedule,
     onCancel,
     onArchive,
+    onUnarchive,
 }: PlanCardProps) {
     const { status, schedulePhase, isArchived } = program;
 
@@ -304,6 +307,20 @@ export function PlanCard({
                 <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
                     <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-destructive" />
                     This plan has been cancelled and is no longer visible to the client.
+                </div>
+            )}
+
+            {/* ARCHIVED: Unarchive */}
+            {isArchived && (
+                <div className="mt-5">
+                    <button
+                        type="button"
+                        onClick={() => onUnarchive?.(program)}
+                        className={`w-full ${secondaryBtnCls}`}
+                    >
+                        <ArchiveRestore className="h-4 w-4" />
+                        Unarchive
+                    </button>
                 </div>
             )}
         </article>

@@ -14,6 +14,7 @@ interface PlansListProps {
     onReschedule: (program: ClientProgramDraft) => void;
     onCancel: (program: ClientProgramDraft) => void;
     onArchive: (program: ClientProgramDraft) => void;
+    onUnarchive: (program: ClientProgramDraft) => void;
     /** Optional retry handler shown as a button on the error state. */
     onRetry?: () => void;
 }
@@ -40,6 +41,7 @@ export function PlansList({
     onReschedule,
     onCancel,
     onArchive,
+    onUnarchive,
     onRetry,
 }: PlansListProps) {
     if (loading) {
@@ -112,6 +114,7 @@ export function PlansList({
                         onReschedule={onReschedule}
                         onCancel={onCancel}
                         onArchive={onArchive}
+                        onUnarchive={onUnarchive}
                     />
                 ))}
             </div>

@@ -12,7 +12,8 @@ interface ExerciseGridProps {
     onOpenAdd: () => void;
     onView: (exercise: Exercise) => void;
     onEdit: (exercise: Exercise) => void;
-    onDelete: (exercise: Exercise) => void;
+    onArchive: (exercise: Exercise) => void;
+    onUnarchive?: (exercise: Exercise) => void;
 }
 
 export function ExerciseGrid({
@@ -24,7 +25,8 @@ export function ExerciseGrid({
     onOpenAdd,
     onView,
     onEdit,
-    onDelete,
+    onArchive,
+    onUnarchive,
 }: ExerciseGridProps) {
     if (loading) {
         return (
@@ -87,7 +89,8 @@ export function ExerciseGrid({
                     exercise={exercise}
                     onClick={onView}
                     onEdit={onEdit}
-                    onDelete={onDelete}
+                    onArchive={onArchive}
+                    onUnarchive={onUnarchive}
                 />
             ))}
         </div>

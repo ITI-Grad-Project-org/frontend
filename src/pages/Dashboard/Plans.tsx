@@ -15,6 +15,7 @@ import {
     archiveClientProgramDraft,
     cancelClientProgram,
     publishClientProgram,
+    unarchiveClientProgram,
 } from "@/services/plans";
 import { getApiErrorMessage } from "@/lib/api";
 import type { ClientProgramDraft } from "@/types/plans";
@@ -31,11 +32,13 @@ function Plans() {
     const [programToPublish, setProgramToPublish] = useState<ClientProgramDraft | null>(null);
     const [programToCancel, setProgramToCancel] = useState<ClientProgramDraft | null>(null);
     const [programToArchive, setProgramToArchive] = useState<ClientProgramDraft | null>(null);
+    const [programToUnarchive, setProgramToUnarchive] = useState<ClientProgramDraft | null>(null);
 
     // Pending flags
     const [isPublishing, setIsPublishing] = useState(false);
     const [isCancelling, setIsCancelling] = useState(false);
     const [isArchiving, setIsArchiving] = useState(false);
+    const [isUnarchiving, setIsUnarchiving] = useState(false);
 
     // ── Data hook ─────────────────────────────────────────────────────────────
     const {
@@ -138,6 +141,22 @@ function Plans() {
         }
     };
 
+    // ── Unarchive ─────────────────────────────────────────────────────────────
+    const handleUnarchiveConfirm = async () => {
+        if (!programToUnarchive) return;
+        setIsUnarchiving(true);
+        try {
+            await unarchiveClientProgram(programToUnarchive.id);
+            toast.success("Plan restored to your coach list.");
+            setProgramToUnarchive(null);
+            await refreshData();
+        } catch (error) {
+            toast.error(getApiErrorMessage(error, "Could not unarchive this plan. Please try again."));
+        } finally {
+            setIsUnarchiving(false);
+        }
+    };
+
     // ── Render ────────────────────────────────────────────────────────────────
     return (
         <>
@@ -172,6 +191,7 @@ function Plans() {
                     onReschedule={setProgramToReschedule}
                     onCancel={setProgramToCancel}
                     onArchive={setProgramToArchive}
+                    onUnarchive={setProgramToUnarchive}
                 />
             </div>
 
@@ -249,6 +269,22 @@ function Plans() {
                 isConfirming={isArchiving}
                 onConfirm={handleArchiveConfirm}
                 onCancel={() => setProgramToArchive(null)}
+            />
+
+            <ConfirmDialog
+                open={programToUnarchive !== null}
+                title="Restore this plan?"
+                description={
+                    programToUnarchive
+                        ? `"${programToUnarchive.name}" will be restored and visible again in your coach list.`
+                        : ""
+                }
+                confirmLabel="Restore plan"
+                cancelLabel="Cancel"
+                pendingLabel="Restoring…"
+                isConfirming={isUnarchiving}
+                onConfirm={handleUnarchiveConfirm}
+                onCancel={() => setProgramToUnarchive(null)}
             />
         </>
     );

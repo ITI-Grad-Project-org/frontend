@@ -30,6 +30,12 @@ export async function deleteExercise(exerciseId: string) {
   await api.delete(`/exercises/${exerciseId}`);
 }
 
+/** POST /exercises/:exerciseId/unarchive */
+export async function unarchiveExercise(exerciseId: string) {
+  const { data } = await api.post<Exercise>(`/exercises/${exerciseId}/unarchive`);
+  return data;
+}
+
 /**
  * POST /exercises/initialize-library-from-defaults
  *

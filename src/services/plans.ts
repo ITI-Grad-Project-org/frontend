@@ -151,6 +151,15 @@ export async function archiveClientProgramDraft(
   await api.delete(`/plans/training/client-programs/${programId}`);
 }
 
+export async function unarchiveClientProgram(
+  programId: string,
+): Promise<ClientProgramDraft> {
+  const { data } = await api.post<ClientProgramDraft>(
+    `/plans/training/client-programs/${programId}/unarchive`,
+  );
+  return data;
+}
+
 export async function publishClientProgram(
   programId: string,
 ): Promise<ClientProgramDraft> {

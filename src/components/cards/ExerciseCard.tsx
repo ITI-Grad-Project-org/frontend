@@ -1,4 +1,4 @@
-import { DumbbellIcon, Pencil, Trash2 } from "lucide-react";
+import { DumbbellIcon, Pencil, Archive, RotateCcw } from "lucide-react";
 import CardMain from "./CardMain";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import type { Exercise } from "@/types/exercise";
@@ -28,12 +28,15 @@ type Props = {
   exercise: Exercise;
   onClick: (exercise: Exercise) => void;
   onEdit: (exercise: Exercise) => void;
-  onDelete: (exercise: Exercise) => void;
+  /** Triggers the archive confirmation. Hidden for already-archived exercises. */
+  onArchive: (exercise: Exercise) => void;
+  /** Triggers unarchiving the exercise. Shown for archived exercises. */
+  onUnarchive?: (exercise: Exercise) => void;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Props) {
+export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onUnarchive }: Props) {
   const {
     thumbnailUrl,
     name,
@@ -41,11 +44,17 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Pr
     primaryMuscle,
     secondaryMuscles,
     equipment,
+    isActive,
   } = exercise;
 
   const visibleSecondary = secondaryMuscles.slice(0, 3);
   const extraCount = secondaryMuscles.length - visibleSecondary.length;
   const hasEquipment = equipment.length > 0 && !(equipment.length === 1 && equipment[0] === "none");
+
+  // Archived cards get a muted/faded look with a dashed border
+  const cardWrapperCls = isActive
+    ? "cursor-pointer text-left block w-full h-full rounded-3xl transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+    : "cursor-pointer text-left block w-full h-full rounded-3xl transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40";
 
   return (
     <div
@@ -59,41 +68,64 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onDelete }: Pr
           onClick(exercise);
         }
       }}
-      className="cursor-pointer text-left block w-full h-full rounded-3xl transition-transform hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+      className={cardWrapperCls}
     >
       <CardMain className="h-full justify-start gap-4">
         {/* Top row — thumbnail + actions */}
-        <div className="flex items-start justify-between">
-          <Avatar className="w-14 h-14 rounded-2xl shrink-0 bg-white">
+        <div className="flex items-start justify-between gap-2">
+          <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-white">
             {thumbnailUrl ? (
               <AvatarImage
                 src={thumbnailUrl}
                 alt={name}
-                className="object-cover rounded-2xl"
+                className="object-cover rounded-full"
               />
             ) : null}
-            <AvatarFallback className="rounded-2xl bg-muted text-muted-foreground">
+            <AvatarFallback className="rounded-full bg-muted text-muted-foreground">
               <DumbbellIcon className="w-6 h-6" />
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex gap-1">
+          <div className="flex flex-wrap gap-1 items-center justify-end">
+            {/* Archived Status Badge */}
+            {!isActive && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl text-[11px] font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+                <Archive className="w-3 h-3 shrink-0" />
+                <span className="hidden xs:inline sm:inline">Archived</span>
+              </span>
+            )}
+
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(exercise); }}
-              className="cursor-pointer p-2 rounded-xl text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 active:scale-95 transition-all"
+              className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 active:scale-95 transition-all"
               title="Edit exercise"
               aria-label={`Edit ${name}`}
             >
               <Pencil size={16} />
             </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(exercise); }}
-              className="cursor-pointer p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 active:scale-95 transition-all"
-              title="Delete exercise"
-              aria-label={`Delete ${name}`}
-            >
-              <Trash2 size={16} />
-            </button>
+
+            {/* Archive button — only shown for active exercises */}
+            {isActive ? (
+              <button
+                onClick={(e) => { e.stopPropagation(); onArchive(exercise); }}
+                className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 active:scale-95 transition-all"
+                title="Archive exercise"
+                aria-label={`Archive ${name}`}
+              >
+                <Archive size={16} />
+              </button>
+            ) : (
+              onUnarchive && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onUnarchive(exercise); }}
+                  className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 active:scale-95 transition-all"
+                  title="Unarchive exercise"
+                  aria-label={`Unarchive ${name}`}
+                >
+                  <RotateCcw size={16} />
+                </button>
+              )
+            )}
           </div>
         </div>
 
