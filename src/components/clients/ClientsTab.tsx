@@ -10,6 +10,7 @@ interface ClientsTabProps {
     onRetry: () => void;
     onClientDeleted: () => void | Promise<void>;
     onCreatePlan?: (connection: ClientConnection) => void;
+    onMessageClient?: (connection: ClientConnection) => void;
 }
 
 export function ClientsTab({
@@ -19,6 +20,7 @@ export function ClientsTab({
     onRetry,
     onClientDeleted,
     onCreatePlan,
+    onMessageClient,
 }: ClientsTabProps) {
     if (loading) {
         return (
@@ -52,13 +54,14 @@ export function ClientsTab({
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3  gap-6 animate-in fade-in duration-200">
             {data.map((connection) => (
                 <ClientCard
                     key={connection.id}
                     connection={connection}
                     onDeleted={onClientDeleted}
                     onCreatePlan={onCreatePlan}
+                    onMessage={onMessageClient}
                 />
             ))}
         </div>

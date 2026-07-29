@@ -11,6 +11,7 @@ import Exercises from "./pages/Dashboard/Exercises";
 import Meals from "./pages/Dashboard/Meals";
 import Analytics from "./pages/Dashboard/Analytics";
 import Reviews from "./pages/Dashboard/Reviews";
+import Chat from "./pages/Dashboard/Chat";
 import CoachProfile from "./pages/CoachProfile";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -83,6 +84,8 @@ function App() {
               <Route index element={<Navigate to="overview" replace />} />
               <Route path="overview" element={<Overview />} />
               <Route path="clients" element={<Clients />} />
+              <Route path="chat" element={<Chat />} />
+              <Route path="chat/:clientId" element={<Chat />} />
               <Route path="plans" element={<Plans />} />
               <Route path="plans/:programId" element={<PlanBuilder />} />
               <Route path="nutrition" element={<Nutrition />} />

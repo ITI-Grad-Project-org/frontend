@@ -1,13 +1,16 @@
-import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, CircleUserRound, Star } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router";
+import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, CircleUserRound, Star, MessageCircleMore } from "lucide-react";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useTheme } from "@/theme";
 
 function DashboardLayout() {
     const { isDark } = useTheme();
+    const location = useLocation();
+    const isChatPage = location.pathname.startsWith("/dashboard/chat");
 
     const items = [
         { to: "overview", title: "Overview", icon: LayoutDashboard },
         { to: "clients", title: "Clients", icon: UsersRound },
+        { to: "chat", title: "Chat", icon: MessageCircleMore },
         { to: "plans", title: "Plans", icon: Calendar },
         { to: "nutrition", title: "Nutrition", icon: Apple },
         { to: "exercises", title: "Exercises", icon: Dumbbell },
@@ -62,7 +65,7 @@ function DashboardLayout() {
             </aside>
 
 
-            <main className="flex-1 px-6 pt-10 pb-8 overflow-y-auto md:pt-14 md:px-16">
+            <main className={isChatPage ? "flex-1 min-h-0 overflow-hidden px-6 pt-10 pb-8 md:pt-14 md:px-16" : "flex-1 px-6 pt-10 pb-8 overflow-y-auto md:pt-14 md:px-16"}>
                 <Outlet />
             </main>
 

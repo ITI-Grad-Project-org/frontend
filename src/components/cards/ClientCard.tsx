@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Trash2, Dumbbell, User2Icon, Utensils, Mail, Phone, Calendar } from "lucide-react";
+import { Trash2, Dumbbell, User2Icon, Utensils, Mail, Phone, Calendar, MessageCircleMore } from "lucide-react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 import CardMain from "./CardMain";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import type { ClientConnection } from "@/types/client";
@@ -11,11 +12,13 @@ interface ClientCardProps {
   connection: ClientConnection;
   onDeleted?: () => void | Promise<void>;
   onCreatePlan?: (connection: ClientConnection) => void;
+  onMessage?: (connection: ClientConnection) => void;
 }
 
-function ClientCard({ connection, onDeleted, onCreatePlan }: ClientCardProps) {
+function ClientCard({ connection, onDeleted, onCreatePlan, onMessage }: ClientCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const navigate = useNavigate();
 
   if (!connection || !connection.client) {
     return null;
@@ -60,6 +63,15 @@ function ClientCard({ connection, onDeleted, onCreatePlan }: ClientCardProps) {
     toast.info(`Creating custom nutrition for ${fullName}`);
   };
 
+  const handleMessageClient = () => {
+    if (onMessage) {
+      onMessage(connection);
+      return;
+    }
+
+    navigate(`/dashboard/chat/${client.id}`);
+  };
+
   const handleDeleteClient = async () => {
     setIsDeleting(true);
 
@@ -90,22 +102,33 @@ function ClientCard({ connection, onDeleted, onCreatePlan }: ClientCardProps) {
   return (
     <CardMain className="w-full flex flex-col justify-between gap-5 p-6 transition-all duration-300 hover:shadow-lg border border-border bg-card rounded-3xl">
       <div className="flex flex-col gap-4">
-        <div className="flex justify-between">
+        <div className="flex justify-between gap-3">
           <Avatar className="w-16 h-16 border-2 border-border shadow-sm shrink-0">
             <AvatarImage src={client.avatarUrl || ""} className="object-cover" />
             <AvatarFallback className="bg-muted text-muted-foreground">
               <User2Icon className="w-8 h-8" />
             </AvatarFallback>
           </Avatar>
-          <button
-            type="button"
-            onClick={() => setIsDeleteDialogOpen(true)}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-destructive/20 bg-destructive/5 text-destructive transition hover:bg-destructive/10 active:scale-[0.98]"
-            aria-label="Remove client"
-            title="Remove client"
-          >
-            <Trash2 className="h-4 w-4" strokeWidth={2.5} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleMessageClient}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground transition hover:bg-muted/70 active:scale-[0.98]"
+              aria-label={`Message ${fullName}`}
+              title={`Message ${fullName}`}
+            >
+              <MessageCircleMore className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-destructive/20 bg-destructive/5 text-destructive transition hover:bg-destructive/10 active:scale-[0.98]"
+              aria-label="Remove client"
+              title="Remove client"
+            >
+              <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
         <div className="flex items-start justify-between gap-4">
           <div className="flex gap-4 items-center min-w-0">

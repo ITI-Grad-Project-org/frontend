@@ -77,6 +77,9 @@ export default function Clients() {
             setSelectedClientName(fullName || connection.client.email || "Unknown client");
             setIsCreatePlanModalOpen(true);
           }}
+          onMessageClient={(connection) => {
+            navigate(`/dashboard/chat/${connection.client.id}`);
+          }}
         />
       )}
 
