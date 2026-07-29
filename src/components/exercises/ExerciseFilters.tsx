@@ -1,6 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Search, X, RotateCcw } from "lucide-react";
 import type { ExercisesFilters } from "@/hooks/useExercisesData";
-import { formatFilterLabel } from "@/hooks/usePlansData";
+
 
 // ─── Option lists ─────────────────────────────────────────────────────────────
 
@@ -111,7 +112,7 @@ export function ExerciseFilters({
             {/* ── Row 2: dropdowns + archived checkbox ── */}
             <div className="flex flex-wrap items-center gap-3">
                 {/* Category */}
-                <div className="relative min-w-[160px] flex-1">
+                <div className="relative min-w-40 flex-1">
                     <select
                         id="exercise-category-filter"
                         value={filters.category}
@@ -133,7 +134,7 @@ export function ExerciseFilters({
                 </div>
 
                 {/* Primary muscle */}
-                <div className="relative min-w-[160px] flex-1">
+                <div className="relative min-w-40 flex-1">
                     <select
                         id="exercise-muscle-filter"
                         value={filters.primaryMuscle}

@@ -1,106 +1,267 @@
-import AddMealModal from "@/components/modals/AddMealModal";
-import CardMain from "@/components/cards/CardMain";
-import { Chip } from "@/components/ui/Chip";
-import MealCard from "@/components/cards/MealCard";
-import { Plus, Search, UserRoundPlus } from "lucide-react";
+// src/pages/Dashboard/Meals.tsx
 import { useState } from "react";
+import { Plus, Utensils, Apple } from "lucide-react";
+import { Chip } from "@/components/ui/Chip";
+import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
 
-function Meals() {
-    const meals = [
-        {
-            thumbnail: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
-            name: "Chicken Salad Bowl",
-            calories: 420,
-            protein: 35,
-            carbs: 28,
-            fats: 18,
-        },
-        {
-            thumbnail: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80",
-            name: "Salmon Rice Plate",
-            calories: 560,
-            protein: 40,
-            carbs: 45,
-            fats: 22,
-        },
-        {
-            thumbnail: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=800&q=80",
-            name: "Greek Yogurt Bowl",
-            calories: 310,
-            protein: 24,
-            carbs: 30,
-            fats: 10,
-        },
-        {
-            thumbnail: "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80",
-            name: "Turkey Wrap",
-            calories: 390,
-            protein: 28,
-            carbs: 35,
-            fats: 14,
-        },
-    ];
+// Food Components & Hooks
+import { FoodFilters } from "@/components/nutrition/FoodFilters";
+import { FoodGrid } from "@/components/nutrition/FoodGrid";
+import AddEditFoodModal from "@/components/modals/AddEditFoodModal";
+import FoodDetailsModal from "@/components/modals/FoodDetailsModal";
+import { useFoodsData } from "@/hooks/useFoodsData";
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+// Meal Components & Hooks
+import { MealFilters } from "@/components/nutrition/MealFilters";
+import { MealGrid } from "@/components/nutrition/MealGrid";
+import AddEditMealModal from "@/components/modals/AddEditMealModal";
+import MealDetailsModal from "@/components/modals/MealDetailsModal";
+import { useMealsData } from "@/hooks/useMealsData";
 
-    return (
-        <div className="flex flex-col gap-3.5">
-            <div className="flex flex-wrap justify-between">
-                <h1 className="text-4xl font-black font-display">Meals</h1>
-                <div>
-                    <div className="grid grid-cols-2 gap-3">
-                        <button className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-opacity cursor-pointer bg-brand text-brand-foreground rounded-2xl hover:opacity-90">
-                            <UserRoundPlus className="w-4 h-4" strokeWidth={2.5} />
-                            <span>Custom for Clients</span>
-                        </button>
-                        <button
-                            onClick={() => setIsModalOpen(true)}
-                            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-opacity cursor-pointer bg-ink text-ink-foreground rounded-2xl hover:opacity-90"
-                        >
-                            <Plus className="w-4 h-4" strokeWidth={2.5} />
-                            <span>Add to library</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+import type { Food, Meal, CreateFoodDto, UpdateFoodDto, CreateMealDto, UpdateMealDto, ReplaceMealItemsDto } from "@/types/nutrition";
 
-            <CardMain className="">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted">
-                    <Search className="w-4 h-4 text-muted-foreground" />
-                    <input
-                        value={""}
-                        onChange={(e) => e}
-                        placeholder="Search meals…"
-                        className="w-full text-sm bg-transparent outline-none placeholder:text-muted-foreground"
-                    />
-                </div>
-            </CardMain>
+export default function Meals() {
+  const [activeTab, setActiveTab] = useState<"meals" | "foods">("meals");
 
-            <section className="mt-12 space-y-8">
-                <div className="flex items-center gap-3">
-                    <h2 className="text-3xl font-semibold">Library</h2>
-                    <Chip className="font-bold">{meals.length}</Chip>
-                </div>
+  // Foods state
+  const foodsHook = useFoodsData();
+  const [isFoodModalOpen, setIsFoodModalOpen] = useState(false);
+  const [foodToEdit, setFoodToEdit] = useState<Food | null>(null);
+  const [viewingFood, setViewingFood] = useState<Food | null>(null);
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                    {meals.map((meal) => (
-                        <MealCard key={meal.name} {...meal} />
-                    ))}
-                </div>
+  // Meals state
+  const mealsHook = useMealsData();
+  const [isMealModalOpen, setIsMealModalOpen] = useState(false);
+  const [mealToEdit, setMealToEdit] = useState<Meal | null>(null);
+  const [viewingMeal, setViewingMeal] = useState<Meal | null>(null);
 
-                <div className="mt-12 space-y-4">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-3xl font-semibold">Custom — per client</h2>
-                        <Chip color="orange" className="font-bold">0</Chip>
-                    </div>
+  // Food handlers
+  const handleOpenAddFood = () => {
+    setFoodToEdit(null);
+    setIsFoodModalOpen(true);
+  };
 
-                    <CardMain>No client-specific meals yet.</CardMain>
-                </div>
-            </section>
+  const handleOpenEditFood = (food: Food) => {
+    setFoodToEdit(food);
+    setIsFoodModalOpen(true);
+  };
 
-            <AddMealModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+  const handleSaveFood = async (
+    dto: CreateFoodDto | UpdateFoodDto,
+    isEditing: boolean,
+    foodId?: string
+  ) => {
+    if (isEditing && foodId) {
+      await foodsHook.handleUpdateFood(foodId, dto as UpdateFoodDto);
+    } else {
+      await foodsHook.handleCreateFood(dto as CreateFoodDto);
+    }
+  };
+
+  // Meal handlers
+  const handleOpenAddMeal = () => {
+    setMealToEdit(null);
+    setIsMealModalOpen(true);
+  };
+
+  const handleOpenEditMeal = (meal: Meal) => {
+    setMealToEdit(meal);
+    setIsMealModalOpen(true);
+  };
+
+  const handleSaveMeal = async (
+    metaDto: CreateMealDto | UpdateMealDto,
+    recipeDto: ReplaceMealItemsDto,
+    isEditing: boolean,
+    mealId?: string
+  ) => {
+    if (isEditing && mealId) {
+      await mealsHook.handleUpdateMeal(mealId, metaDto as UpdateMealDto, recipeDto);
+    } else {
+      await mealsHook.handleCreateMeal(metaDto as CreateMealDto);
+    }
+  };
+
+  // Filter active foods to populate meal recipe food dropdown
+  const activeFoods = foodsHook.foods.filter((f) => f.isActive);
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black font-display text-foreground">
+            Nutrition Library
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Manage reusable food ingredients and meal recipes for your coaching plans.
+          </p>
         </div>
-    );
-}
 
-export default Meals
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleOpenAddFood}
+            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+          >
+            <Apple className="w-4 h-4" />
+            <span>Add Food Item</span>
+          </button>
+          <button
+            onClick={handleOpenAddMeal}
+            className="flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold bg-brand text-brand-foreground rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <span>Create Meal</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-2 border-b border-border pb-1">
+        <button
+          onClick={() => setActiveTab("meals")}
+          className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm transition-all cursor-pointer ${
+            activeTab === "meals"
+              ? "bg-ink text-ink-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <Utensils className="w-4 h-4" />
+          <span>Meals Library</span>
+          <Chip className="font-bold ml-1">{mealsHook.filteredMeals.length}</Chip>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("foods")}
+          className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm transition-all cursor-pointer ${
+            activeTab === "foods"
+              ? "bg-ink text-ink-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <Apple className="w-4 h-4" />
+          <span>Food Items</span>
+          <Chip className="font-bold ml-1">{foodsHook.filteredFoods.length}</Chip>
+        </button>
+      </div>
+
+      {/* Meals Tab Content */}
+      {activeTab === "meals" && (
+        <section className="space-y-6">
+          <MealFilters
+            filters={mealsHook.filters}
+            onFiltersChange={mealsHook.handleFiltersChange}
+            onResetFilters={mealsHook.resetFilters}
+            onRefresh={() => void mealsHook.refreshData()}
+            isRefreshing={mealsHook.isRefreshing}
+            totalMeals={mealsHook.meals.length}
+            filteredCount={mealsHook.filteredMeals.length}
+          />
+
+          <MealGrid
+            loading={mealsHook.loading}
+            error={mealsHook.error}
+            meals={mealsHook.filteredMeals}
+            hasActiveFilter={mealsHook.hasActiveFilter}
+            onRetry={mealsHook.refreshData}
+            onOpenAdd={handleOpenAddMeal}
+            onView={setViewingMeal}
+            onEdit={handleOpenEditMeal}
+            onArchive={mealsHook.actions.setMealToArchive}
+            onUnarchive={mealsHook.handleUnarchive}
+          />
+        </section>
+      )}
+
+      {/* Food Items Tab Content */}
+      {activeTab === "foods" && (
+        <section className="space-y-6">
+          <FoodFilters
+            filters={foodsHook.filters}
+            onFiltersChange={foodsHook.handleFiltersChange}
+            onResetFilters={foodsHook.resetFilters}
+            onRefresh={() => void foodsHook.refreshData()}
+            isRefreshing={foodsHook.isRefreshing}
+            totalFoods={foodsHook.foods.length}
+            filteredCount={foodsHook.filteredFoods.length}
+          />
+
+          <FoodGrid
+            loading={foodsHook.loading}
+            error={foodsHook.error}
+            foods={foodsHook.filteredFoods}
+            hasActiveFilter={foodsHook.hasActiveFilter}
+            onRetry={foodsHook.refreshData}
+            onOpenAdd={handleOpenAddFood}
+            onView={setViewingFood}
+            onEdit={handleOpenEditFood}
+            onArchive={foodsHook.actions.setFoodToArchive}
+            onUnarchive={foodsHook.handleUnarchive}
+          />
+        </section>
+      )}
+
+      {/* Modals & Dialogs */}
+
+      {/* Add / Edit Food Modal */}
+      <AddEditFoodModal
+        open={isFoodModalOpen}
+        onClose={() => setIsFoodModalOpen(false)}
+        food={foodToEdit}
+        onSave={handleSaveFood}
+      />
+
+      {/* Food Details Modal */}
+      <FoodDetailsModal
+        food={viewingFood}
+        onClose={() => setViewingFood(null)}
+        onEdit={(food) => {
+          setViewingFood(null);
+          handleOpenEditFood(food);
+        }}
+      />
+
+      {/* Archive Food Confirm Dialog */}
+      <ConfirmDialog
+        open={foodsHook.actions.foodToArchive !== null}
+        title="Archive Food Item?"
+        description={`"${foodsHook.actions.foodToArchive?.name}" will be archived and hidden from active pickers. Existing meal recipes using this food will remain intact.`}
+        confirmLabel="Archive"
+        isConfirming={foodsHook.actions.isArchiving}
+        onConfirm={foodsHook.actions.handleArchiveConfirm}
+        onCancel={() => foodsHook.actions.setFoodToArchive(null)}
+      />
+
+      {/* Add / Edit Meal Modal */}
+      <AddEditMealModal
+        open={isMealModalOpen}
+        onClose={() => setIsMealModalOpen(false)}
+        meal={mealToEdit}
+        availableFoods={activeFoods}
+        onSave={handleSaveMeal}
+      />
+
+      {/* Meal Details Modal */}
+      <MealDetailsModal
+        meal={viewingMeal}
+        onClose={() => setViewingMeal(null)}
+        onEdit={(meal) => {
+          setViewingMeal(null);
+          handleOpenEditMeal(meal);
+        }}
+      />
+
+      {/* Archive Meal Confirm Dialog */}
+      <ConfirmDialog
+        open={mealsHook.actions.mealToArchive !== null}
+        title="Archive Meal Recipe?"
+        description={`"${mealsHook.actions.mealToArchive?.name}" will be archived and hidden from normal library choices. Existing client plans will retain their snapshot.`}
+        confirmLabel="Archive"
+        isConfirming={mealsHook.actions.isArchiving}
+        onConfirm={mealsHook.actions.handleArchiveConfirm}
+        onCancel={() => mealsHook.actions.setMealToArchive(null)}
+      />
+    </div>
+  );
+}
