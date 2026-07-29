@@ -8,6 +8,7 @@ import {
     Pencil,
     Send,
     XCircle,
+    ClipboardList,
 } from "lucide-react";
 
 interface PlanCardProps {
@@ -90,6 +91,22 @@ export function PlanCard({
 
     return (
         <article className="rounded-3xl border border-border bg-background p-5 transition hover:border-brand/40">
+            {/* Top Bar with Icon-only button to view logs */}
+            <div className="mb-4 flex items-center justify-between border-b border-border/50 pb-3">
+                <div className="flex flex-wrap items-center gap-2">
+                    {statusBadge(program)}
+                    {isArchived && <Badge label="Archived" variant="muted" />}
+                </div>
+                <Link
+                    to={`/dashboard/plans/${program.id}/logs`}
+                    className="inline-flex size-9 items-center justify-center rounded-2xl border border-border bg-muted/20 text-muted-foreground transition hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
+                    title="View Plan Workout Logs"
+                    aria-label={`View workout logs for ${program.name}`}
+                >
+                    <ClipboardList className="size-4.5" />
+                </Link>
+            </div>
+
             {/* ── Clickable card body ── */}
             <Link
                 to={`/dashboard/plans/${program.id}`}
@@ -97,15 +114,9 @@ export function PlanCard({
                 className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             >
                 {/* Header row */}
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <p className="text-lg font-bold">{program.name}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">{clientName}</p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        {statusBadge(program)}
-                        {isArchived && <Badge label="Archived" variant="muted" />}
-                    </div>
+                <div>
+                    <p className="text-lg font-bold text-foreground">{program.name}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{clientName}</p>
                 </div>
 
                 {/* Description */}

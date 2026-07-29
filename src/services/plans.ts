@@ -10,6 +10,8 @@ import type {
   UpdatePlannedExercisePayload,
   UpdateProgramDayPayload,
   UpdateClientProgramPayload,
+  ProgramWorkoutLogsResponse,
+  ProgramDayLogResponse,
 } from "@/types/plans";
 
 export async function createClientProgramDraft(
@@ -177,3 +179,23 @@ export async function cancelClientProgram(
   );
   return data;
 }
+
+export async function getProgramWorkoutLogs(
+  programId: string,
+): Promise<ProgramWorkoutLogsResponse> {
+  const { data } = await api.get<ProgramWorkoutLogsResponse>(
+    `/plans/training/client-programs/${programId}/logs`,
+  );
+  return data;
+}
+
+export async function getProgramDayWorkoutLog(
+  programId: string,
+  programDayId: string,
+): Promise<ProgramDayLogResponse> {
+  const { data } = await api.get<ProgramDayLogResponse>(
+    `/plans/training/client-programs/${programId}/days/${programDayId}/log`,
+  );
+  return data;
+}
+
