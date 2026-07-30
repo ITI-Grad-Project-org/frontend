@@ -10,6 +10,12 @@ import {
     Send,
     XCircle,
     ClipboardList,
+    Target,
+    Clock,
+    Calendar,
+    User,
+    Dumbbell,
+    Zap,
 } from "lucide-react";
 
 interface PlanCardProps {
@@ -28,17 +34,17 @@ interface PlanCardProps {
 type BadgeVariant = "brand" | "success" | "warning" | "muted" | "destructive";
 
 const badgeStyles: Record<BadgeVariant, string> = {
-    brand: "bg-brand/10 text-brand",
-    success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    warning: "bg-amber-400/10 text-amber-600 dark:text-amber-400",
-    muted: "bg-muted text-muted-foreground",
-    destructive: "bg-destructive/10 text-destructive",
+    brand: "bg-brand/10 text-brand border-brand/20",
+    success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    muted: "bg-muted text-muted-foreground border-border",
+    destructive: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 function Badge({ label, variant }: { label: string; variant: BadgeVariant }) {
     return (
         <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${badgeStyles[variant]}`}
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${badgeStyles[variant]}`}
         >
             {label}
         </span>
@@ -58,17 +64,17 @@ function statusBadge(program: ClientProgramDraft) {
             return <Badge label="Ended" variant="muted" />;
         return <Badge label="Published" variant="brand" />;
     }
-    return <Badge label="Draft" variant="brand" />;
+    return <Badge label="Draft" variant="warning" />;
 }
 
 // ─── Action button helpers ────────────────────────────────────────────────────
 
 const primaryBtnCls =
-    "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60";
+    "inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-xs";
 
-const secondaryBtnCls = `${primaryBtnCls} border border-border text-foreground hover:bg-muted`;
+const secondaryBtnCls = `${primaryBtnCls} border border-border bg-background/80 text-foreground hover:bg-muted hover:border-border/80`;
 const destructiveBtnCls = `${primaryBtnCls} border border-destructive/20 bg-destructive/5 text-destructive hover:bg-destructive/10`;
-const brandBtnCls = `${primaryBtnCls} bg-brand text-brand-foreground hover:opacity-90`;
+const brandBtnCls = `${primaryBtnCls} bg-brand text-brand-foreground hover:opacity-95 shadow-md shadow-brand/20`;
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -93,94 +99,126 @@ export function PlanCard({
     const isEnded = isPublished && schedulePhase === "ended";
 
     return (
-        <article className="rounded-3xl border border-border bg-background p-5 transition hover:border-brand/40">
-            {/* Top Bar with Icon-only button to view logs */}
-            <div className="mb-4 flex items-center justify-between border-b border-border/50 pb-3">
-                <div className="flex flex-wrap items-center gap-2">
-                    {statusBadge(program)}
-                    {isArchived && <Badge label="Archived" variant="muted" />}
+        <article className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/80 bg-card/80 backdrop-blur-sm p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-xl">
+
+            <div>
+                {/* Top Bar: status badges + logs link */}
+                <div className="mb-4 flex items-center justify-between border-b border-border/40 pb-3.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {statusBadge(program)}
+                        {isArchived && <Badge label="Archived" variant="muted" />}
+                    </div>
+                    <Link
+                        to={`/dashboard/plans/${program.id}/logs`}
+                        className="inline-flex size-9 items-center justify-center rounded-2xl border border-border/80 bg-background/60 text-muted-foreground transition-all duration-200 hover:border-brand/40 hover:bg-brand/10 hover:text-brand hover:scale-105 active:scale-95"
+                        title="View Plan Workout Logs"
+                        aria-label={`View workout logs for ${program.name}`}
+                    >
+                        <ClipboardList className="size-4.5" />
+                    </Link>
                 </div>
+
+                {/* ── Clickable card body ── */}
                 <Link
-                    to={`/dashboard/plans/${program.id}/logs`}
-                    className="inline-flex size-9 items-center justify-center rounded-2xl border border-border bg-muted/20 text-muted-foreground transition hover:border-brand/40 hover:bg-brand/10 hover:text-brand"
-                    title="View Plan Workout Logs"
-                    aria-label={`View workout logs for ${program.name}`}
+                    to={`/dashboard/plans/${program.id}`}
+                    state={{ clientName }}
+                    className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 rounded-2xl"
                 >
-                    <ClipboardList className="size-4.5" />
+                    {/* Title & Client */}
+                    <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-brand/10 border border-brand/20">
+                            <Dumbbell className="size-5 text-brand" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-bold tracking-tight text-foreground transition-colors duration-200 group-hover:text-brand">
+                                {program.name}
+                            </h3>
+                            <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                                <User className="w-3.5 h-3.5 shrink-0 text-muted-foreground/70" />
+                                <span className="truncate">{clientName}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    {program.description && (
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground/90 line-clamp-2">
+                            {program.description}
+                        </p>
+                    )}
+
+                    {/* Meta Information Badges */}
+                    <div className="mt-4 grid gap-3.5 sm:grid-cols-2 text-xs">
+                        <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
+                            <Target className="w-4 h-4 shrink-0 text-brand" />
+                            <div>
+                                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Goal
+                                </span>
+                                <span className="font-semibold text-foreground">
+                                    {formatFilterLabel(program.goal)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
+                            <Zap className="w-4 h-4 shrink-0 text-brand" />
+                            <div>
+                                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Difficulty
+                                </span>
+                                <span className="font-semibold text-foreground">
+                                    {formatFilterLabel(program.difficulty)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
+                            <Dumbbell className="w-4 h-4 shrink-0 text-blue-500" />
+                            <div>
+                                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Duration
+                                </span>
+                                <span className="font-semibold text-foreground">
+                                    {program.durationWeeks} week{program.durationWeeks !== 1 ? "s" : ""}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
+                            <Calendar className="w-4 h-4 shrink-0 text-emerald-500" />
+                            <div>
+                                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                    Schedule
+                                </span>
+                                <span className="font-semibold text-foreground">
+                                    {formatPlanWindow(program.startDate, program.endDate)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Timestamps */}
+                    <div className="mt-4 pt-3 border-t border-border/40 flex flex-wrap items-center justify-between text-[11px] font-medium text-muted-foreground/80 gap-2">
+                        <span className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5 text-muted-foreground/60" />
+                            Created{" "}
+                            {new Date(program.createdAt).toLocaleString(undefined, {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                            })}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-muted-foreground/60" />
+                            Updated{" "}
+                            {new Date(program.updatedAt).toLocaleString(undefined, {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                            })}
+                        </span>
+                    </div>
                 </Link>
             </div>
-
-            {/* ── Clickable card body ── */}
-            <Link
-                to={`/dashboard/plans/${program.id}`}
-                state={{ clientName }}
-                className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
-            >
-                {/* Header row */}
-                <div>
-                    <p className="text-lg font-bold text-foreground">{program.name}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{clientName}</p>
-                </div>
-
-                {/* Description */}
-                {program.description && (
-                    <p className="mt-4 text-sm text-muted-foreground">{program.description}</p>
-                )}
-
-                {/* Meta grid */}
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Goal
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-foreground">
-                            {formatFilterLabel(program.goal)}
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Difficulty
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-foreground">
-                            {formatFilterLabel(program.difficulty)}
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Duration
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-foreground">
-                            {program.durationWeeks} weeks
-                        </p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Schedule
-                        </p>
-                        <p className="mt-1 text-sm font-medium text-foreground">
-                            {formatPlanWindow(program.startDate, program.endDate)}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Timestamps */}
-                <div className="mt-4 flex flex-col gap-1">
-                    <span className="text-xs font-semibold text-muted-foreground">
-                        Created{" "}
-                        {new Date(program.createdAt).toLocaleString(undefined, {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                        })}
-                    </span>
-                    <span className="text-xs font-semibold text-muted-foreground">
-                        Updated{" "}
-                        {new Date(program.updatedAt).toLocaleString(undefined, {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                        })}
-                    </span>
-                </div>
-            </Link>
 
             {/* ── Action area (outside the link) ── */}
 
