@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router";
+import HorizontalScrollBar from "@/components/HorizontalScrollBar";
 import { DragDropProvider, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/react";
-import { CalendarDays, Edit3, GripVertical, Layers3, MonitorSmartphone, Moon, Send, Trash2 } from "lucide-react";
+import { Activity, CalendarDays, Edit3, GripVertical, Layers3, MonitorSmartphone, Moon, Search, Send, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { deletePlannedExercise, getClientProgram, publishClientProgram, updatePlannedExercise, updateProgramDay } from "@/services/plans";
@@ -18,7 +19,7 @@ import type {
     PlannedExercise,
     PlannedExerciseSet,
 } from "@/types/plans";
-import type { Exercise } from "@/types/exercise";
+import type { Exercise, ExerciseCategory, MuscleGroup } from "@/types/exercise";
 import {
     Select,
     SelectContent,
@@ -321,6 +322,7 @@ function BuilderExerciseCard({
 
 function DayCard({
     day,
+    programId,
     onEdit,
     onCreateExercise,
     onExerciseEdit,
@@ -329,6 +331,7 @@ function DayCard({
     isReordering,
 }: {
     day: BuilderDay;
+    programId: string;
     onEdit: (day: BuilderDay) => void;
     onCreateExercise: (day: BuilderDay) => void;
     onExerciseEdit: (exercise: BuilderPlannedExercise) => void;
@@ -369,6 +372,14 @@ function DayCard({
                 >
                     {day.isRestDay ? "Rest" : "Training"}
                 </span>
+                <Link
+                    to={`/dashboard/plans/${programId}/days/${day.id}/log`}
+                    className="inline-flex size-7 items-center justify-center rounded-xl border border-border text-muted-foreground hover:border-brand/40 hover:bg-brand/10 hover:text-brand transition"
+                    title="View day log"
+                    aria-label={`View log for Day ${day.dayNumber}`}
+                >
+                    <Activity className="size-3.5" />
+                </Link>
             </div>
 
             <div className="mt-3 flex items-center gap-2">
@@ -427,7 +438,7 @@ function DayCard({
                 Create new exercise
             </button>
 
-            <div className="mt-3 relative flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto rounded-2xl border border-dashed border-border/70 bg-muted/20 p-3 pr-2">
+            <div className="mt-3 relative flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-y-contain rounded-2xl border border-dashed border-border/70 bg-muted/20 p-3 pr-2">
                 {isReordering && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-background/60 backdrop-blur-[2px]">
                         <div className="flex items-center gap-2 rounded-xl bg-card px-3 py-2 text-xs font-semibold text-muted-foreground shadow-sm border border-border">
@@ -467,6 +478,7 @@ function DayCard({
 }
 
 export default function PlanBuilder() {
+    const daysScrollContainerRef = useRef<HTMLDivElement | null>(null);
     const { programId } = useParams();
     const location = useLocation();
     const [program, setProgram] = useState<ClientProgramTree | null>(null);
@@ -496,6 +508,8 @@ export default function PlanBuilder() {
         filteredExercises,
         loading: exercisesLoading,
         error: exercisesError,
+        filters: exerciseFilters,
+        handleFiltersChange: handleExerciseFiltersChange,
         actions: { handleRetry: refetchExercises },
     } = useExercisesData();
 
@@ -919,9 +933,6 @@ export default function PlanBuilder() {
                         <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
                             <aside className="flex max-h-[calc(100vh+10rem)] flex-col rounded-3xl border border-border bg-card p-4 shadow-(--shadow-card)">
                                 <div className="flex items-center gap-2">
-                                    {/* <div className="rounded-2xl bg-primary/10 p-2 text-primary">
-                                    <ChevronRight className="size-4 rotate-90" />
-                                </div> */}
                                     <div>
                                         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                                             Exercise Library
@@ -932,7 +943,70 @@ export default function PlanBuilder() {
                                     </div>
                                 </div>
 
-                                <div className="mt-4 flex-1 space-y-2 overflow-y-auto pr-1">
+                                {/* Search */}
+                                <div className="mt-3 relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search exercises…"
+                                        value={exerciseFilters.search}
+                                        onChange={(e) => handleExerciseFiltersChange({ search: e.target.value })}
+                                        className="w-full rounded-2xl border border-border bg-background py-2 pl-8 pr-8 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 transition"
+                                    />
+                                    {exerciseFilters.search && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleExerciseFiltersChange({ search: "" })}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            <X className="size-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Category chips */}
+                                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                                    {(["strength", "cardio", "mobility", "plyometric", "core"] as ExerciseCategory[]).map((cat) => (
+                                        <button
+                                            key={cat}
+                                            type="button"
+                                            onClick={() => handleExerciseFiltersChange({ category: exerciseFilters.category === cat ? "" : cat })}
+                                            className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider transition ${exerciseFilters.category === cat
+                                                ? "border-brand bg-brand/10 text-brand"
+                                                : "border-border bg-background text-muted-foreground hover:border-brand/40 hover:text-foreground"
+                                                }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Muscle group select */}
+                                <div className="mt-2">
+                                    <select
+                                        value={exerciseFilters.primaryMuscle}
+                                        onChange={(e) => handleExerciseFiltersChange({ primaryMuscle: e.target.value as MuscleGroup | "" })}
+                                        className="w-full rounded-2xl border border-border bg-background px-3 py-2 text-xs font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-brand/40 transition"
+                                    >
+                                        <option value="">All muscles</option>
+                                        {(["chest", "back", "shoulders", "biceps", "triceps", "forearms", "quads", "hamstrings", "glutes", "calves", "core", "full_body"] as MuscleGroup[]).map((m) => (
+                                            <option key={m} value={m}>{m.replace("_", " ")}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Clear filters */}
+                                {(exerciseFilters.search || exerciseFilters.category || exerciseFilters.primaryMuscle) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleExerciseFiltersChange({ search: "", category: "", primaryMuscle: "" })}
+                                        className="mt-1.5 self-start text-[10px] font-semibold text-muted-foreground hover:text-foreground underline underline-offset-2 transition"
+                                    >
+                                        Clear filters
+                                    </button>
+                                )}
+
+                                <div className="mt-3 flex-1 space-y-2 overflow-y-auto pr-1">
                                     {exercisesLoading ? (
                                         <p className="rounded-2xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
                                             Loading exercises...
@@ -999,12 +1073,16 @@ export default function PlanBuilder() {
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 overflow-x-auto pb-2">
+                                        {/* Draggable Horizontal Scrollbar */}
+                                        <HorizontalScrollBar scrollContainerRef={daysScrollContainerRef} className="mt-4" />
+
+                                        <div ref={daysScrollContainerRef} className="mt-3 overflow-x-auto pb-2 no-scrollbar">
                                             <div className="flex min-w-max items-start gap-3">
                                                 {selectedWeek.days.map((day) => (
                                                     <DayCard
                                                         key={day.id}
                                                         day={day}
+                                                        programId={programId ?? ""}
                                                         onEdit={(nextDay) => setDayToEdit(nextDay)}
                                                         onToggleRestDay={(nextDay) => void handleToggleRestDay(nextDay)}
                                                         isReordering={reorderingDayId === day.id}

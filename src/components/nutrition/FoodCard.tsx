@@ -64,8 +64,8 @@ export function FoodCard({
         <div className="space-y-3">
           {/* Header */}
           <div className="flex items-start justify-between gap-2">
-            <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl shrink-0 bg-emerald-500/10 border border-emerald-500/20">
-              <AvatarFallback className="rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-emerald-500/10 border border-emerald-500/20">
+              <AvatarFallback className="rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                 <Apple className="w-6 h-6" />
               </AvatarFallback>
             </Avatar>
@@ -161,7 +161,7 @@ export function FoodCard({
         </div>
 
         {/* Macro Stats Grid */}
-        <div className="grid grid-cols-5 gap-1.5 pt-2 border-t border-border/60">
+        <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border/60">
           <Stat label="Cal" value={`${calories}`} />
           <Stat label="Protein" value={`${proteinG}g`} />
           <Stat label="Carbs" value={`${carbsG}g`} />

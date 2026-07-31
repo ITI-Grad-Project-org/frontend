@@ -11,10 +11,10 @@ function DashboardLayout() {
         { to: "overview", title: "Overview", icon: LayoutDashboard },
         { to: "clients", title: "Clients", icon: UsersRound },
         { to: "chat", title: "Chat", icon: MessageCircleMore },
-        { to: "plans", title: "Exercise Plans", icon: Calendar },
-        { to: "nutrition-plans", title: "Nutrition Plans", icon: Apple },
         { to: "exercises", title: "Exercises", icon: Dumbbell },
+        { to: "plans", title: "Exercise Plans", icon: Calendar },
         { to: "meals", title: "Meals", icon: Utensils },
+        { to: "nutrition-plans", title: "Nutrition Plans", icon: Apple },
         { to: "analytics", title: "Analytics", icon: BarChart3 },
         { to: "reviews", title: "Reviews", icon: Star },
     ];

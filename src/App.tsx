@@ -10,6 +10,8 @@ import PlanLogs from "./pages/Dashboard/PlanLogs";
 import PlanDayLog from "./pages/Dashboard/PlanDayLog";
 import NutritionPlans from "./pages/Dashboard/NutritionPlans";
 import NutritionPlanBuilder from "./pages/Dashboard/NutritionPlanBuilder";
+import NutritionPlanLogs from "./pages/Dashboard/NutritionPlanLogs";
+import NutritionPlanDayLog from "./pages/Dashboard/NutritionPlanDayLog";
 import Exercises from "./pages/Dashboard/Exercises";
 import Meals from "./pages/Dashboard/Meals";
 import Analytics from "./pages/Dashboard/Analytics";
@@ -96,6 +98,8 @@ function App() {
               <Route path="exercise-plans" element={<Navigate to="/dashboard/plans" replace />} />
               <Route path="nutrition-plans" element={<NutritionPlans />} />
               <Route path="nutrition-plans/:planId" element={<NutritionPlanBuilder />} />
+              <Route path="nutrition-plans/:planId/logs" element={<NutritionPlanLogs />} />
+              <Route path="nutrition-plans/:planId/days/:dayId/log" element={<NutritionPlanDayLog />} />
               <Route path="nutrition" element={<Navigate to="/dashboard/nutrition-plans" replace />} />
               <Route path="exercises" element={<Exercises />} />
               <Route path="meals" element={<Meals />} />

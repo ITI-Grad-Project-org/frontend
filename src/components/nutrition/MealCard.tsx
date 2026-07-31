@@ -161,7 +161,7 @@ export function MealCard({
         </div>
 
         {/* Calculated Totals Grid */}
-        <div className="grid grid-cols-5 gap-1.5 pt-2 border-t border-border/60">
+        <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border/60">
           <Stat label="Cal" value={`${totals?.calories ?? 0}`} />
           <Stat label="Protein" value={`${totals?.proteinG ?? 0}g`} />
           <Stat label="Carbs" value={`${totals?.carbsG ?? 0}g`} />

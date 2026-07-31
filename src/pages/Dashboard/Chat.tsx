@@ -20,13 +20,20 @@ import { useCoachChat } from "@/hooks/useCoachChat";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 
+// function formatMessageTime(timestamp: string) {
+//   return new Date(timestamp).toLocaleTimeString(undefined, {
+//     hour: "numeric",
+//     minute: "2-digit",
+//   });
+// }
 function formatMessageTime(timestamp: string) {
-  return new Date(timestamp).toLocaleTimeString(undefined, {
+  return new Date(timestamp).toLocaleString(undefined, {
+    month: "short", // "Jul"
+    day: "numeric", // "30"
     hour: "numeric",
     minute: "2-digit",
   });
 }
-
 function getInitials(firstName?: string, lastName?: string) {
   return `${firstName?.[0] ?? ""}${lastName?.[0] ?? ""}`.trim() || "C";
 }
@@ -276,7 +283,7 @@ export default function Chat() {
                           </Avatar>
                         </MessageAvatar>
 
-                        <MessageContent className={cn("max-w-[min(36rem,92%)]", isCoach && "items-end")}>
+                        <MessageContent className={cn("max-w-[min(36rem,92%)] w-fit", isCoach && "items-end")}>
                           <div
                             className={cn(
                               "rounded-[1.5rem] border px-4 py-3 shadow-sm",

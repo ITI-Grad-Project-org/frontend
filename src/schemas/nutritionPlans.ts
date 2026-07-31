@@ -133,3 +133,81 @@ export const defaultCreateNutritionPlanValues: CreateNutritionPlanFormData = {
   targetFiberG: "",
   targetWaterMl: "",
 };
+
+// ─── Day & Meal Builder Schemas ───────────────────────────────────────────────
+
+export const updateNutritionPlanDaySchema = z.object({
+  isFlexibleDay: z.boolean(),
+  notes: optionalDescriptionSchema.optional(),
+  targetCaloriesOverride: optionalNumericTarget(800, 6000, "Calorie override"),
+  targetProteinGOverride: optionalNumericTarget(1, 350, "Protein override (g)"),
+  targetCarbsGOverride: optionalNumericTarget(0, 800, "Carbs override (g)"),
+  targetFatGOverride: optionalNumericTarget(1, 200, "Fat override (g)"),
+  targetFiberGOverride: optionalNumericTarget(0, 100, "Fiber override (g)"),
+  targetWaterMlOverride: optionalNumericTarget(250, 6000, "Water override (ml)"),
+});
+
+export type UpdateNutritionPlanDayFormData = z.input<typeof updateNutritionPlanDaySchema>;
+export type UpdateNutritionPlanDayParsedData = z.output<typeof updateNutritionPlanDaySchema>;
+
+export const mealSlotEnum = z.enum([
+  "breakfast",
+  "lunch",
+  "dinner",
+  "snack",
+  "pre_workout",
+  "post_workout",
+]);
+
+export const addMealFromLibrarySchema = z.object({
+  mealId: z.string().uuid("Valid meal required"),
+  slot: mealSlotEnum,
+  position: z.number().int().min(1).max(10),
+  suggestedTime: z
+    .string()
+    .trim()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must be HH:mm (e.g. 08:30)")
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
+  coachNotes: optionalDescriptionSchema.optional(),
+  itemOverrides: z
+    .array(
+      z.object({
+        mealIngredientId: z.string(),
+        foodName: z.string(),
+        servingUnit: z.string(),
+        amount: z.number().min(0, "Amount must be >= 0").max(1500, "Amount must be <= 1500"),
+      })
+    )
+    .optional(),
+});
+
+export type AddMealFromLibraryFormData = z.input<typeof addMealFromLibrarySchema>;
+export type AddMealFromLibraryParsedData = z.output<typeof addMealFromLibrarySchema>;
+
+
+export const editPlannedMealSchema = z.object({
+  slot: mealSlotEnum,
+  position: z.number().int().min(1).max(10),
+  suggestedTime: z
+    .string()
+    .trim()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Time must be HH:mm (e.g. 08:30)")
+    .or(z.literal(""))
+    .nullable()
+    .optional(),
+  coachNotes: optionalDescriptionSchema.optional(),
+  foods: z.array(
+    z.object({
+      plannedMealFoodId: z.string(),
+      foodName: z.string(),
+      servingUnit: z.string(),
+      amount: z.number().min(0.01, "Amount must be greater than 0").max(1500, "Amount must be <= 1500"),
+    })
+  ),
+});
+
+export type EditPlannedMealFormData = z.input<typeof editPlannedMealSchema>;
+export type EditPlannedMealParsedData = z.output<typeof editPlannedMealSchema>;
+
