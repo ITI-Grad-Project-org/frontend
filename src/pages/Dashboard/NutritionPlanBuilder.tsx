@@ -1094,18 +1094,20 @@ export default function NutritionPlanBuilder() {
             )}
 
             {tree.warnings && tree.warnings.length > 0 && (
-              <div className="p-5 rounded-3xl border border-amber-400/30 bg-amber-500/5">
-                <div className="flex items-center gap-2 text-amber-600 mb-2">
+              <div className="p-5 rounded-3xl border border-warn/20 bg-chip-yellow/30">
+                <div className="flex items-center gap-2 text-warn mb-2">
                   <AlertTriangle className="w-4 h-4" />
                   <h3 className="text-sm font-bold">Dietary Advisory Warnings</h3>
                 </div>
-                <ul className="space-y-1 text-xs text-amber-700 dark:text-amber-300 h-16 overflow-y-auto">
+                <ul className="space-y-1 text-xs text-muted-foreground h-16 overflow-y-auto overscroll-contain">
                   {tree.warnings.map((w, idx) => (
                     <li key={idx}>• {w.message}</li>
                   ))}
                 </ul>
               </div>
             )}
+
+
           </div>
         )}
 
@@ -1249,32 +1251,32 @@ export default function NutritionPlanBuilder() {
               <div className="space-y-3">
                 <HorizontalScrollBar scrollContainerRef={daysScrollContainerRef} />
                 <div ref={daysScrollContainerRef} className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                {activeWeek.days && activeWeek.days.length > 0 ? (
-                  activeWeek.days.map((day) => (
-                    <DayCard
-                      key={day.id}
-                      day={day}
-                      planId={tree.id}
-                      planTargets={tree.targets}
-                      onEditDay={(d) => setDayToEdit(d)}
-                      onCreateMeal={(d) =>
-                        setCreateMealTarget({
-                          dayId: d.id,
-                          dayLabel: `Day ${d.dayNumber} (${d.scheduledDate})`,
-                          defaultPosition: (d.meals?.length || 0) + 1,
-                        })
-                      }
-                      onEditMeal={(m) => setMealToEdit(m)}
-                      onDeleteMeal={(m) => setMealToDelete(m)}
-                      onToggleFlexible={handleToggleFlexibleDay}
-                      isReordering={reorderingDayId === day.id}
-                    />
-                  ))
-                ) : (
-                  <div className="p-8 text-center rounded-3xl border border-border bg-card w-full">
-                    <p className="text-xs text-muted-foreground">No days configured for this week.</p>
-                  </div>
-                )}
+                  {activeWeek.days && activeWeek.days.length > 0 ? (
+                    activeWeek.days.map((day) => (
+                      <DayCard
+                        key={day.id}
+                        day={day}
+                        planId={tree.id}
+                        planTargets={tree.targets}
+                        onEditDay={(d) => setDayToEdit(d)}
+                        onCreateMeal={(d) =>
+                          setCreateMealTarget({
+                            dayId: d.id,
+                            dayLabel: `Day ${d.dayNumber} (${d.scheduledDate})`,
+                            defaultPosition: (d.meals?.length || 0) + 1,
+                          })
+                        }
+                        onEditMeal={(m) => setMealToEdit(m)}
+                        onDeleteMeal={(m) => setMealToDelete(m)}
+                        onToggleFlexible={handleToggleFlexibleDay}
+                        isReordering={reorderingDayId === day.id}
+                      />
+                    ))
+                  ) : (
+                    <div className="p-8 text-center rounded-3xl border border-border bg-card w-full">
+                      <p className="text-xs text-muted-foreground">No days configured for this week.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
