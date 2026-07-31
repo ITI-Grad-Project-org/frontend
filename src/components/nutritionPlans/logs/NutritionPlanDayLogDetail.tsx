@@ -1,6 +1,5 @@
 import { Utensils } from "lucide-react";
 import type { NutritionPlanDay, NutritionLogComparisons } from "@/types/nutritionPlans";
-import { NutritionAdherenceBadge } from "./NutritionAdherenceBadge";
 
 interface Props {
   prescription: NutritionPlanDay;
