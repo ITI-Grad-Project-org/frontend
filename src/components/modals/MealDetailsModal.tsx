@@ -160,7 +160,7 @@ export default function MealDetailsModal({
                 {meal.effectiveAllergens?.map((a) => (
                   <span
                     key={a}
-                    className="text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                    className="text-xs font-semibold px-3 py-1 rounded-full bg-danger/10 text-danger border border-danger/20"
                   >
                     Allergen: {a}
                   </span>
@@ -173,7 +173,7 @@ export default function MealDetailsModal({
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <span className="text-xs text-muted-foreground">
               Status:{" "}
-              <strong className={meal.isActive ? "text-emerald-600" : "text-amber-600"}>
+              <strong className={meal.isActive ? "text-success" : "text-warn"}>
                 {meal.isActive ? "Active" : "Archived"}
               </strong>
             </span>

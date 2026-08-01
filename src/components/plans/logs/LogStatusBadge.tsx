@@ -4,7 +4,7 @@ export function LogStatusBadge({ status }: { status: string }) {
   const normalized = (status || "").toLowerCase();
   if (normalized === "completed") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
         <CheckCircle2 className="size-3" />
         Completed
       </span>
@@ -12,7 +12,7 @@ export function LogStatusBadge({ status }: { status: string }) {
   }
   if (normalized === "skipped") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-warn/10 px-2.5 py-1 text-xs font-semibold text-warn">
         <XCircle className="size-3" />
         Skipped
       </span>
@@ -20,7 +20,7 @@ export function LogStatusBadge({ status }: { status: string }) {
   }
   if (normalized === "in_progress" || normalized === "in-progress") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-semibold text-blue-600 dark:text-blue-400">
+      <span className="inline-flex items-center gap-1 rounded-full bg-info/10 px-2.5 py-1 text-xs font-semibold text-info">
         <Clock className="size-3" />
         In Progress
       </span>

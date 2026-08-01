@@ -366,8 +366,8 @@ function DayCard({
                 </div>
                 <span
                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${day.isRestDay
-                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                        : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-warn/10 text-warn"
+                        : "bg-success/10 text-success"
                         }`}
                 >
                     {day.isRestDay ? "Rest" : "Training"}
@@ -395,7 +395,7 @@ function DayCard({
                     type="button"
                     onClick={() => onToggleRestDay(day)}
                     className={`inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-semibold transition ${day.isRestDay
-                        ? "border-amber-400/30 bg-amber-400/10 text-amber-600 hover:bg-amber-400/20 dark:text-amber-400"
+                        ? "border-warn/30 bg-warn/10 text-warn hover:bg-warn/20"
                         : "border-border text-foreground hover:bg-muted"
                         }`}
                     title={day.isRestDay ? "Mark as training day" : "Mark as rest day"}

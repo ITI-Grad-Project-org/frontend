@@ -91,11 +91,11 @@ function ClientCard({ connection, onDeleted, onCreatePlan, onMessage }: ClientCa
   const getStatusBadgeStyles = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":
-        return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+        return "bg-success/10 text-success border-success/20";
       case "blocked":
-        return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+        return "bg-danger/10 text-danger border-danger/20";
       default:
-        return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+        return "bg-warn/10 text-warn border-warn/20";
     }
   };
 

@@ -346,7 +346,7 @@ export default function AddEditMealModal({
             </div>
 
             {availableFoods.length === 0 ? (
-              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs font-medium text-amber-600 dark:text-amber-400">
+              <div className="p-4 rounded-2xl bg-warn/10 border border-warn/20 text-xs font-medium text-warn">
                 No active food items found in your library. Please create food items first in the "Food Items" tab.
               </div>
             ) : (
@@ -356,7 +356,7 @@ export default function AddEditMealModal({
                   return (
                     <div
                       key={idx}
-                      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-3 rounded-2xl bg-background border border-border"
+                      className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 p-3 rounded-2xl bg-background border border-border"
                     >
                       <span className="text-xs font-bold text-muted-foreground w-6 shrink-0 text-center">
                         #{idx + 1}
@@ -367,7 +367,7 @@ export default function AddEditMealModal({
                         required
                         value={row.foodId}
                         onChange={(e) => updateRow(idx, "foodId", e.target.value)}
-                        className="flex-1 px-3 h-10 border rounded-xl bg-card border-border text-xs font-semibold outline-none cursor-pointer"
+                        className="flex-1 min-w-0 basis-full sm:basis-40 px-3 h-10 border rounded-xl bg-card border-border text-xs font-semibold outline-none cursor-pointer"
                       >
                         <option value="">-- Select food item --</option>
                         {availableFoods.map((f) => (
@@ -396,7 +396,7 @@ export default function AddEditMealModal({
                           placeholder="Amount"
                           className="w-24 px-3 h-10 border rounded-xl bg-card border-border text-xs font-bold outline-none"
                         />
-                        <span className="text-xs font-semibold text-muted-foreground min-w-[36px]">
+                        <span className="text-xs font-semibold text-muted-foreground min-w-9">
                           {selectedFood ? selectedFood.servingUnit : "unit"}
                         </span>
                       </div>
@@ -406,7 +406,7 @@ export default function AddEditMealModal({
                         <button
                           type="button"
                           onClick={() => removeRow(idx)}
-                          className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all cursor-pointer self-end sm:self-center"
+                          className="p-2 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all cursor-pointer self-end sm:self-center"
                           title="Remove ingredient"
                         >
                           <Trash2 size={16} />
@@ -425,9 +425,9 @@ export default function AddEditMealModal({
               </span>
               <div className="flex gap-3 font-extrabold text-foreground">
                 <span>{Math.round(estimatedCal)} kcal</span>
-                <span className="text-emerald-600">{Math.round(estimatedProtein * 10) / 10}g P</span>
-                <span className="text-amber-600">{Math.round(estimatedCarbs * 10) / 10}g C</span>
-                <span className="text-rose-600">{Math.round(estimatedFat * 10) / 10}g F</span>
+                <span className="text-success">{Math.round(estimatedProtein * 10) / 10}g P</span>
+                <span className="text-warn">{Math.round(estimatedCarbs * 10) / 10}g C</span>
+                <span className="text-danger">{Math.round(estimatedFat * 10) / 10}g F</span>
               </div>
             </div>
           </div>
@@ -435,7 +435,7 @@ export default function AddEditMealModal({
           {/* Prep notes & photo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-5">
                 Photo URL <span className="text-muted-foreground font-normal">(Optional)</span>
               </label>
               <input
@@ -451,19 +451,19 @@ export default function AddEditMealModal({
                 Meal-level Allergens <span className="text-muted-foreground font-normal">(type &amp; press Enter or comma)</span>
               </label>
               <div
-                className="flex flex-wrap gap-1.5 min-h-[44px] px-3 py-2 border rounded-2xl bg-background border-border focus-within:border-brand/50 cursor-text"
+                className="flex flex-wrap gap-1.5 min-h-11 px-3 py-2 border rounded-2xl bg-background border-border focus-within:border-brand/50 cursor-text"
                 onClick={() => allergenInputRef.current?.focus()}
               >
                 {allergens.map((a) => (
                   <span
                     key={a}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-danger/10 text-danger border border-danger/20"
                   >
                     {a}
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); removeAllergen(a); }}
-                      className="ml-0.5 hover:text-rose-800 cursor-pointer"
+                      className="ml-0.5 hover:opacity-70 cursor-pointer"
                       aria-label={`Remove allergen ${a}`}
                     >
                       <X size={11} />
@@ -477,7 +477,7 @@ export default function AddEditMealModal({
                   onKeyDown={handleAllergenKeyDown}
                   onBlur={() => allergenInput.trim() && addAllergen(allergenInput)}
                   placeholder={allergens.length === 0 ? "e.g. sesame, mustard" : ""}
-                  className="flex-1 min-w-[120px] bg-transparent outline-none text-sm"
+                  className="flex-1 min-w-30 bg-transparent outline-none text-sm"
                 />
               </div>
             </div>
@@ -510,11 +510,10 @@ export default function AddEditMealModal({
                     key={t.value}
                     type="button"
                     onClick={() => toggleDietaryTag(t.value)}
-                    className={`cursor-pointer text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1 ${
-                      selected
-                        ? "bg-brand text-brand-foreground border-brand"
-                        : "bg-background border-border text-muted-foreground hover:bg-muted"
-                    }`}
+                    className={`cursor-pointer text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1 ${selected
+                      ? "bg-brand text-brand-foreground border-brand"
+                      : "bg-background border-border text-muted-foreground hover:bg-muted"
+                      }`}
                   >
                     {selected && <Check className="w-3 h-3" />}
                     {t.label}
@@ -534,8 +533,8 @@ export default function AddEditMealModal({
             {submitting
               ? "Saving..."
               : isEditing
-              ? "Update Meal Recipe"
-              : "Create Meal Recipe"}
+                ? "Update Meal Recipe"
+                : "Create Meal Recipe"}
           </button>
         </form>
       </div>

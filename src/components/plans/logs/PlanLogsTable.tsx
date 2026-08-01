@@ -130,7 +130,7 @@ export function PlanLogsTable({
                 {isExpanded && (
                   <div className="border-t border-border/60 bg-muted/20 p-4 space-y-4">
                     {log.clientNotes && (
-                      <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-900 dark:text-amber-300">
+                      <div className="rounded-xl border border-warn/20 bg-warn/5 p-3 text-xs text-warn">
                         <span className="font-bold">Client Notes: </span>
                         {log.clientNotes}
                       </div>
@@ -165,7 +165,7 @@ export function PlanLogsTable({
                               {exercise.sets.map((set) => (
                                 <tr key={set.id} className="hover:bg-muted/40">
                                   <td className="py-2 px-2 font-semibold text-foreground">
-                                    Set {set.setNumber} {set.isExtra && <span className="text-[10px] text-amber-500">(Extra)</span>}
+                                    Set {set.setNumber} {set.isExtra && <span className="text-[10px] text-warn">(Extra)</span>}
                                   </td>
                                   <td className="py-2 px-2 text-muted-foreground">
                                     {set.prescribedRepsMin != null && set.prescribedRepsMax != null

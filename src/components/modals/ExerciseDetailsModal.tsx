@@ -11,11 +11,11 @@ type Props = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const categoryStyles: Record<string, string> = {
-  strength: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-  cardio: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
-  mobility: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  plyometric: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
-  core: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  strength: "bg-warn/10 text-warn border-warn/20",
+  cardio: "bg-danger/10 text-danger border-danger/20",
+  mobility: "bg-info/10 text-info border-info/20",
+  plyometric: "bg-violet/10 text-violet border-violet/20",
+  core: "bg-success/10 text-success border-success/20",
 };
 
 function toLabel(value: string) {
@@ -57,7 +57,7 @@ export default function ExerciseDetailsModal({ exercise, onEdit, onClose }: Prop
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between p-6 pb-4 border-b border-border shrink-0">
           <div className="flex items-center gap-4">
-            <Avatar className="w-12 h-12 rounded-xl shrink-0 bg-white">
+            <Avatar className="w-12 h-12 rounded-xl shrink-0 bg-card">
               {thumbnailUrl ? (
                 <AvatarImage src={thumbnailUrl} alt={name} className="object-cover rounded-xl" />
               ) : null}
@@ -79,7 +79,7 @@ export default function ExerciseDetailsModal({ exercise, onEdit, onClose }: Prop
               <button
                 type="button"
                 onClick={() => onEdit(exercise)}
-                className="p-2 rounded-xl border border-border cursor-pointer text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 transition-colors shrink-0"
+                className="p-2 rounded-xl border border-border cursor-pointer text-muted-foreground hover:text-info hover:bg-info/10 transition-colors shrink-0"
                 title="Edit exercise"
               >
                 <Pencil size={18} />
@@ -100,7 +100,7 @@ export default function ExerciseDetailsModal({ exercise, onEdit, onClose }: Prop
         <div className="overflow-y-auto flex-1 p-6 space-y-6">
 
           {demoGifUrl && (
-            <div className="relative flex items-center justify-center overflow-hidden rounded-2xl border border-border aspect-video bg-white">
+            <div className="relative flex items-center justify-center overflow-hidden rounded-2xl border border-border aspect-video bg-card">
               <img
                 src={demoGifUrl}
                 alt={`${name} demonstration`}

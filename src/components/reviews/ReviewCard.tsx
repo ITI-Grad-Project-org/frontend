@@ -17,7 +17,7 @@ export function StarRating({
                     style={{ width: size, height: size }}
                     className={
                         i < rating
-                            ? "fill-amber-400 text-amber-400"
+                            ? "fill-warn text-warn"
                             : "fill-muted text-muted"
                     }
                     strokeWidth={1.5}

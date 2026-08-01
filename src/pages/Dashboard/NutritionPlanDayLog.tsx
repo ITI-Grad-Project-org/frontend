@@ -136,7 +136,7 @@ export default function NutritionPlanDayLog() {
             {prescription.prescribedTotals?.calories && (
               <div>
                 <span className="block text-xs font-medium text-muted-foreground">Prescribed Total</span>
-                <span className="font-semibold text-amber-600">{prescription.prescribedTotals.calories} kcal</span>
+                <span className="font-semibold text-warn">{prescription.prescribedTotals.calories} kcal</span>
               </div>
             )}
           </div>
@@ -145,7 +145,7 @@ export default function NutritionPlanDayLog() {
 
       {/* No log banner */}
       {!hasLog && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
+        <div className="rounded-2xl border border-warn/30 bg-warn/10 p-4 text-sm text-warn">
           <p className="font-bold">No Nutrition Log Recorded</p>
           <p className="text-xs mt-1">The client has not submitted a nutrition log for this prescribed day yet.</p>
         </div>

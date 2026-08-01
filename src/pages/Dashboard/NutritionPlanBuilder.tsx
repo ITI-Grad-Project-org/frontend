@@ -169,7 +169,7 @@ function LibraryMealCard({ meal }: { meal: Meal }) {
 
   return (
     <div
-      className={`group flex items-center gap-2 rounded-2xl border bg-card p-3 shadow-xs transition hover:border-emerald-500/40 ${isDragging ? "border-brand bg-brand/5 opacity-40" : "border-border"
+      className={`group flex items-center gap-2 rounded-2xl border bg-card p-3 shadow-xs transition hover:border-success/40 ${isDragging ? "border-brand bg-brand/5 opacity-40" : "border-border"
         }`}
     >
       <button
@@ -235,7 +235,7 @@ function PlannedMealCard({
           </button>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">
                 {meal.slot || "Meal"}
               </span>
               {meal.suggestedTime && (
@@ -285,7 +285,7 @@ function PlannedMealCard({
       {/* Meal totals */}
       {meal.totals && (
         <div className="mt-1 pt-1.5 flex items-center justify-between text-[11px] font-bold text-muted-foreground border-t border-border/30">
-          <span className="text-amber-600">{meal.totals.calories} kcal</span>
+          <span className="text-brand">{meal.totals.calories} kcal</span>
           <span>P: {meal.totals.proteinG}g</span>
           <span>C: {meal.totals.carbsG}g</span>
           <span>F: {meal.totals.fatG}g</span>
@@ -405,8 +405,8 @@ function DayCard({
 
         <span
           className={`px-2.5 py-1 text-[11px] font-bold rounded-full border ${day.isFlexibleDay
-            ? "bg-purple-500/10 text-purple-600 border-purple-500/20"
-            : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+            ? "bg-violet/10 text-violet border-violet/20"
+            : "bg-success/10 text-success border-success/20"
             }`}
         >
           {day.isFlexibleDay ? "Flexible Day" : "Structured"}
@@ -441,8 +441,8 @@ function DayCard({
           type="button"
           onClick={() => onToggleFlexible(day)}
           className={`inline-flex items-center gap-1.5 rounded-2xl border px-3 py-1.5 text-xs font-semibold transition ${day.isFlexibleDay
-            ? "border-purple-500/40 bg-purple-500/10 text-purple-600 hover:bg-purple-500/20"
-            : "border-border bg-background text-muted-foreground hover:border-purple-500/40 hover:text-purple-600"
+            ? "border-violet/40 bg-violet/10 text-violet hover:bg-violet/20"
+            : "border-border bg-background text-muted-foreground hover:border-violet/40 hover:text-violet"
             }`}
           title={day.isFlexibleDay ? "Switch to structured day" : "Mark as flexible day"}
         >
@@ -454,7 +454,7 @@ function DayCard({
       {/* Target & Prescribed Variance Info Box (REQ: 3 Info Values: Target, Prescribed, Difference) */}
       <div
         className={`mt-4 p-3.5 rounded-2xl border transition-colors ${isExceedingCalories
-          ? "border-amber-400/40 bg-amber-500/10"
+          ? "border-warn/40 bg-warn/10"
           : "border-border/60 bg-muted/20"
           }`}
       >
@@ -463,7 +463,7 @@ function DayCard({
             Day Calorie Target & Variance
           </span>
           {isExceedingCalories && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-500/20 px-2 py-0.5 rounded-full">
+            <span className="flex items-center gap-1 text-[10px] font-bold text-warn bg-warn/20 px-2 py-0.5 rounded-full">
               <AlertTriangle className="w-3 h-3" /> Exceeds Target
             </span>
           )}
@@ -480,17 +480,17 @@ function DayCard({
 
           <div className="p-2 rounded-xl bg-background/80 border border-border/50">
             <span className="block text-[9px] font-semibold text-muted-foreground uppercase">Prescribed</span>
-            <span className="mt-0.5 block font-extrabold text-amber-600">
+            <span className="mt-0.5 block font-extrabold text-warn">
               {prescribedCalories}
             </span>
           </div>
 
           <div
             className={`p-2 rounded-xl border ${isExceedingCalories
-              ? "bg-amber-500/20 border-amber-500/30 text-amber-700 dark:text-amber-300"
+              ? "bg-warn/20 border-warn/30 text-warn"
               : calorieDiff < 0
-                ? "bg-blue-500/10 border-blue-500/20 text-blue-600"
-                : "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                ? "bg-info/10 border-info/20 text-info"
+                : "bg-success/10 border-success/20 text-success"
               }`}
           >
             <span className="block text-[9px] font-semibold uppercase opacity-80">Difference</span>
@@ -963,7 +963,7 @@ export default function NutritionPlanBuilder() {
                   {tree.status}
                 </span>
                 {tree.schedulePhase && (
-                  <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-emerald-500/10 text-emerald-600">
+                  <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full bg-success/10 text-success">
                     {tree.schedulePhase}
                   </span>
                 )}
@@ -1042,13 +1042,13 @@ export default function NutritionPlanBuilder() {
         {tree.targets && (
           <div className="p-6 rounded-3xl border border-border bg-card shadow-sm">
             <div className="flex items-center gap-2 mb-4">
-              <Flame className="w-5 h-5 text-amber-500" />
+              <Flame className="w-5 h-5 text-brand" />
               <h2 className="text-lg font-bold text-foreground">Daily Nutritional Targets</h2>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-center">
               <div className="p-3 rounded-2xl bg-muted/40 border border-border/50">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">Calories</span>
-                <p className="mt-1 text-lg font-black text-amber-600">{tree.targets.calories ?? "—"} kcal</p>
+                <p className="mt-1 text-lg font-black text-brand">{tree.targets.calories ?? "—"} kcal</p>
               </div>
               <div className="p-3 rounded-2xl bg-muted/40 border border-border/50">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">Protein</span>
@@ -1068,7 +1068,7 @@ export default function NutritionPlanBuilder() {
               </div>
               <div className="p-3 rounded-2xl bg-muted/40 border border-border/50">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">Water</span>
-                <p className="mt-1 text-lg font-black text-blue-500">{tree.targets.waterMl ?? "—"} ml</p>
+                <p className="mt-1 text-lg font-black text-info">{tree.targets.waterMl ?? "—"} ml</p>
               </div>
             </div>
           </div>
@@ -1299,7 +1299,7 @@ export default function NutritionPlanBuilder() {
               <GripVertical className="size-4 text-brand shrink-0" />
               <div className="min-w-0">
                 {meal.slot && (
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-success">
                     {meal.slot}
                   </span>
                 )}

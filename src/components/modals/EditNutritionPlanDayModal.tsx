@@ -170,14 +170,12 @@ function EditNutritionPlanDayModalContent({
                   keepDirty: true,
                 });
               }}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50 ${
-                isFlexibleDay ? "bg-brand" : "bg-muted-foreground/30"
-              }`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:opacity-50 ${isFlexibleDay ? "bg-brand" : "bg-muted-foreground/30"
+                }`}
             >
               <span
-                className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
-                  isFlexibleDay ? "translate-x-5" : "translate-x-0.5"
-                }`}
+                className={`pointer-events-none h-4 w-4 rounded-full bg-card shadow-sm transition-transform ${isFlexibleDay ? "translate-x-5" : "translate-x-0.5"
+                  }`}
               />
             </button>
           </div>
@@ -185,7 +183,7 @@ function EditNutritionPlanDayModalContent({
           {/* Day Notes */}
           <div>
             <label className="block">
-              <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+              <span className="mb-1.5 text-xs font-semibold text-muted-foreground">
                 Coach Day Notes
               </span>
               <textarea
@@ -214,8 +212,8 @@ function EditNutritionPlanDayModalContent({
               {/* Calories */}
               <div>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Flame className="w-3.5 h-3.5 text-amber-500" /> Calories
+                  <span className="mb-1 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Flame className="w-3.5 h-3.5 text-warn" /> Calories
                   </span>
                   <input
                     {...register("targetCaloriesOverride")}
@@ -233,8 +231,8 @@ function EditNutritionPlanDayModalContent({
               {/* Protein */}
               <div>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Beef className="w-3.5 h-3.5 text-emerald-500" /> Protein (g)
+                  <span className="mb-1 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Beef className="w-3.5 h-3.5 text-success" /> Protein (g)
                   </span>
                   <input
                     {...register("targetProteinGOverride")}
@@ -252,8 +250,8 @@ function EditNutritionPlanDayModalContent({
               {/* Carbs */}
               <div>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Cookie className="w-3.5 h-3.5 text-indigo-500" /> Carbs (g)
+                  <span className="mb-1 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Cookie className="w-3.5 h-3.5 text-violet" /> Carbs (g)
                   </span>
                   <input
                     {...register("targetCarbsGOverride")}
@@ -271,7 +269,7 @@ function EditNutritionPlanDayModalContent({
               {/* Fat */}
               <div>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                  <span className="mb-1 text-xs font-semibold text-muted-foreground flex items-center gap-1">
                     Fat (g)
                   </span>
                   <input
@@ -290,8 +288,8 @@ function EditNutritionPlanDayModalContent({
               {/* Fiber */}
               <div>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Wheat className="w-3.5 h-3.5 text-teal-500" /> Fiber (g)
+                  <span className="mb-1 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Wheat className="w-3.5 h-3.5 text-brand" /> Fiber (g)
                   </span>
                   <input
                     {...register("targetFiberGOverride")}
@@ -309,8 +307,8 @@ function EditNutritionPlanDayModalContent({
               {/* Water */}
               <div>
                 <label className="block">
-                  <span className="mb-1 block text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                    <Droplets className="w-3.5 h-3.5 text-blue-500" /> Water (ml)
+                  <span className="mb-1 text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                    <Droplets className="w-3.5 h-3.5 text-info" /> Water (ml)
                   </span>
                   <input
                     {...register("targetWaterMlOverride")}

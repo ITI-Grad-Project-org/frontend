@@ -108,7 +108,7 @@ export function NutritionLogsTable({ planId, logs, filteredLogs, statusFilter, o
                     </div>
                     <div className="text-center">
                       <span className="block font-medium">Calories</span>
-                      <span className="font-bold text-amber-600">{actual?.calories ?? "—"}</span>
+                      <span className="font-bold text-warn">{actual?.calories ?? "—"}</span>
                       <span className="text-muted-foreground"> / {targets?.calories ?? "—"}</span>
                     </div>
                     <div className="text-center">
@@ -137,7 +137,7 @@ export function NutritionLogsTable({ planId, logs, filteredLogs, statusFilter, o
                 {isExpanded && (
                   <div className="border-t border-border/60 bg-muted/20 p-5 space-y-4">
                     {log.clientNotes && (
-                      <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3 text-xs text-blue-900 dark:text-blue-200">
+                      <div className="rounded-xl border border-info/20 bg-info/5 p-3 text-xs text-info">
                         <span className="font-bold">Client Notes: </span>{log.clientNotes}
                       </div>
                     )}
@@ -146,11 +146,11 @@ export function NutritionLogsTable({ planId, logs, filteredLogs, statusFilter, o
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-2xl border border-border bg-card p-4 space-y-2.5">
                         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Actual vs Target</p>
-                        <MacroBar label="Protein" actual={actual?.proteinG ?? 0} target={targets?.proteinG ?? 0} color="bg-blue-500" />
-                        <MacroBar label="Carbs" actual={actual?.carbsG ?? 0} target={targets?.carbsG ?? 0} color="bg-amber-500" />
-                        <MacroBar label="Fat" actual={actual?.fatG ?? 0} target={targets?.fatG ?? 0} color="bg-rose-500" />
+                        <MacroBar label="Protein" actual={actual?.proteinG ?? 0} target={targets?.proteinG ?? 0} color="bg-info" />
+                        <MacroBar label="Carbs" actual={actual?.carbsG ?? 0} target={targets?.carbsG ?? 0} color="bg-warn" />
+                        <MacroBar label="Fat" actual={actual?.fatG ?? 0} target={targets?.fatG ?? 0} color="bg-danger" />
                         {(actual?.fiberG != null || (targets?.fiberG ?? 0) > 0) && (
-                          <MacroBar label="Fiber" actual={actual?.fiberG ?? 0} target={targets?.fiberG ?? 0} color="bg-emerald-500" />
+                          <MacroBar label="Fiber" actual={actual?.fiberG ?? 0} target={targets?.fiberG ?? 0} color="bg-success" />
                         )}
                       </div>
 

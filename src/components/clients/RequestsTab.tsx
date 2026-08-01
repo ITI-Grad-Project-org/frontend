@@ -28,12 +28,12 @@ export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject
     const getStatusStyles = (status: string) => {
         switch (status.toLowerCase()) {
             case "approved":
-                return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+                return "bg-success/10 text-success border-success/20";
             case "rejected":
-                return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+                return "bg-danger/10 text-danger border-danger/20";
             case "requested":
             default:
-                return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+                return "bg-warn/10 text-warn border-warn/20";
         }
     };
 
@@ -125,7 +125,7 @@ export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject
 
                             <div className="flex flex-wrap items-center gap-4 sm:gap-6 self-stretch sm:self-auto justify-between sm:justify-end">
                                 <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${getStatusStyles(req.status)}`}>
-                                    {req.status.toLowerCase() === "requested" && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
+                                    {req.status.toLowerCase() === "requested" && <span className="w-1.5 h-1.5 rounded-full bg-warn animate-pulse" />}
                                     {req.status}
                                 </span>
 
@@ -135,10 +135,10 @@ export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject
 
                                 {req.status.toLowerCase() === "requested" ? (
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => onApprove(req.id)} className="flex items-center justify-center cursor-pointer p-2 rounded-xl text-emerald-600 bg-emerald-500/10 hover:bg-emerald-500/20 active:scale-[0.95] transition-all" title="Approve">
+                                        <button onClick={() => onApprove(req.id)} className="flex items-center justify-center cursor-pointer p-2 rounded-xl text-success bg-success/10 hover:bg-success/20 active:scale-[0.95] transition-all" title="Approve">
                                             <Check className="w-4 h-4" />
                                         </button>
-                                        <button onClick={() => onReject(req.id)} className="flex items-center justify-center cursor-pointer p-2 rounded-xl text-rose-600 bg-rose-500/10 hover:bg-rose-500/20 active:scale-[0.95] transition-all" title="Reject">
+                                        <button onClick={() => onReject(req.id)} className="flex items-center justify-center cursor-pointer p-2 rounded-xl text-danger bg-danger/10 hover:bg-danger/20 active:scale-[0.95] transition-all" title="Reject">
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>

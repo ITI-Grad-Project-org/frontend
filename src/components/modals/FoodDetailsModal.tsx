@@ -40,7 +40,7 @@ export default function FoodDetailsModal({
       >
         <div className="flex items-start justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-success/10 text-success border border-success/20">
               <Apple className="w-6 h-6" />
             </div>
             <div>
@@ -167,7 +167,7 @@ export default function FoodDetailsModal({
                 {food.allergens.map((a) => (
                   <span
                     key={a}
-                    className="text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                    className="text-xs font-semibold px-3 py-1 rounded-full bg-danger/10 text-danger border border-danger/20"
                   >
                     Contains {a}
                   </span>
@@ -180,7 +180,7 @@ export default function FoodDetailsModal({
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <span className="text-xs text-muted-foreground">
               Status:{" "}
-              <strong className={food.isActive ? "text-emerald-600" : "text-amber-600"}>
+              <strong className={food.isActive ? "text-success" : "text-warn"}>
                 {food.isActive ? "Active" : "Archived"}
               </strong>
             </span>

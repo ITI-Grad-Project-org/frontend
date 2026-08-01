@@ -40,8 +40,8 @@ type BadgeVariant = "brand" | "success" | "warning" | "muted" | "destructive";
 
 const badgeStyles: Record<BadgeVariant, string> = {
   brand: "bg-brand/10 text-brand border-brand/20",
-  success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+  success: "bg-success/10 text-success border-success/20",
+  warning: "bg-warn/10 text-warn border-warn/20",
   muted: "bg-muted text-muted-foreground border-border",
   destructive: "bg-destructive/10 text-destructive border-destructive/20",
 };
@@ -113,7 +113,7 @@ export function NutritionPlanCard({
       targets.waterMl != null);
 
   return (
-    <article className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/80 bg-card/80 backdrop-blur-sm p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-xl">
+    <article className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border/80 bg-card/80 backdrop-blur-sm p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-success/40 hover:shadow-xl">
 
       <div>
         {/* Top Bar with Status Badges and Logs Link */}
@@ -140,11 +140,11 @@ export function NutritionPlanCard({
         >
           {/* Header & Client Info */}
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-              <Salad className="size-5 text-emerald-500" />
+            <div className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-2xl bg-success/10 border border-success/20">
+              <Salad className="size-5 text-success" />
             </div>
             <div>
-              <h3 className="text-xl font-bold tracking-tight text-foreground transition-colors duration-200 group-hover:text-emerald-500">
+              <h3 className="text-xl font-bold tracking-tight text-foreground transition-colors duration-200 group-hover:text-success">
                 {plan.name}
               </h3>
               <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground font-medium">
@@ -176,7 +176,7 @@ export function NutritionPlanCard({
             </div>
 
             <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
-              <Clock className="w-4 h-4 shrink-0 text-amber-500" />
+              <Clock className="w-4 h-4 shrink-0 text-brand" />
               <div>
                 <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Duration
@@ -188,7 +188,7 @@ export function NutritionPlanCard({
             </div>
 
             <div className="sm:col-span-2 flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
-              <Calendar className="w-4 h-4 shrink-0 text-emerald-500" />
+              <Calendar className="w-4 h-4 shrink-0 text-success" />
               <div>
                 <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Schedule Window
@@ -208,38 +208,38 @@ export function NutritionPlanCard({
               </span>
               <div className="grid grid-cols-3 gap-2 text-xs">
                 {targets?.calories != null && (
-                  <div className="flex items-center gap-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 px-2.5 py-1.5 text-amber-700 dark:text-amber-300 font-bold">
-                    <Flame className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                  <div className="flex items-center gap-1.5 rounded-xl border border-brand/20 bg-brand/10 px-2.5 py-1.5 text-brand font-bold">
+                    <Flame className="w-3.5 h-3.5 text-brand shrink-0" />
                     <span>{targets.calories} kcal</span>
                   </div>
                 )}
                 {targets?.proteinG != null && (
-                  <div className="flex items-center gap-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1.5 text-emerald-700 dark:text-emerald-300 font-bold">
-                    <Beef className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <div className="flex items-center gap-1.5 rounded-xl border border-success/20 bg-success/10 px-2.5 py-1.5 text-success font-bold">
+                    <Beef className="w-3.5 h-3.5 text-success shrink-0" />
                     <span>{targets.proteinG}g P</span>
                   </div>
                 )}
                 {targets?.carbsG != null && (
-                  <div className="flex items-center gap-1.5 rounded-xl border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1.5 text-indigo-700 dark:text-indigo-300 font-bold">
-                    <Cookie className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                  <div className="flex items-center gap-1.5 rounded-xl border border-info/20 bg-info/10 px-2.5 py-1.5 text-info font-bold">
+                    <Cookie className="w-3.5 h-3.5 text-info shrink-0" />
                     <span>{targets.carbsG}g C</span>
                   </div>
                 )}
                 {targets?.fatG != null && (
-                  <div className="flex items-center gap-1.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-rose-700 dark:text-rose-300 font-bold">
-                    <span className="text-[10px] font-black text-rose-500">FAT</span>
+                  <div className="flex items-center gap-1.5 rounded-xl border border-danger/20 bg-danger/10 px-2.5 py-1.5 text-danger font-bold">
+                    <span className="text-[10px] font-black text-danger">FAT</span>
                     <span>{targets.fatG}g F</span>
                   </div>
                 )}
                 {targets?.fiberG != null && (
-                  <div className="flex items-center gap-1.5 rounded-xl border border-teal-500/20 bg-teal-500/10 px-2.5 py-1.5 text-teal-700 dark:text-teal-300 font-bold">
-                    <Wheat className="w-3.5 h-3.5 text-teal-500 shrink-0" />
+                  <div className="flex items-center gap-1.5 rounded-xl border border-success/20 bg-success/10 px-2.5 py-1.5 text-success font-bold">
+                    <Wheat className="w-3.5 h-3.5 text-success shrink-0" />
                     <span>{targets.fiberG}g Fiber</span>
                   </div>
                 )}
                 {targets?.waterMl != null && (
-                  <div className="flex items-center gap-1.5 rounded-xl border border-sky-500/20 bg-sky-500/10 px-2.5 py-1.5 text-sky-700 dark:text-sky-300 font-bold">
-                    <Droplets className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                  <div className="flex items-center gap-1.5 rounded-xl border border-info/20 bg-info/10 px-2.5 py-1.5 text-info font-bold">
+                    <Droplets className="w-3.5 h-3.5 text-info shrink-0" />
                     <span>{targets.waterMl} ml</span>
                   </div>
                 )}

@@ -64,15 +64,15 @@ export function FoodCard({
         <div className="space-y-3">
           {/* Header */}
           <div className="flex items-start justify-between gap-2">
-            <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-emerald-500/10 border border-emerald-500/20">
-              <AvatarFallback className="rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-success/10 border border-success/20">
+              <AvatarFallback className="rounded-full bg-success/10 text-success">
                 <Apple className="w-6 h-6" />
               </AvatarFallback>
             </Avatar>
 
             <div className="flex flex-wrap gap-1 items-center justify-end">
               {!isActive && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl text-[11px] font-semibold bg-warn/10 text-warn border border-warn/20">
                   <Archive className="w-3 h-3 shrink-0" />
                   <span>Archived</span>
                 </span>
@@ -84,7 +84,7 @@ export function FoodCard({
                   e.stopPropagation();
                   onEdit(food);
                 }}
-                className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 active:scale-95 transition-all"
+                className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-info hover:bg-info/10 active:scale-95 transition-all"
                 title="Edit food"
                 aria-label={`Edit ${name}`}
               >
@@ -98,7 +98,7 @@ export function FoodCard({
                     e.stopPropagation();
                     onArchive(food);
                   }}
-                  className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 active:scale-95 transition-all"
+                  className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-warn hover:bg-warn/10 active:scale-95 transition-all"
                   title="Archive food"
                   aria-label={`Archive ${name}`}
                 >
@@ -112,7 +112,7 @@ export function FoodCard({
                       e.stopPropagation();
                       onUnarchive(food);
                     }}
-                    className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 active:scale-95 transition-all"
+                    className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-success hover:bg-success/10 active:scale-95 transition-all"
                     title="Unarchive food"
                     aria-label={`Unarchive ${name}`}
                   >
@@ -151,7 +151,7 @@ export function FoodCard({
               {allergens.map((a) => (
                 <span
                   key={a}
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-danger/10 text-danger border border-danger/20"
                 >
                   Contains {a}
                 </span>

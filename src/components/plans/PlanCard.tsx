@@ -35,8 +35,8 @@ type BadgeVariant = "brand" | "success" | "warning" | "muted" | "destructive";
 
 const badgeStyles: Record<BadgeVariant, string> = {
     brand: "bg-brand/10 text-brand border-brand/20",
-    success: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-    warning: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+    success: "bg-success/10 text-success border-success/20",
+    warning: "bg-warn/10 text-warn border-warn/20",
     muted: "bg-muted text-muted-foreground border-border",
     destructive: "bg-destructive/10 text-destructive border-destructive/20",
 };
@@ -174,7 +174,7 @@ export function PlanCard({
                         </div>
 
                         <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
-                            <Dumbbell className="w-4 h-4 shrink-0 text-blue-500" />
+                            <Dumbbell className="w-4 h-4 shrink-0 text-info" />
                             <div>
                                 <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                                     Duration
@@ -186,7 +186,7 @@ export function PlanCard({
                         </div>
 
                         <div className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/20 px-3.5 py-2.5">
-                            <Calendar className="w-4 h-4 shrink-0 text-emerald-500" />
+                            <Calendar className="w-4 h-4 shrink-0 text-success" />
                             <div>
                                 <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                                     Schedule

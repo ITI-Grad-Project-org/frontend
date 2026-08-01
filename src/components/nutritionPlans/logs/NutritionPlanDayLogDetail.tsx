@@ -14,9 +14,9 @@ function fmt(val: number | null | undefined, unit = "") {
 }
 
 function diffColor(diff: number) {
-  if (diff > 0) return "text-rose-600 dark:text-rose-400";
-  if (diff < 0) return "text-blue-600 dark:text-blue-400";
-  return "text-emerald-600 dark:text-emerald-400";
+  if (diff > 0) return "text-danger";
+  if (diff < 0) return "text-info";
+  return "text-success";
 }
 
 function pctBar(actual: number, target: number) {
@@ -25,11 +25,11 @@ function pctBar(actual: number, target: number) {
 }
 
 const MACRO_ROWS: { key: keyof NutritionLogComparisons; label: string; unit: string; barColor: string }[] = [
-  { key: "calories", label: "Calories", unit: " kcal", barColor: "bg-amber-500" },
-  { key: "proteinG", label: "Protein", unit: "g", barColor: "bg-blue-500" },
-  { key: "carbsG", label: "Carbs", unit: "g", barColor: "bg-orange-400" },
-  { key: "fatG", label: "Fat", unit: "g", barColor: "bg-rose-500" },
-  { key: "fiberG", label: "Fiber", unit: "g", barColor: "bg-emerald-500" },
+  { key: "calories", label: "Calories", unit: " kcal", barColor: "bg-warn" },
+  { key: "proteinG", label: "Protein", unit: "g", barColor: "bg-info" },
+  { key: "carbsG", label: "Carbs", unit: "g", barColor: "bg-brand" },
+  { key: "fatG", label: "Fat", unit: "g", barColor: "bg-danger" },
+  { key: "fiberG", label: "Fiber", unit: "g", barColor: "bg-success" },
 ];
 
 // ─── Macro Comparison Table ───────────────────────────────────────────────────
@@ -71,7 +71,7 @@ function MacroComparisonTable({ comparisons }: { comparisons: NutritionLogCompar
                   <span className="ml-1 text-[10px] opacity-70">({c.actualVsPrescription.percentageDifference > 0 ? "+" : ""}{c.actualVsPrescription.percentageDifference.toFixed(1)}%)</span>
                 </td>
                 <td className="py-2.5 px-3">
-                  <div className="flex items-center gap-2 min-w-[80px]">
+                  <div className="flex items-center gap-2 min-w-20">
                     <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                       <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
                     </div>
@@ -112,7 +112,7 @@ function PrescribedMealsSection({ prescription }: { prescription: NutritionPlanD
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {meal.slot && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">
                       {meal.slot}
                     </span>
                   )}
@@ -127,7 +127,7 @@ function PrescribedMealsSection({ prescription }: { prescription: NutritionPlanD
               </div>
               {meal.totals && (
                 <div className="text-right text-xs shrink-0">
-                  <span className="block font-extrabold text-amber-600">{meal.totals.calories} kcal</span>
+                  <span className="block font-extrabold text-warn">{meal.totals.calories} kcal</span>
                   <span className="text-muted-foreground">
                     P:{meal.totals.proteinG}g C:{meal.totals.carbsG}g F:{meal.totals.fatG}g
                   </span>
@@ -156,7 +156,7 @@ function PrescribedMealsSection({ prescription }: { prescription: NutritionPlanD
                       <tr key={food.id} className="hover:bg-muted/20">
                         <td className="py-1.5 text-foreground font-medium">{food.foodName}</td>
                         <td className="py-1.5 text-right text-muted-foreground">{food.amount}{food.servingUnit}</td>
-                        <td className="py-1.5 text-right font-semibold text-amber-600">
+                        <td className="py-1.5 text-right font-semibold text-warn">
                           {food.nutrients?.calories ?? food.nutrientsPerServing?.calories ?? "—"}
                         </td>
                         <td className="py-1.5 text-right text-muted-foreground">
@@ -205,7 +205,7 @@ export function NutritionPlanDayLogDetail({ prescription, comparisons }: Props) 
       {/* Prescribed meals */}
       <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center gap-3 border-b border-border/60 pb-4 mb-5">
-          <div className="flex size-9 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
+          <div className="flex size-9 items-center justify-center rounded-2xl bg-success/10 text-success">
             <Utensils className="size-4" />
           </div>
           <div>
@@ -215,7 +215,7 @@ export function NutritionPlanDayLogDetail({ prescription, comparisons }: Props) 
             </p>
           </div>
           {prescription.isFlexibleDay && (
-            <span className="ml-auto px-2.5 py-1 text-[11px] font-bold rounded-full bg-purple-500/10 text-purple-600 border border-purple-500/20">
+            <span className="ml-auto px-2.5 py-1 text-[11px] font-bold rounded-full bg-violet/10 text-violet border border-violet/20">
               Flexible Day
             </span>
           )}

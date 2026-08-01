@@ -25,11 +25,11 @@ export function InvitationsTab({ data, loading, error, onRetry, onRevoke }: Invi
     const getInviteStatusStyles = (status: string) => {
         switch (status.toLowerCase()) {
             case "accepted":
-                return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20";
+                return "bg-success/10 text-success border-success/20";
             case "revoked":
-                return "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20";
+                return "bg-danger/10 text-danger border-danger/20";
             default:
-                return "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20";
+                return "bg-warn/10 text-warn border-warn/20";
         }
     };
 
@@ -75,8 +75,8 @@ export function InvitationsTab({ data, loading, error, onRetry, onRevoke }: Invi
                             key={status}
                             onClick={() => setStatusFilter(status)}
                             className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl capitalize transition-all cursor-pointer ${isActive
-                                    ? "bg-card text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                                ? "bg-card text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                                 }`}
                         >
                             {status}
@@ -111,7 +111,7 @@ export function InvitationsTab({ data, loading, error, onRetry, onRevoke }: Invi
 
                             <div className="flex flex-wrap items-center gap-4 sm:gap-6 self-stretch sm:self-auto justify-between sm:justify-end">
                                 <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${getInviteStatusStyles(invite.status)}`}>
-                                    {invite.status.toLowerCase() === "pending" && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />}
+                                    {invite.status.toLowerCase() === "pending" && <span className="w-1.5 h-1.5 rounded-full bg-warn animate-pulse" />}
                                     {invite.status}
                                 </span>
 
@@ -120,7 +120,7 @@ export function InvitationsTab({ data, loading, error, onRetry, onRevoke }: Invi
                                 </span>
 
                                 {invite.status.toLowerCase() === "pending" ? (
-                                    <button onClick={() => onRevoke(invite.id)} className="cursor-pointer p-2.5 rounded-xl text-rose-500 border border-transparent hover:bg-rose-500/10 hover:border-rose-500/20 active:scale-[0.95] transition-all" title="Revoke invitation">
+                                    <button onClick={() => onRevoke(invite.id)} className="cursor-pointer p-2.5 rounded-xl text-danger border border-transparent hover:bg-danger/10 hover:border-danger/20 active:scale-[0.95] transition-all" title="Revoke invitation">
                                         <Trash2 className="w-4.5 h-4.5" />
                                     </button>
                                 ) : <div aria-hidden="true" />}

@@ -21,7 +21,7 @@ export function PlanLogsStats({ stats }: PlanLogsStatsProps) {
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400">
+        <div className="flex items-center justify-between text-success">
           <span className="text-xs font-semibold uppercase tracking-wider">Completed</span>
           <CheckCircle2 className="size-4" />
         </div>
@@ -29,7 +29,7 @@ export function PlanLogsStats({ stats }: PlanLogsStatsProps) {
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <div className="flex items-center justify-between text-amber-600 dark:text-amber-400">
+        <div className="flex items-center justify-between text-warn">
           <span className="text-xs font-semibold uppercase tracking-wider">Skipped</span>
           <XCircle className="size-4" />
         </div>

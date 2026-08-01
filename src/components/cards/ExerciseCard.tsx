@@ -6,11 +6,11 @@ import type { Exercise } from "@/types/exercise";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const categoryStyles: Record<string, string> = {
-  strength: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-  cardio: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
-  mobility: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  plyometric: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
-  core: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+  strength: "bg-warn/10 text-warn border-warn/20",
+  cardio: "bg-danger/10 text-danger border-danger/20",
+  mobility: "bg-info/10 text-info border-info/20",
+  plyometric: "bg-violet/10 text-violet border-violet/20",
+  core: "bg-success/10 text-success border-success/20",
 };
 
 const fallbackCategoryStyle = "bg-muted text-muted-foreground border-border";
@@ -73,7 +73,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onU
       <CardMain className="h-full justify-start gap-4">
         {/* Top row — thumbnail + actions */}
         <div className="flex items-start justify-between gap-2">
-          <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-white">
+          <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-card">
             {thumbnailUrl ? (
               <AvatarImage
                 src={thumbnailUrl}
@@ -89,7 +89,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onU
           <div className="flex flex-wrap gap-1 items-center justify-end">
             {/* Archived Status Badge */}
             {!isActive && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl text-[11px] font-semibold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xl text-[11px] font-semibold bg-danger/10 text-danger border border-danger/20">
                 <Archive className="w-3 h-3 shrink-0" />
                 <span className="hidden xs:inline sm:inline">Archived</span>
               </span>
@@ -97,7 +97,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onU
 
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(exercise); }}
-              className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-blue-500 hover:bg-blue-500/10 active:scale-95 transition-all"
+              className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-info hover:bg-info/10 active:scale-95 transition-all"
               title="Edit exercise"
               aria-label={`Edit ${name}`}
             >
@@ -108,7 +108,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onU
             {isActive ? (
               <button
                 onClick={(e) => { e.stopPropagation(); onArchive(exercise); }}
-                className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-amber-500 hover:bg-amber-500/10 active:scale-95 transition-all"
+                className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-warn hover:bg-warn/10 active:scale-95 transition-all"
                 title="Archive exercise"
                 aria-label={`Archive ${name}`}
               >
@@ -118,7 +118,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onU
               onUnarchive && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onUnarchive(exercise); }}
-                  className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 active:scale-95 transition-all"
+                  className="cursor-pointer p-1.5 sm:p-2 rounded-xl text-muted-foreground hover:text-success hover:bg-success/10 active:scale-95 transition-all"
                   title="Unarchive exercise"
                   aria-label={`Unarchive ${name}`}
                 >

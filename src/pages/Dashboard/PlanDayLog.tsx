@@ -111,14 +111,14 @@ export default function PlanDayLog() {
 
       {/* Execution Log Details Banners */}
       {!workoutLog && (
-        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
+        <div className="rounded-2xl border border-warn/30 bg-warn/10 p-4 text-sm text-warn">
           <p className="font-bold">No Canonical Workout Log Recorded</p>
           <p className="text-xs mt-1">The client has not submitted a workout log for this prescribed day yet.</p>
         </div>
       )}
 
       {workoutLog?.clientNotes && (
-        <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4 text-sm text-blue-900 dark:text-blue-200">
+        <div className="rounded-2xl border border-info/30 bg-info/10 p-4 text-sm text-info">
           <p className="font-bold">Client Notes:</p>
           <p className="text-xs mt-1">{workoutLog.clientNotes}</p>
         </div>
