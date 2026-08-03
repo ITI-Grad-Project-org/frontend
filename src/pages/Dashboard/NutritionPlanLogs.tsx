@@ -100,7 +100,7 @@ export default function NutritionPlanLogs() {
         {/* Nutrition-specific plan summary */}
         <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center gap-3 border-b border-border/60 pb-4 mb-4">
-            <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
+            <div className="flex size-10 items-center justify-center rounded-2xl bg-success/10 text-success">
               <Utensils className="size-5" />
             </div>
             <div>

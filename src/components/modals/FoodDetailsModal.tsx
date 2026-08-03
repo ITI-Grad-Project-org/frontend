@@ -31,7 +31,7 @@ export default function FoodDetailsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay overflow-y-auto"
       onClick={onClose}
     >
       <div

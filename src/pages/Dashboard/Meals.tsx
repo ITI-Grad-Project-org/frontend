@@ -102,7 +102,7 @@ export default function Meals() {
         <div className="flex flex-wrap items-center justify-end gap-3">
           <button
             onClick={handleOpenAddFood}
-            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold bg-success text-success-foreground rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm"
           >
             <Apple className="w-4 h-4" />
             <span>Add Food Item</span>
@@ -122,8 +122,8 @@ export default function Meals() {
         <button
           onClick={() => setActiveTab("meals")}
           className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm transition-all cursor-pointer ${activeTab === "meals"
-              ? "bg-ink text-ink-foreground shadow-sm"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            ? "bg-ink text-ink-foreground shadow-sm"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
         >
           <Utensils className="w-4 h-4" />
@@ -134,8 +134,8 @@ export default function Meals() {
         <button
           onClick={() => setActiveTab("foods")}
           className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm transition-all cursor-pointer ${activeTab === "foods"
-              ? "bg-ink text-ink-foreground shadow-sm"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            ? "bg-ink text-ink-foreground shadow-sm"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }`}
         >
           <Apple className="w-4 h-4" />

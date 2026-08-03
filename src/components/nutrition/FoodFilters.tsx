@@ -78,7 +78,7 @@ export function FoodFilters({
       {/* Filters row */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Serving Unit */}
-        <div className="relative min-w-[150px] flex-1">
+        <div className="relative min-w-37.5 flex-1">
           <select
             value={filters.servingUnit}
             onChange={(e) =>
@@ -99,7 +99,7 @@ export function FoodFilters({
         </div>
 
         {/* Dietary Tag */}
-        <div className="relative min-w-[150px] flex-1">
+        <div className="relative min-w-37.5 flex-1">
           <select
             value={filters.dietaryTag}
             onChange={(e) =>
@@ -120,7 +120,7 @@ export function FoodFilters({
         </div>
 
         {/* Allergen */}
-        <div className="relative min-w-[140px] flex-1">
+        <div className="relative min-w-37.5 flex-1">
           <input
             type="text"
             value={filters.allergen}

@@ -103,7 +103,7 @@ export default function HorizontalScrollBar({
                 <div
                     ref={trackRef}
                     onClick={handleTrackClick}
-                    className="relative h-6 w-full cursor-pointer rounded-full bg-black/[0.06] dark:bg-white/[0.06]"
+                    className="relative h-6 w-full cursor-pointer rounded-full bg-foreground/6"
                 >
                     {/* Draggable Pill */}
                     <div
@@ -115,7 +115,7 @@ export default function HorizontalScrollBar({
                             backdropFilter: isDragging ? "blur(10px) saturate(1.4)" : "none",
                             WebkitBackdropFilter: isDragging ? "blur(10px) saturate(1.4)" : "none",
                             backgroundColor: isDragging
-                                ? "rgba(100,100,100,0.25)"
+                                ? "color-mix(in oklch, var(--color-foreground) 25%, transparent)"
                                 : undefined,
                             willChange: "left",
                         }}
@@ -127,17 +127,17 @@ export default function HorizontalScrollBar({
                     >
                         <ChevronLeft
                             className="shrink-0 size-3.5 transition-colors"
-                            style={{ color: isDragging ? "rgba(255,255,255,0.75)" : "var(--color-background)" }}
+                            style={{ color: isDragging ? "color-mix(in oklch, var(--color-foreground) 75%, transparent)" : "var(--color-background)" }}
                         />
                         <span
                             className="text-[11px] font-bold uppercase tracking-widest truncate transition-colors"
-                            style={{ color: isDragging ? "rgba(255,255,255,0.75)" : "var(--color-background)" }}
+                            style={{ color: isDragging ? "color-mix(in oklch, var(--color-foreground) 75%, transparent)" : "var(--color-background)" }}
                         >
                             Scroll
                         </span>
                         <ChevronRight
                             className="shrink-0 size-3.5 transition-colors"
-                            style={{ color: isDragging ? "rgba(255,255,255,0.75)" : "var(--color-background)" }}
+                            style={{ color: isDragging ? "color-mix(in oklch, var(--color-foreground) 75%, transparent)" : "var(--color-background)" }}
                         />
                     </div>
                 </div>

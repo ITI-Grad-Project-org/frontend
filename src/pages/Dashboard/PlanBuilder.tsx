@@ -1157,7 +1157,7 @@ export default function PlanBuilder() {
                 />
 
                 {exerciseToDelete && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 backdrop-blur-sm">
                         <div className="w-full max-w-sm rounded-3xl border border-border bg-background p-6 shadow-2xl">
                             <h3 className="text-lg font-bold text-foreground">Delete exercise?</h3>
                             <p className="mt-2 text-sm text-muted-foreground">

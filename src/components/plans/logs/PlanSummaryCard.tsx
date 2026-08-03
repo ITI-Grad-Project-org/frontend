@@ -23,7 +23,7 @@ export function PlanSummaryCard({ program, prescription, workoutLog }: PlanSumma
     <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between border-b border-border/60 pb-4">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+          <div className="flex size-10 items-center justify-center rounded-2xl bg-success/10 text-success">
             <FileText className="size-5" />
           </div>
           <div>

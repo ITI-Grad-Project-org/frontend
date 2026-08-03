@@ -178,7 +178,7 @@ export default function AddEditFoodModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay overflow-y-auto"
       onClick={onClose}
     >
       <div
@@ -187,7 +187,7 @@ export default function AddEditFoodModal({
       >
         <div className="flex items-start justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-success/10 text-success border border-success/20">
               <Apple className="w-6 h-6" />
             </div>
             <div>
@@ -387,8 +387,8 @@ export default function AddEditFoodModal({
                     type="button"
                     onClick={() => toggleDietaryTag(t.value)}
                     className={`cursor-pointer text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all flex items-center gap-1 ${selected
-                        ? "bg-brand text-brand-foreground border-brand"
-                        : "bg-background border-border text-muted-foreground hover:bg-muted"
+                      ? "bg-brand text-brand-foreground border-brand"
+                      : "bg-background border-border text-muted-foreground hover:bg-muted"
                       }`}
                   >
                     {selected && <Check className="w-3 h-3" />}
@@ -405,19 +405,19 @@ export default function AddEditFoodModal({
               Allergens <span className="text-muted-foreground font-normal">(type &amp; press Enter or comma)</span>
             </label>
             <div
-              className="flex flex-wrap gap-1.5 min-h-[44px] px-3 py-2 border rounded-2xl bg-background border-border focus-within:border-brand/50 cursor-text"
+              className="flex flex-wrap gap-1.5 min-h-11 px-3 py-2 border rounded-2xl bg-background border-border focus-within:border-brand/50 cursor-text"
               onClick={() => allergenInputRef.current?.focus()}
             >
               {allergens.map((a) => (
                 <span
                   key={a}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold bg-danger/10 text-danger border border-danger/20"
                 >
                   {a}
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); removeAllergen(a); }}
-                    className="ml-0.5 hover:text-rose-800 cursor-pointer"
+                    className="ml-0.5 hover:text-danger cursor-pointer"
                     aria-label={`Remove allergen ${a}`}
                   >
                     <X size={11} />
@@ -431,7 +431,7 @@ export default function AddEditFoodModal({
                 onKeyDown={handleAllergenKeyDown}
                 onBlur={() => allergenInput.trim() && addAllergen(allergenInput)}
                 placeholder={allergens.length === 0 ? "e.g. milk, peanuts, soy" : ""}
-                className="flex-1 min-w-[120px] bg-transparent outline-none text-sm"
+                className="flex-1 min-w-30 bg-transparent outline-none text-sm"
               />
             </div>
           </div>

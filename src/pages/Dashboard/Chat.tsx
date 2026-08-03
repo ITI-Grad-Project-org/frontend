@@ -236,7 +236,7 @@ export default function Chat() {
           </div>
 
           <ScrollArea className="min-h-0 flex-1">
-            <div className="flex min-h-full flex-col gap-5 bg-[radial-gradient(circle_at_top,rgba(0,0,0,0.04),transparent_44%)] p-5">
+            <div className="flex min-h-full flex-col gap-5 bg-[radial-gradient(circle_at_top,oklch(0_0_0/0.04),transparent_44%)] p-5">
               {isLoadingThread ? (
                 <div className="space-y-4">
                   <div className="ml-auto h-16 w-3/4 animate-pulse rounded-[1.5rem] bg-muted/60" />

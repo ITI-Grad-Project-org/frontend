@@ -57,7 +57,7 @@ export default function InviteClientModal({ open, onClose, onSuccess }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
       onClick={handleClose}
     >
       <form

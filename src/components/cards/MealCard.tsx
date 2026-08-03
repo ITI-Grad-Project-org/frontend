@@ -45,7 +45,7 @@ export default function MealCard({
                 </Avatar>
 
                 <div className="flex gap-2">
-                    <button className="cursor-pointer text-muted-foreground hover:text-blue-600">
+                    <button className="cursor-pointer text-muted-foreground hover:text-brand">
                         <Pencil size={18} />
                     </button>
 

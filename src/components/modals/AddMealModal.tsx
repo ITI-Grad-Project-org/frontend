@@ -10,7 +10,7 @@ export default function AddMealModal({ open, onClose }: Props) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/35"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
             onClick={onClose}
         >
             <div

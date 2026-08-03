@@ -113,7 +113,7 @@ function AddDayMealModalContent({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       onClick={() => {
@@ -158,7 +158,7 @@ function AddDayMealModalContent({
                 {meal?.ingredientCount || meal?.ingredients?.length || 0} ingredients · {meal?.totals?.calories || 0} kcal
               </p>
             </div>
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
+            <div className="flex items-center gap-2 text-xs font-bold text-success bg-success/10 px-3 py-1.5 rounded-full border border-success/20">
               <Utensils className="w-3.5 h-3.5" />
               <span>{meal?.totals?.proteinG || 0}g P</span>
               <span>{meal?.totals?.carbsG || 0}g C</span>

@@ -85,7 +85,7 @@ function EditPlanDayModalContent({ programId, day, onClose, onUpdated }: Omit<Pr
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             onClick={onClose}
@@ -182,7 +182,7 @@ function EditPlanDayModalContent({ programId, day, onClose, onUpdated }: Omit<Pr
                                 }`}
                         >
                             <span
-                                className={`pointer-events-none block h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${isRestDay ? "translate-x-5" : "translate-x-0.5"
+                                className={`pointer-events-none block h-4 w-4 rounded-full bg-background shadow-sm transition-transform ${isRestDay ? "translate-x-5" : "translate-x-0.5"
                                     }`}
                             />
                         </button>
