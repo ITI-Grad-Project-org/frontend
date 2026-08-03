@@ -23,7 +23,9 @@ interface UseProfileDataOptions {
   onSuccessfulSave?: () => void;
 }
 
-export function useProfileData({ onSuccessfulSave }: UseProfileDataOptions = {}) {
+export function useProfileData({
+  onSuccessfulSave,
+}: UseProfileDataOptions = {}) {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
@@ -43,16 +45,16 @@ export function useProfileData({ onSuccessfulSave }: UseProfileDataOptions = {})
 
   const { reset, setValue, handleSubmit } = form;
 
-  const updateSpecialties = useCallback((
-    nextSpecialties: string[],
-    shouldDirty: boolean,
-  ) => {
-    setSpecialties(nextSpecialties);
-    setValue("specialties", nextSpecialties.join(", "), {
-      shouldDirty,
-      shouldValidate: true,
-    });
-  }, [setValue]);
+  const updateSpecialties = useCallback(
+    (nextSpecialties: string[], shouldDirty: boolean) => {
+      setSpecialties(nextSpecialties);
+      setValue("specialties", nextSpecialties.join(", "), {
+        shouldDirty,
+        shouldValidate: true,
+      });
+    },
+    [setValue],
+  );
 
   useEffect(() => {
     let isActive = true;
@@ -97,6 +99,116 @@ export function useProfileData({ onSuccessfulSave }: UseProfileDataOptions = {})
     );
   };
 
+  /**
+   * Deletes one transformation photo from S3, then saves the whole profile
+   * with the remaining photos so the backend array stays in sync.
+   * The Remove row button calls this too.
+   */
+  const clearTransformationPhoto = async (photoUrl: string) => {
+    const current = form.getValues("transformationPhotos");
+    const remaining = current.filter((p) => p.url !== photoUrl);
+
+    // Optimistic UI update
+    form.setValue("transformationPhotos", remaining, { shouldDirty: false });
+
+    try {
+      if (photoUrl) {
+        const { deleteFile } = await import("@/services/upload");
+        await deleteFile(photoUrl);
+      }
+
+      // Re-save the entire profile. The remaining photos that already have URLs
+      // will be preserved by sending the full form values — the deleted photo's
+      // URL is gone from form state so it won't be included.
+      const currentFormValues = form.getValues();
+      const {
+        payload,
+        transformationPhotos: newPhotos,
+        certificateFiles,
+      } = toUpdateCoachPayload({
+        ...currentFormValues,
+        specialties: specialties.join(", "),
+      });
+
+      await updateCoachProfile({
+        data: payload,
+        transformationPhotos: newPhotos,
+        certificateFiles,
+      });
+
+      const refreshed = await getCoachProfile();
+      setUser(refreshed);
+      reset(toFormValues(refreshed));
+      updateSpecialties(refreshed.specialties ?? [], false);
+      toast.success("Photo removed.");
+    } catch {
+      toast.error("Could not remove photo. Please try again.");
+      form.setValue("transformationPhotos", current);
+    }
+  };
+
+  /**
+   * Deletes a certificate file from S3, clears its fileUrl in form state,
+   * then re-saves the full profile so the backend record is updated immediately.
+   */
+  const clearCertificateFile = async (certIndex: number, fileUrl: string) => {
+    // Optimistic UI update
+    form.setValue(`certifications.${certIndex}.fileUrl`, "", {
+      shouldDirty: false,
+    });
+    form.setValue(`certifications.${certIndex}.file`, null, {
+      shouldDirty: false,
+    });
+
+    try {
+      if (fileUrl) {
+        const { deleteFile } = await import("@/services/upload");
+        await deleteFile(fileUrl);
+      }
+
+      // Re-save the full profile so the cleared fileUrl is persisted in the DB
+      const currentFormValues = form.getValues();
+      const {
+        payload,
+        transformationPhotos: newPhotos,
+        certificateFiles,
+      } = toUpdateCoachPayload({
+        ...currentFormValues,
+        specialties: specialties.join(", "),
+      });
+
+      await updateCoachProfile({
+        data: payload,
+        transformationPhotos: newPhotos,
+        certificateFiles,
+      });
+
+      const refreshed = await getCoachProfile();
+      setUser(refreshed);
+      reset(toFormValues(refreshed));
+      updateSpecialties(refreshed.specialties ?? [], false);
+      toast.success("Certificate file removed.");
+    } catch {
+      toast.error("Could not remove certificate file. Please try again.");
+      form.setValue(`certifications.${certIndex}.fileUrl`, fileUrl);
+    }
+  };
+
+  /**
+   * Deletes a certificate file from S3 only — no profile re-save.
+   * Used when removing an entire certification card; the cert's removal
+   * from the DB happens on the next form save.
+   */
+  const deleteCertFileFromStorage = async (fileUrl: string) => {
+    try {
+      const { deleteFile } = await import("@/services/upload");
+      await deleteFile(fileUrl);
+    } catch {
+      // Best-effort — the cert card is being removed from the form anyway
+      console.warn("Could not delete certificate file from storage:", fileUrl);
+    }
+  };
+
   const onSubmit = async (data: ProfileFormData) => {
     if (!user) {
       toast.error("User session not found. Please log in again.");
@@ -105,13 +217,18 @@ export function useProfileData({ onSuccessfulSave }: UseProfileDataOptions = {})
 
     setSubmissionError("");
 
-    const payload = toUpdateCoachPayload({
-      ...data,
-      specialties: specialties.join(", "),
-    });
+    const { payload, transformationPhotos, certificateFiles } =
+      toUpdateCoachPayload({
+        ...data,
+        specialties: specialties.join(", "),
+      });
 
     try {
-      await updateCoachProfile(payload);
+      await updateCoachProfile({
+        data: payload,
+        transformationPhotos,
+        certificateFiles,
+      });
       const refreshedCoach = await getCoachProfile();
       setUser(refreshedCoach);
       reset(toFormValues(refreshedCoach));
@@ -174,6 +291,9 @@ export function useProfileData({ onSuccessfulSave }: UseProfileDataOptions = {})
     setIsDeleteDialogOpen,
     addSpecialty,
     removeSpecialty,
+    clearTransformationPhoto,
+    clearCertificateFile,
+    deleteCertFileFromStorage,
     handleSubmit: handleSubmit(onSubmit),
     handleSignOut,
     handleDeleteConfirm,

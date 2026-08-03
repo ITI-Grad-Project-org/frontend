@@ -26,6 +26,9 @@ function Profile() {
         setIsDeleteDialogOpen,
         addSpecialty,
         removeSpecialty,
+        clearTransformationPhoto,
+        clearCertificateFile,
+        deleteCertFileFromStorage,
         handleSubmit,
         handleSignOut,
         handleDeleteConfirm,
@@ -135,7 +138,11 @@ function Profile() {
                                 </TabsList>
 
                                 <TabsContent value="personal" className="mt-0 outline-none">
-                                    <PersonalDetailsSection register={register} control={control} errors={errors} />
+                                    <PersonalDetailsSection
+                                        register={register}
+                                        control={control}
+                                        errors={errors}
+                                    />
                                 </TabsContent>
 
                                 <TabsContent value="experience" className="mt-0 outline-none">
@@ -149,7 +156,14 @@ function Profile() {
                                 </TabsContent>
 
                                 <TabsContent value="certifications" className="mt-0 outline-none">
-                                    <CertificationsSection control={control} register={register} errors={errors} />
+                                    <CertificationsSection
+                                        control={control}
+                                        register={register}
+                                        errors={errors}
+                                        onClearTransformationPhoto={clearTransformationPhoto}
+                                        onClearCertificateFile={clearCertificateFile}
+                                        onDeleteCertFileFromStorage={deleteCertFileFromStorage}
+                                    />
                                 </TabsContent>
                             </Tabs>
 

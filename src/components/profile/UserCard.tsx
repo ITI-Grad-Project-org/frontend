@@ -1,9 +1,103 @@
-import { Calendar, CheckCircle2, Clock3, Globe2, User as UserIcon, XCircle } from "lucide-react";
+import { useRef, useState } from "react";
+import { Calendar, CheckCircle2, Clock3, Globe2, User as UserIcon, XCircle, Camera, Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuthStore } from "@/stores/auth-store";
+import { uploadCoachAvatar } from "@/services/coaches";
 import type { Coach } from "@/types/auth";
 
 interface UserCardProps {
     user: Coach | null;
+}
+
+function CoachAvatar({ user }: { user: Coach | null }) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const setUser = useAuthStore((s) => s.setUser);
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast.error("Please select an image file.");
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Photo must be smaller than 5 MB.");
+            return;
+        }
+
+        // Capture old URL before overwriting — used to clean up S3 after success
+        const oldUrl = user?.avatarUrl ?? null;
+
+        const objectUrl = URL.createObjectURL(file);
+        setPreviewUrl(objectUrl);
+        setUploading(true);
+
+        try {
+            const updated = await uploadCoachAvatar(file);
+            setUser(updated);
+
+            // Delete the old file from S3 now that the new one is confirmed saved
+            if (oldUrl) {
+                const { deleteFile } = await import("@/services/upload");
+                await deleteFile(oldUrl).catch(() => {
+                    // Non-critical — old file cleanup failure shouldn't surface to the user
+                });
+            }
+
+            toast.success("Profile photo updated.");
+        } catch {
+            setPreviewUrl(null);
+            toast.error("Failed to upload photo. Please try again.");
+        } finally {
+            setUploading(false);
+            URL.revokeObjectURL(objectUrl);
+        }
+    };
+
+    const src = previewUrl ?? user?.avatarUrl ?? undefined;
+
+    return (
+        <>
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                aria-label="Upload profile photo"
+                onChange={(e) => void handleFileChange(e)}
+            />
+            <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                title="Click to change profile photo"
+                className="relative mb-4 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 group/avatar disabled:cursor-not-allowed"
+            >
+                <Avatar className="w-24 h-24">
+                    <AvatarImage src={src} alt={user ? `${user.firstName} ${user.lastName}` : ""} className="object-cover" />
+                    <AvatarFallback className="bg-muted text-muted-foreground">
+                        <UserIcon className="w-12 h-12" />
+                    </AvatarFallback>
+                </Avatar>
+
+                {/* Camera overlay on hover */}
+                <span
+                    aria-hidden
+                    className="absolute inset-0 flex items-center justify-center rounded-full bg-ink/60 opacity-0 transition-opacity duration-150 group-hover/avatar:opacity-100"
+                >
+                    {uploading
+                        ? <Loader2 className="w-6 h-6 text-ink-foreground animate-spin" />
+                        : <Camera className="w-6 h-6 text-ink-foreground" />
+                    }
+                </span>
+            </button>
+        </>
+    );
 }
 
 export function UserCard({ user }: UserCardProps) {
@@ -17,14 +111,7 @@ export function UserCard({ user }: UserCardProps) {
 
     return (
         <div className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card) text-center flex flex-col items-center">
-            <Avatar className="w-24 h-24 mb-4">
-                {user?.avatarUrl ? (
-                    <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} className="object-cover" />
-                ) : null}
-                <AvatarFallback className="bg-muted text-muted-foreground">
-                    <UserIcon className="w-12 h-12" />
-                </AvatarFallback>
-            </Avatar>
+            <CoachAvatar user={user} />
 
             <h3 className="text-xl font-bold">{user?.firstName} {user?.lastName}</h3>
             <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>

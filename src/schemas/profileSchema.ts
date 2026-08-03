@@ -1,5 +1,10 @@
 import { z } from "zod";
-import type { Coach, CoachAvailability, CoachGender, UpdateCoachPayload } from "@/types/auth";
+import type {
+  Coach,
+  CoachAvailability,
+  CoachGender,
+  UpdateCoachPayload,
+} from "@/types/auth";
 
 const optionalUrlSchema = z.union([
   z.string().trim().url("Enter a valid URL"),
@@ -9,16 +14,23 @@ const optionalUrlSchema = z.union([
 const optionalTextSchema = z.union([z.string().trim().min(1), z.literal("")]);
 
 const optionalDateSchema = z.union([
-  z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
+  z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
   z.literal(""),
 ]);
 
 const optionalNumberSchema = z
   .string()
   .trim()
-  .refine((value) => value === "" || (/^\d+(\.\d+)?$/.test(value) && Number(value) >= 0), {
-    message: "Use a valid number",
-  });
+  .refine(
+    (value) =>
+      value === "" || (/^\d+(\.\d+)?$/.test(value) && Number(value) >= 0),
+    {
+      message: "Use a valid number",
+    },
+  );
 
 function boundedNumberSchema(min: number, max: number, message: string) {
   return optionalNumberSchema.refine(
@@ -34,6 +46,8 @@ export const certificationSchema = z.object({
   expiryDate: optionalDateSchema.optional(),
   fileUrl: optionalUrlSchema.optional(),
   credentialUrl: optionalUrlSchema.optional(),
+  file: z.instanceof(File).optional().nullable(),
+  fileKey: z.string().optional(), // S3 key for deletion
 });
 
 export const specialtyOptions = [
@@ -58,7 +72,10 @@ export const genderOptions: Array<{ value: CoachGender; label: string }> = [
   { value: "other", label: "Other" },
 ];
 
-export const availabilityOptions: Array<{ value: CoachAvailability; label: string }> = [
+export const availabilityOptions: Array<{
+  value: CoachAvailability;
+  label: string;
+}> = [
   { value: "yes", label: "Yes" },
   { value: "no", label: "No" },
   { value: "hybrid", label: "Hybrid" },
@@ -104,28 +121,51 @@ const timeOptions = [
 export const availabilityTimeOptions = timeOptions;
 
 export const profileSchema = z.object({
-  firstName: z.string().trim().min(2, "First name must be at least 2 characters"),
+  firstName: z
+    .string()
+    .trim()
+    .min(2, "First name must be at least 2 characters"),
   lastName: z.string().trim().min(2, "Last name must be at least 2 characters"),
-  avatarUrl: optionalUrlSchema.optional(),
-  phone: z.string().trim().regex(/^\+\d{8,15}$/, "Use an international phone number"),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+\d{8,15}$/, "Use an international phone number"),
   age: boundedNumberSchema(16, 100, "Use a whole number between 16 and 100"),
-  gender: z.union([z.enum(["male", "female", "other"]), z.literal("")]).optional(),
+  gender: z
+    .union([z.enum(["male", "female", "other"]), z.literal("")])
+    .optional(),
   location: optionalTextSchema.optional(),
   specialties: z.string().trim(),
-  yearsExperience: boundedNumberSchema(0, 70, "Use a whole number between 0 and 70"),
-  careerExperience: z.string().trim().max(2000, "Career experience must be 2,000 characters or fewer").optional(),
+  yearsExperience: boundedNumberSchema(
+    0,
+    70,
+    "Use a whole number between 0 and 70",
+  ),
+  careerExperience: z
+    .string()
+    .trim()
+    .max(2000, "Career experience must be 2,000 characters or fewer")
+    .optional(),
   certifications: z.array(certificationSchema),
   portfolioUrl: optionalUrlSchema.optional(),
   transformationPhotos: z
     .array(
       z.object({
         url: optionalUrlSchema,
+        file: z.instanceof(File).optional().nullable(),
+        key: z.string().optional(),
       }),
     )
     .default([]),
-  featuredReviews: z.string().trim().max(1000, "Featured reviews must be 1,000 characters or fewer").optional(),
+  featuredReviews: z
+    .string()
+    .trim()
+    .max(1000, "Featured reviews must be 1,000 characters or fewer")
+    .optional(),
   bio: z.string().trim().max(1000, "Bio must be 1,000 characters or fewer"),
-  offlineAvailability: z.union([z.enum(["yes", "no", "hybrid"]), z.literal("")]).optional(),
+  offlineAvailability: z
+    .union([z.enum(["yes", "no", "hybrid"]), z.literal("")])
+    .optional(),
   availabilityWeekdayStart: z.union([
     z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
     z.literal(""),
@@ -136,8 +176,16 @@ export const profileSchema = z.object({
   ]),
   availabilityStartHour: z.union([z.enum(timeOptions), z.literal("")]),
   availabilityEndHour: z.union([z.enum(timeOptions), z.literal("")]),
-  priceFrom: boundedNumberSchema(0, Number.MAX_SAFE_INTEGER, "Use a whole number at or above 0"),
-  priceTo: boundedNumberSchema(0, Number.MAX_SAFE_INTEGER, "Use a whole number at or above 0"),
+  priceFrom: boundedNumberSchema(
+    0,
+    Number.MAX_SAFE_INTEGER,
+    "Use a whole number at or above 0",
+  ),
+  priceTo: boundedNumberSchema(
+    0,
+    Number.MAX_SAFE_INTEGER,
+    "Use a whole number at or above 0",
+  ),
 });
 
 export type ProfileFormData = z.infer<typeof profileSchema>;
@@ -145,7 +193,6 @@ export type ProfileFormData = z.infer<typeof profileSchema>;
 export const emptyProfile: ProfileFormData = {
   firstName: "",
   lastName: "",
-  avatarUrl: "",
   phone: "",
   age: "",
   gender: "",
@@ -155,7 +202,7 @@ export const emptyProfile: ProfileFormData = {
   careerExperience: "",
   certifications: [],
   portfolioUrl: "",
-  transformationPhotos: [{ url: "" }],
+  transformationPhotos: [{ url: "", file: null, key: "" }],
   featuredReviews: "",
   bio: "",
   offlineAvailability: "",
@@ -168,11 +215,27 @@ export const emptyProfile: ProfileFormData = {
 };
 
 export function specialtyLabel(value: string): string {
-  return specialtyOptions.find((specialty) => specialty.value === value)?.label ?? value;
+  return (
+    specialtyOptions.find((specialty) => specialty.value === value)?.label ??
+    value
+  );
 }
 
-export function formatAvailabilityHours(data: Pick<ProfileFormData, "availabilityWeekdayStart" | "availabilityWeekdayEnd" | "availabilityStartHour" | "availabilityEndHour">): string {
-  const { availabilityWeekdayStart, availabilityWeekdayEnd, availabilityStartHour, availabilityEndHour } = data;
+export function formatAvailabilityHours(
+  data: Pick<
+    ProfileFormData,
+    | "availabilityWeekdayStart"
+    | "availabilityWeekdayEnd"
+    | "availabilityStartHour"
+    | "availabilityEndHour"
+  >,
+): string {
+  const {
+    availabilityWeekdayStart,
+    availabilityWeekdayEnd,
+    availabilityStartHour,
+    availabilityEndHour,
+  } = data;
 
   if (
     !availabilityWeekdayStart ||
@@ -217,15 +280,23 @@ export function parseAvailabilityHours(
     };
   }
 
-  const [, availabilityWeekdayStart, availabilityWeekdayEnd, availabilityStartHour, availabilityEndHour] = match;
+  const [
+    ,
+    availabilityWeekdayStart,
+    availabilityWeekdayEnd,
+    availabilityStartHour,
+    availabilityEndHour,
+  ] = match;
 
   return {
     availabilityWeekdayStart:
       availabilityWeekdayStart as ProfileFormData["availabilityWeekdayStart"],
     availabilityWeekdayEnd:
       availabilityWeekdayEnd as ProfileFormData["availabilityWeekdayEnd"],
-    availabilityStartHour: availabilityStartHour.trim() as ProfileFormData["availabilityStartHour"],
-    availabilityEndHour: availabilityEndHour.trim() as ProfileFormData["availabilityEndHour"],
+    availabilityStartHour:
+      availabilityStartHour.trim() as ProfileFormData["availabilityStartHour"],
+    availabilityEndHour:
+      availabilityEndHour.trim() as ProfileFormData["availabilityEndHour"],
   };
 }
 
@@ -233,7 +304,9 @@ function cleanText(value: string | null | undefined): string {
   return value?.trim() ?? "";
 }
 
-function cleanOptionalText(value: string | null | undefined): string | undefined {
+function cleanOptionalText(
+  value: string | null | undefined,
+): string | undefined {
   const nextValue = cleanText(value);
   return nextValue ? nextValue : undefined;
 }
@@ -252,17 +325,10 @@ function cleanNumber(value: string | undefined): number | undefined {
   return Number.isFinite(nextValue) ? nextValue : undefined;
 }
 
-function cleanTextArray(values: Array<string | null | undefined> | undefined): string[] {
-  return (values ?? [])
-    .map((value) => cleanText(value))
-    .filter((value) => value.length > 0);
-}
-
 export function toFormValues(coach: Coach): ProfileFormData {
   return {
     firstName: coach.firstName ?? "",
     lastName: coach.lastName ?? "",
-    avatarUrl: coach.avatarUrl ?? "",
     phone: coach.phone ?? "",
     age: coach.age?.toString() ?? "",
     gender: coach.gender ?? "",
@@ -278,11 +344,13 @@ export function toFormValues(coach: Coach): ProfileFormData {
         expiryDate: cert.expiryDate ?? "",
         fileUrl: cert.fileUrl ?? "",
         credentialUrl: cert.credentialUrl ?? "",
+        file: null,
+        fileKey: "",
       })) ?? [],
     portfolioUrl: coach.portfolioUrl ?? "",
     transformationPhotos: coach.transformationPhotos?.length
-      ? coach.transformationPhotos.map((url) => ({ url }))
-      : [{ url: "" }],
+      ? coach.transformationPhotos.map((url) => ({ url, file: null, key: "" }))
+      : [{ url: "", file: null, key: "" }],
     featuredReviews: coach.featuredReviews ?? "",
     bio: coach.bio ?? "",
     offlineAvailability: coach.offlineAvailability ?? "",
@@ -292,11 +360,21 @@ export function toFormValues(coach: Coach): ProfileFormData {
   };
 }
 
-export function toUpdateCoachPayload(data: ProfileFormData): UpdateCoachPayload {
+export function toUpdateCoachPayload(data: ProfileFormData): {
+  payload: UpdateCoachPayload;
+  transformationPhotos: File[];
+  certificateFiles: File[];
+} {
   const availabilityHours = formatAvailabilityHours(data);
-  const transformationPhotos = cleanTextArray(
-    data.transformationPhotos.map((photo) => photo.url),
-  );
+
+  const transformationPhotoFiles = data.transformationPhotos
+    .map((photo) => photo.file)
+    .filter((file): file is File => file instanceof File);
+
+  const certificateFiles = data.certifications
+    .map((cert) => cert.file)
+    .filter((file): file is File => file instanceof File);
+
   const certifications = data.certifications
     .map((cert) => ({
       name: cert.name.trim(),
@@ -308,10 +386,9 @@ export function toUpdateCoachPayload(data: ProfileFormData): UpdateCoachPayload 
     }))
     .filter((cert) => cert.name.length > 0);
 
-  return {
+  const payload: UpdateCoachPayload = {
     firstName: cleanText(data.firstName),
     lastName: cleanText(data.lastName),
-    avatarUrl: cleanUrl(data.avatarUrl),
     phone: cleanOptionalText(data.phone),
     age: cleanNumber(data.age),
     gender: data.gender || undefined,
@@ -324,13 +401,18 @@ export function toUpdateCoachPayload(data: ProfileFormData): UpdateCoachPayload 
     careerExperience: cleanOptionalText(data.careerExperience),
     certifications,
     portfolioUrl: cleanUrl(data.portfolioUrl),
-    transformationPhotos,
     featuredReviews: cleanOptionalText(data.featuredReviews),
     bio: cleanOptionalText(data.bio),
     offlineAvailability: data.offlineAvailability || undefined,
     availabilityHours: availabilityHours || undefined,
     priceFrom: cleanNumber(data.priceFrom),
     priceTo: cleanNumber(data.priceTo),
+  };
+
+  return {
+    payload,
+    transformationPhotos: transformationPhotoFiles,
+    certificateFiles,
   };
 }
 

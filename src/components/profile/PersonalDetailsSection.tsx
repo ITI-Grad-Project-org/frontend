@@ -64,12 +64,6 @@ export function PersonalDetailsSection({ register, control, errors }: PersonalDe
                     />
                     {errors.location && <p className="mt-1 text-xs text-destructive">{errors.location.message}</p>}
                 </div>
-
-                <label className="block sm:col-span-2">
-                    <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Avatar URL</span>
-                    <input className={inputClassName} type="url" placeholder="https://example.com/avatar.jpg" {...register("avatarUrl")} />
-                    {errors.avatarUrl && <p className="mt-1 text-xs text-destructive">{errors.avatarUrl.message}</p>}
-                </label>
             </div>
         </section>
     );

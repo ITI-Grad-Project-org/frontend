@@ -85,6 +85,7 @@ export type LoginPayload = {
 export type UpdateCoachPayload = {
   firstName?: string;
   lastName?: string;
+  /** Set to null to explicitly clear the avatar in the database after deleting from S3 */
   avatarUrl?: string | null;
   phone?: string;
   age?: number;
@@ -95,7 +96,6 @@ export type UpdateCoachPayload = {
   careerExperience?: string;
   certifications?: Certification[];
   portfolioUrl?: string;
-  transformationPhotos?: string[];
   featuredReviews?: string;
   bio?: string;
   offlineAvailability?: CoachAvailability;

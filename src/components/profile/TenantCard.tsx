@@ -28,11 +28,9 @@ function TenantAvatar({ tenantId, name, logoUrl, isPrimary }: TenantAvatarProps)
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        // Reset input so the same file can be re-selected if needed
         e.target.value = "";
         if (!file) return;
 
-        // Basic client-side validation (mirrors API: must be image, ≤5 MB)
         if (!file.type.startsWith("image/")) {
             toast.error("Please select an image file.");
             return;
@@ -42,15 +40,16 @@ function TenantAvatar({ tenantId, name, logoUrl, isPrimary }: TenantAvatarProps)
             return;
         }
 
-        // Optimistic local preview
+        // Capture old URL before overwriting — used to clean up S3 after success
+        const oldUrl = logoUrl ?? null;
+
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
-
         setUploading(true);
+
         try {
             const updatedTenant = await uploadTenantLogo(file);
 
-            // Patch the tenant inside the user object in the store
             if (user) {
                 const updatedTenants = (user.tenants ?? []).map((t) =>
                     t.id === tenantId ? { ...t, logoUrl: updatedTenant.logoUrl } : t
@@ -58,9 +57,16 @@ function TenantAvatar({ tenantId, name, logoUrl, isPrimary }: TenantAvatarProps)
                 setUser({ ...user, tenants: updatedTenants });
             }
 
+            // Delete the old logo from S3 now that the new one is confirmed saved
+            if (oldUrl) {
+                const { deleteFile } = await import("@/services/upload");
+                await deleteFile(oldUrl).catch(() => {
+                    // Non-critical — old file cleanup failure shouldn't surface to the user
+                });
+            }
+
             toast.success("Logo updated.");
         } catch {
-            // Revert preview on failure
             setPreviewUrl(null);
             toast.error("Failed to upload logo. Please try again.");
         } finally {
