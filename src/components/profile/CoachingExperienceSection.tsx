@@ -1,8 +1,7 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import { Controller, type UseFormRegister, type FieldErrors, type Control } from "react-hook-form";
 import { Plus } from "lucide-react";
 import {
     availabilityOptions,
-    availabilityTimeOptions,
     inputClassName,
     specialtyLabel,
     specialtyOptions,
@@ -10,8 +9,36 @@ import {
     type ProfileFormData,
 } from "../../schemas/profileSchema";
 
+// ── Time format helpers ────────────────────────────────────────────────────────
+// Schema stores values like "7 AM", "12 PM". The native time input uses "HH:mm".
+
+function schemaTimeToInputValue(schemaTime: string): string {
+    if (!schemaTime) return "";
+    const match = schemaTime.match(/^(\d{1,2})\s*(AM|PM)$/i);
+    if (!match) return "";
+    let hour = parseInt(match[1], 10);
+    const period = match[2].toUpperCase();
+    if (period === "AM") {
+        if (hour === 12) hour = 0;
+    } else {
+        if (hour !== 12) hour += 12;
+    }
+    return `${String(hour).padStart(2, "0")}:00`;
+}
+
+function inputValueToSchemaTime(value: string): string {
+    if (!value) return "";
+    const [hourStr] = value.split(":");
+    const hour = parseInt(hourStr, 10);
+    if (hour === 0) return "12 AM";
+    if (hour === 12) return "12 PM";
+    if (hour < 12) return `${hour} AM`;
+    return `${hour - 12} PM`;
+}
+
 interface CoachingExperienceProps {
     register: UseFormRegister<ProfileFormData>;
+    control: Control<ProfileFormData>;
     errors: FieldErrors<ProfileFormData>;
     specialties: string[];
     onAddSpecialty: (specialty: string) => void;
@@ -20,6 +47,7 @@ interface CoachingExperienceProps {
 
 export function CoachingExperienceSection({
     register,
+    control,
     errors,
     specialties,
     onAddSpecialty,
@@ -126,26 +154,34 @@ export function CoachingExperienceSection({
                         </label>
                         <label className="block">
                             <span className="mb-1.5 block text-[11px] font-semibold text-muted-foreground">Start hour</span>
-                            <select className={inputClassName} {...register("availabilityStartHour")}>
-                                <option value="">Select hour</option>
-                                {availabilityTimeOptions.map((time) => (
-                                    <option key={time} value={time}>
-                                        {time}
-                                    </option>
-                                ))}
-                            </select>
+                            <Controller
+                                name="availabilityStartHour"
+                                control={control}
+                                render={({ field }) => (
+                                    <input
+                                        type="time"
+                                        className={inputClassName}
+                                        value={schemaTimeToInputValue(field.value)}
+                                        onChange={(e) => field.onChange(inputValueToSchemaTime(e.target.value))}
+                                    />
+                                )}
+                            />
                             {errors.availabilityStartHour && <p className="mt-1 text-xs text-destructive">{errors.availabilityStartHour.message}</p>}
                         </label>
                         <label className="block">
                             <span className="mb-1.5 block text-[11px] font-semibold text-muted-foreground">End hour</span>
-                            <select className={inputClassName} {...register("availabilityEndHour")}>
-                                <option value="">Select hour</option>
-                                {availabilityTimeOptions.map((time) => (
-                                    <option key={time} value={time}>
-                                        {time}
-                                    </option>
-                                ))}
-                            </select>
+                            <Controller
+                                name="availabilityEndHour"
+                                control={control}
+                                render={({ field }) => (
+                                    <input
+                                        type="time"
+                                        className={inputClassName}
+                                        value={schemaTimeToInputValue(field.value)}
+                                        onChange={(e) => field.onChange(inputValueToSchemaTime(e.target.value))}
+                                    />
+                                )}
+                            />
                             {errors.availabilityEndHour && <p className="mt-1 text-xs text-destructive">{errors.availabilityEndHour.message}</p>}
                         </label>
                     </div>

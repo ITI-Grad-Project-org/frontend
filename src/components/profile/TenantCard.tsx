@@ -150,7 +150,7 @@ export function TenantCard({ tenants }: TenantCardProps) {
                                 <div className="flex-1 min-w-0">
                                     <h4 className="text-sm font-semibold truncate">{tenant.name}</h4>
                                     <p className="text-xs text-muted-foreground truncate">
-                                        slug: {tenant.slug}
+                                        @{tenant.slug}
                                     </p>
                                     <div className="flex gap-2 mt-1">
                                         <span className="inline-block text-[10px] bg-brand/10 text-brand px-1.5 py-0.5 rounded font-medium">

@@ -1,15 +1,17 @@
-import { useState, useEffect, useRef } from "react";
-import { useFieldArray, Controller, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
-import { Plus, Trash2, FileText, ExternalLink, ImageIcon, Loader2, Upload } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Plus, Trash2, FileText, ImageIcon, ExternalLink, Loader2, Upload } from "lucide-react";
 import { toast } from "react-toastify";
 import { inputClassName, type ProfileFormData } from "../../schemas/profileSchema";
 import { addCertification, removeCertification } from "@/services/coaches";
 import type { Coach } from "@/types/auth";
+import type { FieldErrors, UseFormRegister } from "react-hook-form";
+import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 
 // ── Cert file preview ──────────────────────────────────────────────────────────
 
-function CertPreview({ file, fileUrl }: { file?: File | null; fileUrl?: string }) {
+function CertPreview({ file, fileUrl, certName }: { file?: File | null; fileUrl?: string; certName?: string }) {
     const [localPreview, setLocalPreview] = useState<string | null>(null);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
     useEffect(() => {
         if (!file || !file.type.startsWith("image/")) { setLocalPreview(null); return; }
@@ -18,38 +20,55 @@ function CertPreview({ file, fileUrl }: { file?: File | null; fileUrl?: string }
         return () => URL.revokeObjectURL(url);
     }, [file]);
 
-    const isPdf = (src: string) => src.toLowerCase().endsWith(".pdf");
-
+    // New local image file — show inline preview, click to enlarge
     if (file && file.type.startsWith("image/") && localPreview) {
         return (
             <div className="mt-2">
                 <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Preview</p>
-                <img src={localPreview} alt="Certificate preview" className="max-h-48 w-full object-contain rounded-xl border border-border bg-muted/30" />
+                <button type="button" onClick={() => setPreviewOpen(true)} className="block w-full group">
+                    <img src={localPreview} alt="Certificate preview"
+                        className="max-h-48 w-full object-contain rounded-xl border border-border bg-muted/30 transition-opacity group-hover:opacity-80 cursor-zoom-in" />
+                </button>
+                {previewOpen && (
+                    <MediaPreviewModal src={localPreview} alt={file.name} onClose={() => setPreviewOpen(false)} />
+                )}
             </div>
         );
     }
 
+    // Existing server file
     if (fileUrl) {
-        if (isPdf(fileUrl)) {
-            return (
-                <div className="mt-2">
-                    <a href={fileUrl} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-border bg-muted/30 hover:bg-muted transition-colors text-sm font-medium text-foreground w-full">
-                        <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
-                        <span className="truncate">View certificate PDF</span>
-                        <ExternalLink className="w-3.5 h-3.5 shrink-0 text-muted-foreground ml-auto" />
-                    </a>
-                </div>
-            );
-        }
+        const isPdf = fileUrl.toLowerCase().endsWith(".pdf");
         return (
             <div className="mt-2">
-                <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="block group">
-                    <img src={fileUrl} alt="Certificate" className="max-h-48 w-full object-contain rounded-xl border border-border bg-muted/30 transition-opacity group-hover:opacity-80" />
-                    <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
-                        <ImageIcon className="w-3 h-3" /> Click to open full size
-                    </p>
-                </a>
+                <button type="button" onClick={() => setPreviewOpen(true)}
+                    className={isPdf
+                        ? "inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-border bg-muted/30 hover:bg-muted transition-colors text-sm font-medium text-foreground w-full"
+                        : "block w-full group"
+                    }
+                >
+                    {isPdf ? (
+                        <>
+                            <FileText className="w-4 h-4 shrink-0 text-muted-foreground" />
+                            <span className="truncate">View certificate PDF</span>
+                        </>
+                    ) : (
+                        <>
+                            <img src={fileUrl} alt={certName ?? "Certificate"}
+                                className="max-h-48 w-full object-contain rounded-xl border border-border bg-muted/30 transition-opacity group-hover:opacity-80 cursor-zoom-in" />
+                            <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
+                                <ImageIcon className="w-3 h-3" /> Click to preview
+                            </p>
+                        </>
+                    )}
+                </button>
+                {previewOpen && (
+                    <MediaPreviewModal
+                        src={fileUrl}
+                        alt={certName ?? (isPdf ? "Certificate PDF" : "Certificate")}
+                        onClose={() => setPreviewOpen(false)}
+                    />
+                )}
             </div>
         );
     }
@@ -60,23 +79,14 @@ function CertPreview({ file, fileUrl }: { file?: File | null; fileUrl?: string }
 // ── Add certification form ─────────────────────────────────────────────────────
 
 interface AddCertFormState {
-    name: string;
-    issuer: string;
-    issueDate: string;
-    expiryDate: string;
-    credentialUrl: string;
-    file: File | null;
+    name: string; issuer: string; issueDate: string;
+    expiryDate: string; credentialUrl: string; file: File | null;
 }
-
 const emptyCertForm: AddCertFormState = {
     name: "", issuer: "", issueDate: "", expiryDate: "", credentialUrl: "", file: null,
 };
 
-interface AddCertCardProps {
-    onAdded: () => Promise<void>;
-}
-
-function AddCertCard({ onAdded }: AddCertCardProps) {
+function AddCertCard({ onAdded }: { onAdded: () => Promise<void> }) {
     const [form, setForm] = useState<AddCertFormState>(emptyCertForm);
     const [saving, setSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,7 +104,6 @@ function AddCertCard({ onAdded }: AddCertCardProps) {
     const handleSubmit = async () => {
         if (!form.name.trim()) { toast.error("Certification name is required."); return; }
         if (!form.file) { toast.error("A certificate file is required."); return; }
-
         setSaving(true);
         try {
             await addCertification({
@@ -118,7 +127,6 @@ function AddCertCard({ onAdded }: AddCertCardProps) {
     return (
         <div className="p-4 border-2 border-dashed border-border rounded-xl space-y-3">
             <p className="text-sm font-semibold text-muted-foreground">New certification</p>
-
             <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block sm:col-span-2">
                     <span className="mb-1 block text-xs font-semibold text-muted-foreground">Name *</span>
@@ -140,8 +148,6 @@ function AddCertCard({ onAdded }: AddCertCardProps) {
                     <span className="mb-1 block text-xs font-semibold text-muted-foreground">Credential URL</span>
                     <input className={inputClassName} type="url" placeholder="https://nasm.org/verify/123" value={form.credentialUrl} onChange={set("credentialUrl")} />
                 </label>
-
-                {/* File picker */}
                 <div className="sm:col-span-2">
                     <span className="mb-1 block text-xs font-semibold text-muted-foreground">Certificate file *</span>
                     <input ref={fileInputRef} type="file" accept="application/pdf,image/jpeg,image/png" className="hidden" onChange={handleFileChange} />
@@ -157,10 +163,9 @@ function AddCertCard({ onAdded }: AddCertCardProps) {
                             <Upload className="w-4 h-4" /> Upload PDF, JPG, or PNG
                         </button>
                     )}
-                    {form.file && <CertPreview file={form.file} />}
+                    {form.file && <CertPreview file={form.file} certName={form.name || "Certificate"} />}
                 </div>
             </div>
-
             <div className="flex justify-end pt-1">
                 <button type="button" onClick={() => void handleSubmit()} disabled={saving}
                     className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-ink text-ink-foreground hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -173,12 +178,9 @@ function AddCertCard({ onAdded }: AddCertCardProps) {
 
 // ── Existing cert card ─────────────────────────────────────────────────────────
 
-interface ExistingCertCardProps {
-    cert: Coach["certifications"] extends (infer C)[] | undefined ? C : never;
-    onRemoved: () => Promise<void>;
-}
+type Cert = NonNullable<Coach["certifications"]>[number];
 
-function ExistingCertCard({ cert, onRemoved }: ExistingCertCardProps) {
+function ExistingCertCard({ cert, onRemoved }: { cert: Cert; onRemoved: () => Promise<void> }) {
     const [removing, setRemoving] = useState(false);
 
     const handleRemove = async () => {
@@ -218,76 +220,37 @@ function ExistingCertCard({ cert, onRemoved }: ExistingCertCardProps) {
                     {removing ? "Removing…" : "Remove"}
                 </button>
             </div>
-            {cert.fileUrl && <CertPreview fileUrl={cert.fileUrl} />}
+            {cert.fileUrl && <CertPreview fileUrl={cert.fileUrl} certName={cert.name} />}
         </div>
-    );
-}
-
-// ── Multi photo button ─────────────────────────────────────────────────────────
-
-function MultiPhotoButton({ onFiles }: { onFiles: (files: File[]) => void }) {
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files ?? []);
-        e.target.value = "";
-        if (files.length > 0) onFiles(files);
-    };
-
-    return (
-        <>
-            <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handleChange}
-            />
-            <button
-                type="button"
-                onClick={() => inputRef.current?.click()}
-                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold transition border rounded-xl border-border hover:bg-muted"
-            >
-                <Upload className="w-4 h-4" /> Add photos
-            </button>
-        </>
     );
 }
 
 // ── Section ────────────────────────────────────────────────────────────────────
 
-interface CertificationsSectionProps {
-    control: Control<ProfileFormData>;
+interface CredentialsPricingSectionProps {
     register: UseFormRegister<ProfileFormData>;
     errors: FieldErrors<ProfileFormData>;
-    /** Existing certifications from the server */
     existingCertifications: Coach["certifications"];
-    onClearTransformationPhoto: (url: string) => Promise<void>;
     onRefreshProfile: () => Promise<void>;
 }
 
-export function CertificationsSection({
-    control,
+export function CredentialsPricingSection({
     register,
     errors,
     existingCertifications,
-    onClearTransformationPhoto,
     onRefreshProfile,
-}: CertificationsSectionProps) {
-    const transformationPhotos = useFieldArray({ control, name: "transformationPhotos" });
+}: CredentialsPricingSectionProps) {
     const [showAddForm, setShowAddForm] = useState(false);
 
     return (
         <section className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card) sm:p-7 space-y-6">
-
             {/* ── Certifications ── */}
             <div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 className="text-lg font-bold">Credentials & pricing</h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Certificates, proof links, coaching rates, and client-facing highlights.
+                            Certifications, portfolio link, and your coaching rates.
                         </p>
                     </div>
                     {!showAddForm && (
@@ -298,7 +261,6 @@ export function CertificationsSection({
                     )}
                 </div>
 
-                {/* Existing certs from server */}
                 {existingCertifications && existingCertifications.length > 0 && (
                     <div className="mt-4 space-y-3">
                         {existingCertifications.map((cert) => (
@@ -311,7 +273,6 @@ export function CertificationsSection({
                     </div>
                 )}
 
-                {/* Add form */}
                 {showAddForm && (
                     <div className="mt-4">
                         <AddCertCard onAdded={async () => { setShowAddForm(false); await onRefreshProfile(); }} />
@@ -329,7 +290,7 @@ export function CertificationsSection({
                 )}
             </div>
 
-            {/* ── Other fields ── */}
+            {/* ── Pricing & portfolio ── */}
             <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block sm:col-span-2">
                     <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Portfolio URL</span>
@@ -346,147 +307,7 @@ export function CertificationsSection({
                     <input className={inputClassName} type="number" min="0" placeholder="320" {...register("priceTo")} />
                     {errors.priceTo && <p className="mt-1 text-xs text-destructive">{errors.priceTo.message}</p>}
                 </label>
-                <label className="block sm:col-span-2">
-                    <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Featured review</span>
-                    <textarea className={`${inputClassName} min-h-24 resize-y`} placeholder='"Lost 12kg in 5 months" — Sara A.' {...register("featuredReviews")} />
-                    {errors.featuredReviews && <p className="mt-1 text-xs text-destructive">{errors.featuredReviews.message}</p>}
-                </label>
-            </div>
-
-            {/* ── Transformation photos ── */}
-            <div>
-                <div className="flex items-center justify-between gap-3">
-                    <div>
-                        <h3 className="text-sm font-semibold">Transformation photos</h3>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                            Upload before/after photos of your clients' transformations.
-                        </p>
-                    </div>
-                    <MultiPhotoButton
-                        onFiles={(files) => {
-                            files.forEach((file) =>
-                                transformationPhotos.append({ url: "", file, key: "" })
-                            );
-                        }}
-                    />
-                </div>
-
-                <div className="mt-4 space-y-3">
-                    {transformationPhotos.fields.length === 0 ? (
-                        <p className="px-4 py-3 text-sm rounded-xl bg-muted text-muted-foreground">
-                            No transformation photos added yet.
-                        </p>
-                    ) : (
-                        transformationPhotos.fields.map((field, index) => {
-                            const existingUrl = field.url;
-
-                            // ── Existing server photo ──
-                            if (existingUrl) {
-                                return (
-                                    <ExistingPhotoRow
-                                        key={field.id}
-                                        url={existingUrl}
-                                        index={index}
-                                        onRemove={async () => {
-                                            await onClearTransformationPhoto(existingUrl);
-                                        }}
-                                    />
-                                );
-                            }
-
-                            // ── New local photo (not yet uploaded) ──
-                            return (
-                                <div key={field.id} className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                                    <Controller
-                                        name={`transformationPhotos.${index}.file`}
-                                        control={control}
-                                        render={({ field: fileField }) => (
-                                            <NewPhotoUploader
-                                                index={index}
-                                                file={fileField.value ?? null}
-                                                onChange={fileField.onChange}
-                                            />
-                                        )}
-                                    />
-                                    <button type="button"
-                                        onClick={() => transformationPhotos.remove(index)}
-                                        className="inline-flex items-center gap-1 self-end px-3 py-3 text-sm font-semibold text-destructive rounded-xl border border-destructive/20 hover:bg-destructive/10 h-fit">
-                                        <Trash2 className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Remove</span>
-                                    </button>
-                                </div>
-                            );
-                        })
-                    )}
-                </div>
             </div>
         </section>
-    );
-}
-
-// ── Existing photo row ─────────────────────────────────────────────────────────
-
-function ExistingPhotoRow({ url, index, onRemove }: { url: string; index: number; onRemove: () => Promise<void> }) {
-    const [removing, setRemoving] = useState(false);
-
-    return (
-        <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30">
-            <img src={url} alt={`Transformation ${index + 1}`}
-                className="w-16 h-16 object-cover rounded-lg shrink-0 border border-border" />
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">Photo {index + 1}</p>
-                <a href={url} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-brand hover:underline inline-flex items-center gap-1">
-                    <ExternalLink className="w-3 h-3" /> View full size
-                </a>
-            </div>
-            <button type="button" disabled={removing}
-                onClick={async () => { setRemoving(true); try { await onRemove(); } finally { setRemoving(false); } }}
-                className="shrink-0 inline-flex items-center gap-1 px-3 py-2 text-sm font-semibold text-destructive rounded-xl border border-destructive/20 hover:bg-destructive/10 disabled:opacity-50">
-                {removing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                <span className="hidden sm:inline">{removing ? "Removing…" : "Remove"}</span>
-            </button>
-        </div>
-    );
-}
-
-// ── New photo uploader ─────────────────────────────────────────────────────────
-
-function NewPhotoUploader({ index, file, onChange }: { index: number; file: File | null; onChange: (f: File | null) => void }) {
-    const inputRef = useRef<HTMLInputElement>(null);
-    const [preview, setPreview] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (!file) { setPreview(null); return; }
-        const url = URL.createObjectURL(file);
-        setPreview(url);
-        return () => URL.revokeObjectURL(url);
-    }, [file]);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selected = e.target.files?.[0] ?? null;
-        e.target.value = "";
-        onChange(selected);
-    };
-
-    return (
-        <div>
-            <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleChange} />
-            {file && preview ? (
-                <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30">
-                    <img src={preview} alt={`New photo ${index + 1}`} className="w-16 h-16 object-cover rounded-lg shrink-0 border border-border" />
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · Will upload on save</p>
-                    </div>
-                    <button type="button" onClick={() => onChange(null)} className="text-xs font-semibold text-destructive hover:opacity-80 shrink-0">Remove</button>
-                </div>
-            ) : (
-                <button type="button" onClick={() => inputRef.current?.click()}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-6 border-2 border-dashed border-border rounded-xl hover:border-brand/50 hover:bg-brand/5 transition-colors text-sm text-muted-foreground">
-                    <Upload className="w-4 h-4" /> Upload transformation photo {index + 1}
-                </button>
-            )}
-        </div>
     );
 }

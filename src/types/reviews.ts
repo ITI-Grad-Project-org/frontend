@@ -27,6 +27,8 @@ export type CoachPublicProfile = {
     firstName: string;
     lastName: string;
     avatarUrl: string | null;
+    age: number | null;
+    gender: "male" | "female" | "other" | null;
     location: string | null;
     bio: string | null;
     specialties: string[];
@@ -40,6 +42,7 @@ export type CoachPublicProfile = {
     availabilityHours: string | null;
     priceFrom: number | null;
     priceTo: number | null;
+    socialLinks: Record<string, string> | null;
     tenant: {
       id: string;
       name: string;

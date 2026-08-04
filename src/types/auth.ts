@@ -1,4 +1,5 @@
 export type Certification = {
+  id?: string;
   name: string;
   issuer?: string | null;
   issueDate?: string | null;
@@ -85,21 +86,19 @@ export type LoginPayload = {
 export type UpdateCoachPayload = {
   firstName?: string;
   lastName?: string;
-  /** Set to null to explicitly clear the avatar in the database after deleting from S3 */
   avatarUrl?: string | null;
-  phone?: string;
-  age?: number;
-  gender?: CoachGender;
-  location?: string;
+  phone?: string | null;
+  age?: number | null;
+  gender?: CoachGender | null;
+  location?: string | null;
   specialties?: string[];
-  yearsExperience?: number;
-  careerExperience?: string;
-  certifications?: Certification[];
-  portfolioUrl?: string;
-  featuredReviews?: string;
-  bio?: string;
-  offlineAvailability?: CoachAvailability;
-  availabilityHours?: string;
-  priceFrom?: number;
-  priceTo?: number;
+  yearsExperience?: number | null;
+  careerExperience?: string | null;
+  portfolioUrl?: string | null;
+  featuredReviews?: string | null;
+  bio?: string | null;
+  offlineAvailability?: CoachAvailability | null;
+  availabilityHours?: string | null;
+  priceFrom?: number | null;
+  priceTo?: number | null;
 };

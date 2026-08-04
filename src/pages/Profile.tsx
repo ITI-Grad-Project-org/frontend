@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import { Save, Trash2, User, Briefcase, Award } from "lucide-react";
+import { Save, Trash2, User, Briefcase, Award, ImageIcon } from "lucide-react";
 import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
 import { useProfileData } from "../hooks/useProfileData";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { PersonalDetailsSection } from "../components/profile/PersonalDetailsSection";
 import { CoachingExperienceSection } from "../components/profile/CoachingExperienceSection";
-import { CertificationsSection } from "../components/profile/CertificationsSection";
+import { CredentialsPricingSection } from "../components/profile/CredentialsPricingSection";
+import { ClientProofSection } from "../components/profile/ClientProofSection";
 import { ProfileSidebar } from "../components/profile/ProfileSidebar";
 import { clearProfileSetupFlowFlag, isProfileSetupFlowActive } from "@/lib/profile-setup";
 import { ProfileSetupWizard } from "@/components/profile/ProfileSetupWizard";
@@ -27,8 +28,7 @@ function Profile() {
         addSpecialty,
         removeSpecialty,
         clearTransformationPhoto,
-        clearCertificateFile,
-        deleteCertFileFromStorage,
+        refreshProfile,
         handleSubmit,
         handleSignOut,
         handleDeleteConfirm,
@@ -114,26 +114,21 @@ function Profile() {
 
                             <Tabs defaultValue="personal" className="w-full block">
                                 <TabsList className="flex h-12 w-full items-center justify-start rounded-xl bg-card p-1 text-muted-foreground mb-6">
-                                    <TabsTrigger
-                                        value="personal"
-                                        className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                                    >
+                                    <TabsTrigger value="personal" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                                         <User className="w-4 h-4 mr-2 hidden sm:block" />
                                         Personal
                                     </TabsTrigger>
-                                    <TabsTrigger
-                                        value="experience"
-                                        className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                                    >
+                                    <TabsTrigger value="experience" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                                         <Briefcase className="w-4 h-4 mr-2 hidden sm:block" />
                                         Experience
                                     </TabsTrigger>
-                                    <TabsTrigger
-                                        value="certifications"
-                                        className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                                    >
+                                    <TabsTrigger value="credentials" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
                                         <Award className="w-4 h-4 mr-2 hidden sm:block" />
-                                        Credentials & pricing
+                                        Credentials
+                                    </TabsTrigger>
+                                    <TabsTrigger value="proof" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
+                                        <ImageIcon className="w-4 h-4 mr-2 hidden sm:block" />
+                                        Client proof
                                     </TabsTrigger>
                                 </TabsList>
 
@@ -148,6 +143,7 @@ function Profile() {
                                 <TabsContent value="experience" className="mt-0 outline-none">
                                     <CoachingExperienceSection
                                         register={register}
+                                        control={control}
                                         errors={errors}
                                         specialties={specialties}
                                         onAddSpecialty={addSpecialty}
@@ -155,14 +151,21 @@ function Profile() {
                                     />
                                 </TabsContent>
 
-                                <TabsContent value="certifications" className="mt-0 outline-none">
-                                    <CertificationsSection
+                                <TabsContent value="credentials" className="mt-0 outline-none">
+                                    <CredentialsPricingSection
+                                        register={register}
+                                        errors={errors}
+                                        existingCertifications={user?.certifications}
+                                        onRefreshProfile={async () => { await refreshProfile(); }}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent value="proof" className="mt-0 outline-none">
+                                    <ClientProofSection
                                         control={control}
                                         register={register}
                                         errors={errors}
                                         onClearTransformationPhoto={clearTransformationPhoto}
-                                        onClearCertificateFile={clearCertificateFile}
-                                        onDeleteCertFileFromStorage={deleteCertFileFromStorage}
                                     />
                                 </TabsContent>
                             </Tabs>

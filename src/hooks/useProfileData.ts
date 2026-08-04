@@ -9,6 +9,9 @@ import {
   deleteCoachProfile,
   getCoachProfile,
   updateCoachProfile,
+  addTransformationPhotos,
+  removeTransformationPhoto,
+  removeCertification,
 } from "@/services/coaches";
 import { useAuthStore } from "@/stores/auth-store";
 import {
@@ -56,26 +59,26 @@ export function useProfileData({
     [setValue],
   );
 
+  // ── Initial load ─────────────────────────────────────────────────────────────
+
   useEffect(() => {
     let isActive = true;
 
     void getCoachProfile()
       .then((coach) => {
-        if (isActive) {
-          setUser(coach);
-          reset(toFormValues(coach));
-          updateSpecialties(coach.specialties ?? [], false);
-        }
+        if (!isActive) return;
+        setUser(coach);
+        reset(toFormValues(coach));
+        updateSpecialties(coach.specialties ?? [], false);
       })
       .catch((error) => {
-        if (isActive) {
-          setLoadError(
-            getApiErrorMessage(
-              error,
-              "We could not load your profile. Please refresh and try again.",
-            ),
-          );
-        }
+        if (!isActive) return;
+        setLoadError(
+          getApiErrorMessage(
+            error,
+            "We could not load your profile. Please refresh and try again.",
+          ),
+        );
       })
       .finally(() => {
         if (isActive) setIsLoading(false);
@@ -84,6 +87,16 @@ export function useProfileData({
     return () => {
       isActive = false;
     };
+  }, [reset, setUser, updateSpecialties]);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────────
+
+  const refreshProfile = useCallback(async () => {
+    const refreshed = await getCoachProfile();
+    setUser(refreshed);
+    reset(toFormValues(refreshed));
+    updateSpecialties(refreshed.specialties ?? [], false);
+    return refreshed;
   }, [reset, setUser, updateSpecialties]);
 
   const addSpecialty = (nextSpecialty: string) => {
@@ -99,47 +112,24 @@ export function useProfileData({
     );
   };
 
+  // ── Transformation photos ─────────────────────────────────────────────────────
+
   /**
-   * Deletes one transformation photo from S3, then saves the whole profile
-   * with the remaining photos so the backend array stays in sync.
-   * The Remove row button calls this too.
+   * DELETE /coaches/me/transformation-photos?url=...
+   * Removes the photo from the backend and refreshes the form.
    */
   const clearTransformationPhoto = async (photoUrl: string) => {
     const current = form.getValues("transformationPhotos");
-    const remaining = current.filter((p) => p.url !== photoUrl);
-
     // Optimistic UI update
-    form.setValue("transformationPhotos", remaining, { shouldDirty: false });
+    form.setValue(
+      "transformationPhotos",
+      current.filter((p) => p.url !== photoUrl),
+      { shouldDirty: false },
+    );
 
     try {
-      if (photoUrl) {
-        const { deleteFile } = await import("@/services/upload");
-        await deleteFile(photoUrl);
-      }
-
-      // Re-save the entire profile. The remaining photos that already have URLs
-      // will be preserved by sending the full form values — the deleted photo's
-      // URL is gone from form state so it won't be included.
-      const currentFormValues = form.getValues();
-      const {
-        payload,
-        transformationPhotos: newPhotos,
-        certificateFiles,
-      } = toUpdateCoachPayload({
-        ...currentFormValues,
-        specialties: specialties.join(", "),
-      });
-
-      await updateCoachProfile({
-        data: payload,
-        transformationPhotos: newPhotos,
-        certificateFiles,
-      });
-
-      const refreshed = await getCoachProfile();
-      setUser(refreshed);
-      reset(toFormValues(refreshed));
-      updateSpecialties(refreshed.specialties ?? [], false);
+      await removeTransformationPhoto(photoUrl);
+      await refreshProfile();
       toast.success("Photo removed.");
     } catch {
       toast.error("Could not remove photo. Please try again.");
@@ -147,67 +137,23 @@ export function useProfileData({
     }
   };
 
+  // ── Certifications ────────────────────────────────────────────────────────────
+
   /**
-   * Deletes a certificate file from S3, clears its fileUrl in form state,
-   * then re-saves the full profile so the backend record is updated immediately.
+   * DELETE /coaches/me/certifications/{id}
+   * Removes the certification from the backend and refreshes the form.
    */
-  const clearCertificateFile = async (certIndex: number, fileUrl: string) => {
-    // Optimistic UI update
-    form.setValue(`certifications.${certIndex}.fileUrl`, "", {
-      shouldDirty: false,
-    });
-    form.setValue(`certifications.${certIndex}.file`, null, {
-      shouldDirty: false,
-    });
-
+  const clearCertification = async (certificationId: string) => {
     try {
-      if (fileUrl) {
-        const { deleteFile } = await import("@/services/upload");
-        await deleteFile(fileUrl);
-      }
-
-      // Re-save the full profile so the cleared fileUrl is persisted in the DB
-      const currentFormValues = form.getValues();
-      const {
-        payload,
-        transformationPhotos: newPhotos,
-        certificateFiles,
-      } = toUpdateCoachPayload({
-        ...currentFormValues,
-        specialties: specialties.join(", "),
-      });
-
-      await updateCoachProfile({
-        data: payload,
-        transformationPhotos: newPhotos,
-        certificateFiles,
-      });
-
-      const refreshed = await getCoachProfile();
-      setUser(refreshed);
-      reset(toFormValues(refreshed));
-      updateSpecialties(refreshed.specialties ?? [], false);
-      toast.success("Certificate file removed.");
+      await removeCertification(certificationId);
+      await refreshProfile();
+      toast.success("Certification removed.");
     } catch {
-      toast.error("Could not remove certificate file. Please try again.");
-      form.setValue(`certifications.${certIndex}.fileUrl`, fileUrl);
+      toast.error("Could not remove certification. Please try again.");
     }
   };
 
-  /**
-   * Deletes a certificate file from S3 only — no profile re-save.
-   * Used when removing an entire certification card; the cert's removal
-   * from the DB happens on the next form save.
-   */
-  const deleteCertFileFromStorage = async (fileUrl: string) => {
-    try {
-      const { deleteFile } = await import("@/services/upload");
-      await deleteFile(fileUrl);
-    } catch {
-      // Best-effort — the cert card is being removed from the form anyway
-      console.warn("Could not delete certificate file from storage:", fileUrl);
-    }
-  };
+  // ── Main form submit ──────────────────────────────────────────────────────────
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!user) {
@@ -217,22 +163,21 @@ export function useProfileData({
 
     setSubmissionError("");
 
-    const { payload, transformationPhotos, certificateFiles } =
-      toUpdateCoachPayload({
-        ...data,
-        specialties: specialties.join(", "),
-      });
+    const { payload, newTransformationPhotos } = toUpdateCoachPayload({
+      ...data,
+      specialties: specialties.join(", "),
+    });
 
     try {
-      await updateCoachProfile({
-        data: payload,
-        transformationPhotos,
-        certificateFiles,
-      });
-      const refreshedCoach = await getCoachProfile();
-      setUser(refreshedCoach);
-      reset(toFormValues(refreshedCoach));
-      updateSpecialties(refreshedCoach.specialties ?? [], false);
+      // 1. Save all text/scalar profile fields
+      await updateCoachProfile(payload);
+
+      // 2. Upload any new transformation photos
+      if (newTransformationPhotos.length > 0) {
+        await addTransformationPhotos(newTransformationPhotos);
+      }
+
+      await refreshProfile();
       toast.success("Profile updated successfully!");
       onSuccessfulSave?.();
     } catch (error) {
@@ -244,6 +189,8 @@ export function useProfileData({
       toast.error(errorMessage);
     }
   };
+
+  // ── Auth ──────────────────────────────────────────────────────────────────────
 
   const handleSignOut = async () => {
     try {
@@ -292,8 +239,8 @@ export function useProfileData({
     addSpecialty,
     removeSpecialty,
     clearTransformationPhoto,
-    clearCertificateFile,
-    deleteCertFileFromStorage,
+    clearCertification,
+    refreshProfile,
     handleSubmit: handleSubmit(onSubmit),
     handleSignOut,
     handleDeleteConfirm,

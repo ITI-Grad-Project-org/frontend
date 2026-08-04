@@ -95,6 +95,7 @@ export function ProfileSetupWizard({
                 {activeStep === 1 && (
                     <CoachingExperienceSection
                         register={register}
+                        control={control}
                         errors={errors as FieldErrors<ProfileFormData>}
                         specialties={specialties}
                         onAddSpecialty={onAddSpecialty}
@@ -102,7 +103,16 @@ export function ProfileSetupWizard({
                     />
                 )}
 
-                {activeStep === 2 && <CertificationsSection control={control} register={register} errors={errors as FieldErrors<ProfileFormData>} />}
+                {activeStep === 2 && (
+                    <CertificationsSection
+                        control={control}
+                        register={register}
+                        errors={errors as FieldErrors<ProfileFormData>}
+                        existingCertifications={[]}
+                        onClearTransformationPhoto={async () => { }}
+                        onRefreshProfile={async () => { }}
+                    />
+                )}
 
                 <div className="flex flex-wrap items-center justify-between gap-4 pb-8">
                     <button

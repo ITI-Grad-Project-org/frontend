@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import { Calendar, CheckCircle2, Clock3, Globe2, User as UserIcon, XCircle, Camera, Loader2 } from "lucide-react";
+import { Calendar, Globe2, User as UserIcon, Camera, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth-store";
-import { uploadCoachAvatar } from "@/services/coaches";
+import { uploadCoachAvatar, removeCoachAvatar } from "@/services/coaches";
 import type { Coach } from "@/types/auth";
 
 interface UserCardProps {
@@ -13,8 +13,13 @@ interface UserCardProps {
 function CoachAvatar({ user }: { user: Coach | null }) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
+    const [removing, setRemoving] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const setUser = useAuthStore((s) => s.setUser);
+
+    const hasAvatar = Boolean(previewUrl ?? user?.avatarUrl);
+
+    // ── Upload new avatar ─────────────────────────────────────────────────────
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -30,25 +35,15 @@ function CoachAvatar({ user }: { user: Coach | null }) {
             return;
         }
 
-        // Capture old URL before overwriting — used to clean up S3 after success
-        const oldUrl = user?.avatarUrl ?? null;
-
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
         setUploading(true);
 
         try {
+            // PUT /coaches/me/avatar
             const updated = await uploadCoachAvatar(file);
             setUser(updated);
-
-            // Delete the old file from S3 now that the new one is confirmed saved
-            if (oldUrl) {
-                const { deleteFile } = await import("@/services/upload");
-                await deleteFile(oldUrl).catch(() => {
-                    // Non-critical — old file cleanup failure shouldn't surface to the user
-                });
-            }
-
+            setPreviewUrl(null); // server URL now in updated.avatarUrl
             toast.success("Profile photo updated.");
         } catch {
             setPreviewUrl(null);
@@ -59,10 +54,28 @@ function CoachAvatar({ user }: { user: Coach | null }) {
         }
     };
 
+    // ── Remove avatar ─────────────────────────────────────────────────────────
+
+    const handleRemove = async () => {
+        setRemoving(true);
+        try {
+            // DELETE /coaches/me/avatar
+            const updated = await removeCoachAvatar();
+            setUser(updated);
+            toast.success("Profile photo removed.");
+        } catch {
+            toast.error("Failed to remove photo. Please try again.");
+        } finally {
+            setRemoving(false);
+        }
+    };
+
     const src = previewUrl ?? user?.avatarUrl ?? undefined;
+    const busy = uploading || removing;
 
     return (
-        <>
+        <div className="flex flex-col items-center mb-4">
+            {/* Clickable avatar with camera overlay */}
             <input
                 ref={fileInputRef}
                 type="file"
@@ -74,9 +87,9 @@ function CoachAvatar({ user }: { user: Coach | null }) {
             <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                disabled={busy}
                 title="Click to change profile photo"
-                className="relative mb-4 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 group/avatar disabled:cursor-not-allowed"
+                className="relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 group/avatar disabled:cursor-not-allowed"
             >
                 <Avatar className="w-24 h-24">
                     <AvatarImage src={src} alt={user ? `${user.firstName} ${user.lastName}` : ""} className="object-cover" />
@@ -85,7 +98,7 @@ function CoachAvatar({ user }: { user: Coach | null }) {
                     </AvatarFallback>
                 </Avatar>
 
-                {/* Camera overlay on hover */}
+                {/* Overlay on hover */}
                 <span
                     aria-hidden
                     className="absolute inset-0 flex items-center justify-center rounded-full bg-ink/60 opacity-0 transition-opacity duration-150 group-hover/avatar:opacity-100"
@@ -96,7 +109,19 @@ function CoachAvatar({ user }: { user: Coach | null }) {
                     }
                 </span>
             </button>
-        </>
+
+            {/* Remove link — only shown when avatar exists */}
+            {hasAvatar && (
+                <button
+                    type="button"
+                    onClick={() => void handleRemove()}
+                    disabled={busy}
+                    className="mt-1.5 text-[11px] font-bold text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {removing ? "Removing…" : "Remove photo"}
+                </button>
+            )}
+        </div>
     );
 }
 
@@ -144,7 +169,7 @@ export function UserCard({ user }: UserCardProps) {
                 </div>
             </div>
 
-            <div className="w-full border-t border-border my-4 pt-4 space-y-3 text-left">
+            {/* <div className="w-full border-t border-border my-4 pt-4 space-y-3 text-left">
                 <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Email Status</span>
                     {user?.isEmailVerified ? (
@@ -169,15 +194,9 @@ export function UserCard({ user }: UserCardProps) {
                         </span>
                     )}
                 </div>
-            </div>
+            </div> */}
 
             <div className="w-full border-t border-border pt-4 space-y-3 text-left text-sm">
-                {/* <div className={detailRowClass}>
-                    <span className="text-muted-foreground flex items-center gap-1.5">
-                        <IdCard className="w-4 h-4" /> Profile ID
-                    </span>
-                    <span className={valueClass}>{user?.id ?? "N/A"}</span>
-                </div> */}
                 <div className={detailRowClass}>
                     <span className="text-muted-foreground flex items-center gap-1.5">
                         <Calendar className="w-4 h-4" /> Joined
@@ -188,7 +207,7 @@ export function UserCard({ user }: UserCardProps) {
                             : "N/A"}
                     </span>
                 </div>
-                <div className={detailRowClass}>
+                {/* <div className={detailRowClass}>
                     <span className="text-muted-foreground flex items-center gap-1.5">
                         <Clock3 className="w-4 h-4" /> Last login
                     </span>
@@ -197,7 +216,7 @@ export function UserCard({ user }: UserCardProps) {
                             ? new Date(user.lastLoginAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
                             : "N/A"}
                     </span>
-                </div>
+                </div> */}
                 <div className={detailRowClass}>
                     <span className="text-muted-foreground flex items-center gap-1.5">
                         <Globe2 className="w-4 h-4" /> Updated

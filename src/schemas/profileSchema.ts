@@ -40,6 +40,7 @@ function boundedNumberSchema(min: number, max: number, message: string) {
 }
 
 export const certificationSchema = z.object({
+  id: z.string().optional(), // present for existing server-side certs
   name: z.string().trim().min(1, "Certification name is required"),
   issuer: optionalTextSchema.optional(),
   issueDate: optionalDateSchema.optional(),
@@ -47,7 +48,7 @@ export const certificationSchema = z.object({
   fileUrl: optionalUrlSchema.optional(),
   credentialUrl: optionalUrlSchema.optional(),
   file: z.instanceof(File).optional().nullable(),
-  fileKey: z.string().optional(), // S3 key for deletion
+  fileKey: z.string().optional(),
 });
 
 export const specialtyOptions = [
@@ -304,25 +305,22 @@ function cleanText(value: string | null | undefined): string {
   return value?.trim() ?? "";
 }
 
-function cleanOptionalText(
-  value: string | null | undefined,
-): string | undefined {
+/** Returns the trimmed string, or null if empty — tells the backend to clear the field. */
+function cleanNullableText(value: string | null | undefined): string | null {
   const nextValue = cleanText(value);
-  return nextValue ? nextValue : undefined;
+  return nextValue || null;
 }
 
-function cleanUrl(value: string | null | undefined): string | undefined {
+function cleanUrl(value: string | null | undefined): string | null {
   const nextValue = cleanText(value);
-  return nextValue ? nextValue : undefined;
+  return nextValue || null;
 }
 
-function cleanNumber(value: string | undefined): number | undefined {
-  if (!value || value.trim() === "") {
-    return undefined;
-  }
-
-  const nextValue = Number(value);
-  return Number.isFinite(nextValue) ? nextValue : undefined;
+/** Returns the parsed number, or null if empty — tells the backend to clear the field. */
+function cleanNullableNumber(value: string | undefined): number | null {
+  if (!value || value.trim() === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
 }
 
 export function toFormValues(coach: Coach): ProfileFormData {
@@ -338,6 +336,7 @@ export function toFormValues(coach: Coach): ProfileFormData {
     careerExperience: coach.careerExperience ?? "",
     certifications:
       coach.certifications?.map((cert) => ({
+        id: cert.id ?? "",
         name: cert.name ?? "",
         issuer: cert.issuer ?? "",
         issueDate: cert.issueDate ?? "",
@@ -362,58 +361,39 @@ export function toFormValues(coach: Coach): ProfileFormData {
 
 export function toUpdateCoachPayload(data: ProfileFormData): {
   payload: UpdateCoachPayload;
-  transformationPhotos: File[];
-  certificateFiles: File[];
+  newTransformationPhotos: File[];
 } {
   const availabilityHours = formatAvailabilityHours(data);
 
-  const transformationPhotoFiles = data.transformationPhotos
+  // Only new photos (no URL yet) need to be uploaded
+  const newTransformationPhotos = data.transformationPhotos
     .map((photo) => photo.file)
     .filter((file): file is File => file instanceof File);
-
-  const certificateFiles = data.certifications
-    .map((cert) => cert.file)
-    .filter((file): file is File => file instanceof File);
-
-  const certifications = data.certifications
-    .map((cert) => ({
-      name: cert.name.trim(),
-      issuer: cleanOptionalText(cert.issuer),
-      issueDate: cleanOptionalText(cert.issueDate),
-      expiryDate: cleanOptionalText(cert.expiryDate),
-      fileUrl: cleanUrl(cert.fileUrl),
-      credentialUrl: cleanUrl(cert.credentialUrl),
-    }))
-    .filter((cert) => cert.name.length > 0);
 
   const payload: UpdateCoachPayload = {
     firstName: cleanText(data.firstName),
     lastName: cleanText(data.lastName),
-    phone: cleanOptionalText(data.phone),
-    age: cleanNumber(data.age),
-    gender: data.gender || undefined,
-    location: cleanOptionalText(data.location),
+    phone: cleanNullableText(data.phone),
+    age: cleanNullableNumber(data.age),
+    gender: (data.gender || null) as UpdateCoachPayload["gender"],
+    location: cleanNullableText(data.location),
     specialties: data.specialties
       .split(",")
       .map((specialty) => specialty.trim())
       .filter(Boolean),
-    yearsExperience: cleanNumber(data.yearsExperience),
-    careerExperience: cleanOptionalText(data.careerExperience),
-    certifications,
+    yearsExperience: cleanNullableNumber(data.yearsExperience),
+    careerExperience: cleanNullableText(data.careerExperience),
     portfolioUrl: cleanUrl(data.portfolioUrl),
-    featuredReviews: cleanOptionalText(data.featuredReviews),
-    bio: cleanOptionalText(data.bio),
-    offlineAvailability: data.offlineAvailability || undefined,
-    availabilityHours: availabilityHours || undefined,
-    priceFrom: cleanNumber(data.priceFrom),
-    priceTo: cleanNumber(data.priceTo),
+    featuredReviews: cleanNullableText(data.featuredReviews),
+    bio: cleanNullableText(data.bio),
+    offlineAvailability: (data.offlineAvailability ||
+      null) as UpdateCoachPayload["offlineAvailability"],
+    availabilityHours: availabilityHours || null,
+    priceFrom: cleanNullableNumber(data.priceFrom),
+    priceTo: cleanNullableNumber(data.priceTo),
   };
 
-  return {
-    payload,
-    transformationPhotos: transformationPhotoFiles,
-    certificateFiles,
-  };
+  return { payload, newTransformationPhotos };
 }
 
 export const inputClassName =
