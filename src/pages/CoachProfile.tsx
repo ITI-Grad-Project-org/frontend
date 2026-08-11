@@ -721,7 +721,7 @@ function CoachProfile() {
                       Coaching Studio
                     </p>
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-14 h-14 rounded-2xl shrink-0" >
+                      <Avatar className="w-14 h-14 shrink-0" >
                         {coach.tenant.logoUrl ? (
                           <AvatarImage
                             src={coach.tenant.logoUrl}
@@ -729,7 +729,7 @@ function CoachProfile() {
                             className="object-cover"
                           />
                         ) : null}
-                        <AvatarFallback className="rounded-2xl bg-white/10 text-white/60">
+                        <AvatarFallback className="bg-white/10 text-white/60">
                           <Building2 className="w-7 h-7" />
                         </AvatarFallback>
                       </Avatar>
