@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { getApiErrorMessage } from "@/lib/api";
 import {
@@ -21,6 +21,10 @@ type SocketAck<T> = { ok: true; data?: T } | { ok: false; error: string };
 const socketBaseUrl =
   import.meta.env.VITE_API_BASE_URL ?? "https://api.74.162.148.3.nip.io";
 
+// How often to poll for new messages when the socket is not connected.
+const POLL_MESSAGES_MS = 3_000;
+const POLL_CONVERSATIONS_MS = 5_000;
+
 function isSocketAck<T>(value: unknown): value is SocketAck<T> {
   return value !== null && typeof value === "object" && "ok" in value;
 }
@@ -39,7 +43,8 @@ function formatLocalMessage(
     clientId,
     senderType: "coach",
     body,
-    readAt: now,
+    // null until the server confirms — lets the tick stay grey (sent)
+    readAt: null,
     createdAt: now,
     localStatus: "sending",
   };
@@ -130,6 +135,12 @@ export function useCoachChat(clientId?: string) {
   const socketRef = useRef<Socket | null>(null);
   const markReadInFlightRef = useRef(false);
 
+  // Stable refs so socket event handlers never go stale
+  const clientIdRef = useRef(clientId);
+  useEffect(() => {
+    clientIdRef.current = clientId;
+  });
+
   const selectedConversation = useMemo(
     () =>
       conversations.find(
@@ -141,6 +152,7 @@ export function useCoachChat(clientId?: string) {
   const displayedClient =
     clientConnection?.client ?? selectedConversation?.client ?? null;
 
+  // ─── Socket lifecycle (only recreated on token change) ───────────────────
   useEffect(() => {
     if (!accessToken) {
       socketRef.current?.disconnect();
@@ -158,15 +170,14 @@ export function useCoachChat(clientId?: string) {
     socketRef.current = socket;
 
     const handleMessage = (message: ChatMessage) => {
-      if (message.clientId === clientId) {
+      if (message.clientId === clientIdRef.current) {
         setMessages((current) => replaceThreadMessage(current, message));
       }
 
       setConversations((current) => {
         const existingConversation = current.find(
-          (conversation) => conversation.clientId === message.clientId,
+          (c) => c.clientId === message.clientId,
         );
-
         return upsertConversation(current, {
           clientId: message.clientId,
           client: getFallbackClient(
@@ -184,9 +195,8 @@ export function useCoachChat(clientId?: string) {
     }) => {
       setConversations((current) => {
         const existingConversation = current.find(
-          (conversation) => conversation.clientId === payload.clientId,
+          (c) => c.clientId === payload.clientId,
         );
-
         return upsertConversation(current, {
           clientId: payload.clientId,
           client: getFallbackClient(
@@ -204,10 +214,12 @@ export function useCoachChat(clientId?: string) {
       readAt: string;
       count: number;
     }) => {
-      if (payload.clientId !== clientId || payload.reader !== "client") {
+      if (
+        payload.clientId !== clientIdRef.current ||
+        payload.reader !== "client"
+      ) {
         return;
       }
-
       setMessages((current) =>
         current.map((message) =>
           message.senderType === "coach" && !message.readAt
@@ -217,31 +229,7 @@ export function useCoachChat(clientId?: string) {
       );
     };
 
-    const joinConversation = () => {
-      if (!clientId) {
-        return;
-      }
-
-      socket.emit(
-        "conversation:join",
-        { clientId },
-        (ack?: SocketAck<void>) => {
-          if (ack && !ack.ok) {
-            setError(
-              getApiErrorMessage(
-                ack.error,
-                "We could not open this conversation live.",
-              ),
-            );
-          }
-        },
-      );
-    };
-
-    socket.on("connect", () => {
-      setSocketState("connected");
-      joinConversation();
-    });
+    socket.on("connect", () => setSocketState("connected"));
     socket.on("disconnect", () => setSocketState("disconnected"));
     socket.on("connect_error", () => setSocketState("error"));
     socket.on("message:new", handleMessage);
@@ -253,9 +241,7 @@ export function useCoachChat(clientId?: string) {
       setSocketState("error");
     });
 
-    const connectTimer = window.setTimeout(() => {
-      socket.connect();
-    }, 0);
+    const connectTimer = window.setTimeout(() => socket.connect(), 0);
 
     return () => {
       window.clearTimeout(connectTimer);
@@ -266,148 +252,135 @@ export function useCoachChat(clientId?: string) {
       socket.off("conversation:updated", handleConversationUpdated);
       socket.off("messages:read", handleRead);
       socket.off("error");
-      if (socket.connected) {
-        socket.disconnect();
-      }
+      if (socket.connected) socket.disconnect();
       socketRef.current = null;
+      setSocketState("idle");
     };
-  }, [accessToken, clientId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessToken]);
+
+  // ─── Join conversation room (separate from socket lifecycle) ─────────────
+  useEffect(() => {
+    if (socketState !== "connected" || !clientId) return;
+
+    const socket = socketRef.current;
+    if (!socket) return;
+
+    socket.emit("conversation:join", { clientId }, (ack?: SocketAck<void>) => {
+      if (ack && !ack.ok) {
+        setError(
+          getApiErrorMessage(
+            ack.error,
+            "We could not open this conversation live.",
+          ),
+        );
+      }
+    });
+  }, [socketState, clientId]);
+
+  // ─── Load conversations list (once on mount, then poll if socket is down) ─
+  const loadConversations = useCallback(async () => {
+    try {
+      const data = await getCoachConversations();
+      setConversations(data);
+    } catch (err) {
+      setError(
+        getApiErrorMessage(err, "We could not load your chat conversations."),
+      );
+    }
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    setIsLoadingConversations(true);
+    void loadConversations().finally(() => setIsLoadingConversations(false));
+  }, [loadConversations]);
 
-    async function loadConversations(isInitialLoad = false) {
-      if (isInitialLoad) {
-        setIsLoadingConversations(true);
-      }
-
-      try {
-        const data = await getCoachConversations();
-
-        if (isMounted) {
-          setConversations(data);
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(
-            getApiErrorMessage(
-              err,
-              "We could not load your chat conversations.",
-            ),
-          );
-        }
-      } finally {
-        if (isMounted && isInitialLoad) {
-          setIsLoadingConversations(false);
-        }
-      }
-    }
-
-    void loadConversations(true);
-
-    let intervalId: number | undefined;
-    if (socketState !== "connected") {
-      intervalId = window.setInterval(() => {
-        void loadConversations(false);
-      }, 5000);
-    }
-
-    return () => {
-      isMounted = false;
-      if (intervalId) {
-        window.clearInterval(intervalId);
-      }
-    };
-  }, [socketState]);
-
+  // Poll conversations when socket is not connected
   useEffect(() => {
+    if (socketState === "connected") return;
+
+    const id = window.setInterval(
+      () => void loadConversations(),
+      POLL_CONVERSATIONS_MS,
+    );
+    return () => window.clearInterval(id);
+  }, [socketState, loadConversations]);
+
+  // ─── Load thread (only when clientId changes — NOT when socketState changes) ─
+  useEffect(() => {
+    if (!clientId) {
+      setClientConnection(null);
+      setMessages([]);
+      setIsLoadingThread(false);
+      return;
+    }
+
     let isMounted = true;
+    setIsLoadingThread(true);
+    setError(null);
+    setMessages([]);
+    setClientConnection(null);
 
-    async function loadThread(isInitialLoad = false) {
-      if (!clientId) {
-        setClientConnection(null);
-        setMessages([]);
-        if (isInitialLoad) {
-          setIsLoadingThread(false);
-        }
-        return;
-      }
-
-      if (isInitialLoad) {
-        setIsLoadingThread(true);
-        setError(null);
-        setMessages([]);
-        setClientConnection(null);
-      }
-
-      try {
-        const [client, threadMessages] = await Promise.all([
-          getClientById(clientId),
-          getCoachConversationMessages(clientId),
-        ]);
-
-        if (!isMounted) {
-          return;
-        }
-
+    Promise.all([
+      getClientById(clientId),
+      getCoachConversationMessages(clientId),
+    ])
+      .then(([client, threadMessages]) => {
+        if (!isMounted) return;
         setClientConnection(client);
-        // Replace the active thread instead of merging it into whatever was
-        // previously on screen; otherwise messages leak across client switches.
-        setMessages(threadMessages.map((message) => ({ ...message })));
-      } catch (err) {
-        if (isMounted && isInitialLoad) {
-          setError(
-            getApiErrorMessage(err, "We could not load this chat thread."),
-          );
-          setMessages([]);
-          setClientConnection(null);
-        }
-      } finally {
-        if (isMounted && isInitialLoad) {
-          setIsLoadingThread(false);
-        }
-      }
-    }
-
-    void loadThread(true);
-
-    let intervalId: number | undefined;
-    if (clientId && socketState !== "connected") {
-      intervalId = window.setInterval(() => {
-        void loadThread(false);
-      }, 3000);
-    }
+        setMessages(threadMessages.map((m) => ({ ...m })));
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setError(
+          getApiErrorMessage(err, "We could not load this chat thread."),
+        );
+        setMessages([]);
+        setClientConnection(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoadingThread(false);
+      });
 
     return () => {
       isMounted = false;
-      if (intervalId) {
-        window.clearInterval(intervalId);
-      }
     };
+    // Only re-run when the selected client changes — NOT on socketState changes.
+    // The socket pushes new messages in real time; polling below is the fallback.
+  }, [clientId]);
+
+  // Poll the thread when socket is not connected
+  useEffect(() => {
+    if (!clientId || socketState === "connected") return;
+
+    const id = window.setInterval(async () => {
+      try {
+        const threadMessages = await getCoachConversationMessages(clientId);
+        setMessages(threadMessages.map((m) => ({ ...m })));
+      } catch {
+        // silent — the user can see the last loaded state
+      }
+    }, POLL_MESSAGES_MS);
+
+    return () => window.clearInterval(id);
   }, [clientId, socketState]);
 
+  // ─── Mark unread messages as read ────────────────────────────────────────
   useEffect(() => {
-    if (!clientId || !messages.length) {
-      return;
-    }
+    if (!clientId || !messages.length) return;
 
-    const hasUnreadClientMessages = messages.some(
-      (message) => message.senderType === "client" && !message.readAt,
+    const hasUnread = messages.some(
+      (m) => m.senderType === "client" && !m.readAt,
     );
 
-    if (!hasUnreadClientMessages || markReadInFlightRef.current) {
-      return;
-    }
+    if (!hasUnread || markReadInFlightRef.current) return;
 
     let isMounted = true;
     markReadInFlightRef.current = true;
 
     void markCoachConversationRead(clientId)
       .then(({ count }) => {
-        if (!isMounted) {
-          return;
-        }
-
+        if (!isMounted) return;
         setMessages((current) => markThreadRead(current));
         setConversations((current) =>
           current.map((conversation) =>
@@ -431,9 +404,7 @@ export function useCoachChat(clientId?: string) {
         }
       })
       .finally(() => {
-        if (isMounted) {
-          markReadInFlightRef.current = false;
-        }
+        if (isMounted) markReadInFlightRef.current = false;
       });
 
     return () => {
@@ -441,42 +412,32 @@ export function useCoachChat(clientId?: string) {
     };
   }, [clientId, messages]);
 
+  // ─── Send helpers ─────────────────────────────────────────────────────────
   async function emitWithAck<T>(
     event: string,
     payload: Record<string, unknown>,
   ) {
     const socket = socketRef.current;
-
-    if (!socket || !socket.connected) {
+    if (!socket || !socket.connected)
       throw new Error("Chat socket is not connected.");
-    }
 
     return new Promise<T>((resolve, reject) => {
       socket.emit(event, payload, (ack: unknown) => {
         if (isSocketAck<T>(ack)) {
-          if (ack.ok) {
-            resolve(ack.data as T);
-          } else {
-            reject(new Error(ack.error));
-          }
+          if (ack.ok) resolve(ack.data as T);
+          else reject(new Error(ack.error));
           return;
         }
-
         reject(new Error("Unexpected chat acknowledgement."));
       });
     });
   }
 
   async function sendMessage(bodyOverride?: string) {
-    if (!clientId) {
-      throw new Error("Select a client before sending a message.");
-    }
+    if (!clientId) throw new Error("Select a client before sending a message.");
 
     const body = (bodyOverride ?? draft).trim();
-
-    if (!body) {
-      throw new Error("Message body cannot be empty.");
-    }
+    if (!body) throw new Error("Message body cannot be empty.");
 
     const clientMsgId =
       typeof crypto.randomUUID === "function"
@@ -543,16 +504,10 @@ export function useCoachChat(clientId?: string) {
   }
 
   function retryFailedMessage(clientMsgId: string) {
-    const failedMessage = messages.find(
-      (message) => message.clientMsgId === clientMsgId,
-    );
-
-    if (!failedMessage) {
-      return;
-    }
-
+    const failedMessage = messages.find((m) => m.clientMsgId === clientMsgId);
+    if (!failedMessage) return;
     setMessages((current) =>
-      current.filter((message) => message.clientMsgId !== clientMsgId),
+      current.filter((m) => m.clientMsgId !== clientMsgId),
     );
     void sendMessage(failedMessage.body);
   }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import {
   AlertCircle,
+  ArrowLeft,
   ArrowUpRight,
   MessageCircleMore,
   RefreshCw,
@@ -86,8 +87,8 @@ export default function Chat() {
   }, [clientId, messages.length, isLoadingThread]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
-      <div className="flex flex-col gap-3 rounded-4xl border border-border/80 bg-card/90 p-6 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/80">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden md:gap-6">
+      <div className="hidden md:flex flex-col gap-3 rounded-4xl border border-border/80 bg-card/90 p-4 shadow-sm backdrop-blur supports-backdrop-filter:bg-card/80 md:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -101,7 +102,7 @@ export default function Chat() {
               </Badge>
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-foreground">{headerName}</h1>
+              <h1 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">{headerName}</h1>
               <p className="mt-1 text-sm text-muted-foreground">{headerEmail}</p>
             </div>
           </div>
@@ -130,7 +131,12 @@ export default function Chat() {
       </div>
 
       <div className="grid min-h-0 flex-1 gap-6 overflow-hidden lg:grid-cols-[340px_minmax(0,1fr)]">
-        <aside className="flex min-h-0 flex-col overflow-hidden rounded-4xl border border-border/80 bg-card shadow-sm">
+        <aside
+          className={cn(
+            "min-h-0 flex-col overflow-hidden rounded-4xl border border-border/80 bg-card shadow-sm",
+            clientId ? "hidden lg:flex" : "flex",
+          )}
+        >
           <div className="flex items-center justify-between border-b border-border/70 px-5 py-4">
             <div>
               <p className="text-sm font-semibold text-foreground">Conversations</p>
@@ -208,9 +214,23 @@ export default function Chat() {
           </ScrollArea>
         </aside>
 
-        <section className="flex min-h-0 flex-col overflow-hidden rounded-4xl border border-border/80 bg-card shadow-sm">
+        <section
+          className={cn(
+            "min-h-0 flex-col overflow-hidden rounded-4xl border border-border/80 bg-card shadow-sm",
+            clientId ? "flex" : "hidden lg:flex",
+          )}
+        >
           <div className="flex items-center justify-between gap-4 border-b border-border/70 px-5 py-4">
             <div className="flex min-w-0 items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="-ml-1 shrink-0 px-2 lg:hidden"
+                onClick={() => navigate("/dashboard/chat")}
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
               <Avatar className="h-12 w-12 border border-border">
                 <AvatarImage src={clientConnection?.client.avatarUrl ?? displayedClient?.avatarUrl ?? ""} alt={headerName} />
                 <AvatarFallback className="bg-muted text-sm font-bold text-muted-foreground">
@@ -224,9 +244,9 @@ export default function Chat() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Badge variant="outline">
+              {/* <Badge variant="outline">
                 {isLoadingThread ? "Loading thread" : `${messages.length} messages`}
-              </Badge>
+              </Badge> */}
               {selectedConversation?.lastMessage && (
                 <Badge variant="outline" className="hidden sm:inline-flex">
                   Last update {formatMessageTime(selectedConversation.lastMessage.createdAt)}
@@ -236,7 +256,7 @@ export default function Chat() {
           </div>
 
           <ScrollArea className="min-h-0 flex-1">
-            <div className="flex min-h-full flex-col gap-5 bg-[radial-gradient(circle_at_top,oklch(0_0_0/0.04),transparent_44%)] p-5">
+            <div className="flex min-h-full flex-col gap-5 bg-[radial-gradient(circle_at_top,color-mix(in_oklab,var(--color-foreground)_4%,transparent),transparent_44%)] p-5">
               {isLoadingThread ? (
                 <div className="space-y-4">
                   <div className="ml-auto h-16 w-3/4 animate-pulse rounded-[1.5rem] bg-muted/60" />
@@ -301,9 +321,20 @@ export default function Chat() {
                             <p className="whitespace-pre-wrap text-sm leading-6">{message.body}</p>
                             <MessageFooter className="px-0 pt-2 text-[11px] text-current/70">
                               <span>{formatMessageTime(message.createdAt)}</span>
-                              {isCoach && (
-                                <span className="ml-2">
-                                  {message.readAt ? "Read" : message.localStatus === "failed" ? "Failed" : "Sent"}
+                              {isCoach && message.localStatus !== "failed" && (
+                                <span className={cn("ml-1", message.readAt ? "text-info" : "text-current/50")}>
+                                  {message.readAt ? (
+                                    // Double tick (read) — both strokes blue
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 12" className="inline h-[14px] w-[20px] align-[-1px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-label="Read">
+                                      <polyline points="1,6 5,10 13,2" />
+                                      <polyline points="6,6 10,10 18,2" />
+                                    </svg>
+                                  ) : (
+                                    // Single tick (sent) — grey
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 12" className="inline h-[14px] w-[14px] align-[-1px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-label="Sent">
+                                      <polyline points="1,6 5,10 13,2" />
+                                    </svg>
+                                  )}
                                 </span>
                               )}
                               {message.localStatus === "failed" && (
