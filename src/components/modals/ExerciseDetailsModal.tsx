@@ -57,11 +57,11 @@ export default function ExerciseDetailsModal({ exercise, onEdit, onClose }: Prop
         {/* ── Header ──────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between p-6 pb-4 border-b border-border shrink-0">
           <div className="flex items-center gap-4">
-            <Avatar className="w-12 h-12 rounded-xl shrink-0 bg-card">
+            <Avatar className="w-12 h-12 shrink-0 bg-card">
               {thumbnailUrl ? (
-                <AvatarImage src={thumbnailUrl} alt={name} className="object-cover rounded-xl" />
+                <AvatarImage src={thumbnailUrl} alt={name} className="object-cover" />
               ) : null}
-              <AvatarFallback className="rounded-xl bg-muted text-muted-foreground">
+              <AvatarFallback className="bg-muted text-muted-foreground">
                 <DumbbellIcon className="w-6 h-6" />
               </AvatarFallback>
             </Avatar>

@@ -19,7 +19,7 @@ export type ChatThreadMessage = ChatMessage & {
 type SocketAck<T> = { ok: true; data?: T } | { ok: false; error: string };
 
 const socketBaseUrl =
-  import.meta.env.VITE_API_BASE_URL ?? "https://api.74.162.148.3.nip.io";
+  import.meta.env.VITE_API_BASE_URL ?? "https://api.20.54.71.51.nip.io";
 
 // How often to poll for new messages when the socket is not connected.
 const POLL_MESSAGES_MS = 3_000;

@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddExerciseModal from "@/components/modals/AddExerciseModal";
 import ExerciseDetailsModal from "@/components/modals/ExerciseDetailsModal";
 import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
 import { ExerciseFilters } from "@/components/exercises/ExerciseFilters";
 import { ExerciseGrid } from "@/components/exercises/ExerciseGrid";
+import { Pagination } from "@/components/ui/Pagination";
 import { useExercisesData } from "@/hooks/useExercisesData";
 import type { Exercise } from "@/types/exercise";
 import { Plus } from "lucide-react";
+
+const PAGE_SIZE = 12;
 
 export default function Exercises() {
   const {
@@ -22,6 +25,20 @@ export default function Exercises() {
     refreshData,
     actions,
   } = useExercisesData();
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset to page 1 whenever filters change (filteredExercises length changes)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredExercises.length, filters.search, filters.category, filters.primaryMuscle, filters.includeInactive, filters.showArchivedOnly]);
+
+  const totalPages = Math.ceil(filteredExercises.length / PAGE_SIZE);
+  const pagedExercises = filteredExercises.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   // Modals view state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,7 +99,7 @@ export default function Exercises() {
       <ExerciseGrid
         loading={loading}
         error={error}
-        exercises={filteredExercises}
+        exercises={pagedExercises}
         hasActiveFilter={hasActiveFilter}
         onRetry={actions.handleRetry}
         onOpenAdd={handleOpenAdd}
@@ -90,6 +107,13 @@ export default function Exercises() {
         onEdit={handleOpenEdit}
         onArchive={actions.setExerciseToDelete}
         onUnarchive={actions.handleUnarchive}
+      />
+
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
       />
 
       {/* Modals & Dialogs */}

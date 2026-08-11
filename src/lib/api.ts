@@ -19,7 +19,7 @@ let refreshPromise: Promise<string> | null = null;
 
 export const api = axios.create({
   baseURL:
-    import.meta.env.VITE_API_BASE_URL ?? "https://api.74.162.148.3.nip.io",
+    import.meta.env.VITE_API_BASE_URL ?? "https://api.20.54.71.51.nip.io",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

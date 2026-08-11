@@ -73,7 +73,7 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onU
       <CardMain className="h-full justify-start gap-4">
         {/* Top row — thumbnail + actions */}
         <div className="flex items-start justify-between gap-2">
-          <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-card">
+          <Avatar className="w-12 h-12 sm:w-14 sm:h-14 rounded-full shrink-0 bg-white">
             {thumbnailUrl ? (
               <AvatarImage
                 src={thumbnailUrl}
