@@ -4,6 +4,7 @@ import { usePlanLogs } from "@/hooks/usePlanLogs";
 import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { PlanSummaryCard } from "@/components/plans/logs/PlanSummaryCard";
 import { PlanLogsStats } from "@/components/plans/logs/PlanLogsStats";
+import { PlanLogsCharts } from "@/components/plans/logs/PlanLogsCharts";
 import { PlanLogsTable } from "@/components/plans/logs/PlanLogsTable";
 
 export default function PlanLogs() {
@@ -94,6 +95,9 @@ export default function PlanLogs() {
 
       {/* Metrics Row */}
       <PlanLogsStats stats={stats} />
+
+      {/* Charts */}
+      <PlanLogsCharts logs={logs} />
 
       {/* Logs Table */}
       <PlanLogsTable

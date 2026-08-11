@@ -92,6 +92,7 @@ export type AddLibraryExerciseToDayPayload = {
     setType: "working" | "warmup" | "drop_set" | "amrap" | "to_failure";
     repsMin?: number | null;
     repsMax?: number | null;
+    durationSeconds?: number | null;
     weightKg?: number | null;
     intensityType?: "rpe" | "rir" | "percent_1rm" | null;
     intensityValue?: number | null;
@@ -220,7 +221,12 @@ export type WorkoutLogExercise = {
   sets: WorkoutLogSet[];
 };
 
-export type WorkoutLogStatus = "completed" | "in_progress" | "skipped" | "partial" | string;
+export type WorkoutLogStatus =
+  | "completed"
+  | "in_progress"
+  | "skipped"
+  | "partial"
+  | string;
 
 export type WorkoutLog = {
   id: string;
@@ -284,4 +290,3 @@ export type ProgramDayLogResponse = {
   prescription: PrescribedDayInfo;
   workoutLog: WorkoutLog | null;
 };
-

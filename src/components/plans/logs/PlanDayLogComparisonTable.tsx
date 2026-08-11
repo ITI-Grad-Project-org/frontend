@@ -1,4 +1,5 @@
-import { Layers } from "lucide-react";
+import { Dumbbell, Layers } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { PrescribedDayInfo, WorkoutLog, WorkoutLogSet, PlannedExerciseSet } from "@/types/plans";
 import { OutcomeBadge } from "./OutcomeBadge";
 
@@ -43,13 +44,18 @@ export function PlanDayLogComparisonTable({ prescription, workoutLog }: PlanDayL
                     {pExercise.coachNotes ? ` · Coach Notes: ${pExercise.coachNotes}` : ""}
                   </p>
                 </div>
-                {pExercise.demoGifUrl && (
-                  <img
-                    src={pExercise.demoGifUrl}
-                    alt={pExercise.exerciseName}
-                    className="size-12 rounded-xl object-cover border border-border"
-                  />
-                )}
+                <Avatar className="size-12 border border-border shrink-0 bg-muted">
+                  {pExercise.demoGifUrl ? (
+                    <AvatarImage
+                      src={pExercise.demoGifUrl}
+                      alt={pExercise.exerciseName}
+                      className="object-cover"
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-muted text-muted-foreground">
+                    <Dumbbell className="size-5" />
+                  </AvatarFallback>
+                </Avatar>
               </div>
 
               <div className="overflow-x-auto">

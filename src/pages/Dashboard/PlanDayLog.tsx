@@ -5,6 +5,7 @@ import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { PlanSummaryCard } from "@/components/plans/logs/PlanSummaryCard";
 import { LogStatusBadge } from "@/components/plans/logs/LogStatusBadge";
 import { PlanDayLogComparisonTable } from "@/components/plans/logs/PlanDayLogComparisonTable";
+import { PlanDayLogCharts } from "@/components/plans/logs/PlanDayLogCharts";
 
 function formatDate(isoStr: string | null | undefined): string {
   if (!isoStr) return "—";
@@ -123,6 +124,9 @@ export default function PlanDayLog() {
           <p className="text-xs mt-1">{workoutLog.clientNotes}</p>
         </div>
       )}
+
+      {/* Session Charts */}
+      <PlanDayLogCharts prescription={prescription} workoutLog={workoutLog} />
 
       {/* Prescribed Day vs Workout Log Canonical Comparison Table */}
       <PlanDayLogComparisonTable prescription={prescription} workoutLog={workoutLog} />

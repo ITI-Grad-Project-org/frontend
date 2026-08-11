@@ -1,4 +1,5 @@
 import { User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { ClientConnection } from "@/types/client";
 
 function formatDate(isoStr: string | null | undefined): string {
@@ -24,9 +25,16 @@ export function ClientInfoCard({ client, membershipId }: ClientInfoCardProps) {
     <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between border-b border-border/60 pb-4">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-            <User className="size-5" />
-          </div>
+          <Avatar className="size-10 border border-border/60">
+            <AvatarImage
+              src={clientDetail?.avatarUrl || ""}
+              alt={clientDetail ? `${clientDetail.firstName} ${clientDetail.lastName}` : "Client"}
+              className="object-cover"
+            />
+            <AvatarFallback className="bg-brand/10 text-brand">
+              <User className="size-5" />
+            </AvatarFallback>
+          </Avatar>
           <div>
             <h2 className="font-bold text-foreground">Client Information</h2>
             <p className="text-xs text-muted-foreground">Assigned client details</p>
@@ -43,7 +51,7 @@ export function ClientInfoCard({ client, membershipId }: ClientInfoCardProps) {
         </div>
         <div>
           <span className="block text-xs font-medium text-muted-foreground">Email</span>
-          <span className="font-semibold text-foreground">{clientDetail?.email || "—"}</span>
+          <span className="font-semibold text-foreground wrap-break-word">{clientDetail?.email || "—"}</span>
         </div>
         <div>
           <span className="block text-xs font-medium text-muted-foreground">Phone</span>
