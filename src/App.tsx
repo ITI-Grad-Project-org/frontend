@@ -13,7 +13,7 @@ import NutritionPlanBuilder from "./pages/Dashboard/NutritionPlanBuilder";
 import NutritionPlanLogs from "./pages/Dashboard/NutritionPlanLogs";
 import NutritionPlanDayLog from "./pages/Dashboard/NutritionPlanDayLog";
 import Exercises from "./pages/Dashboard/Exercises";
-import Meals from "./pages/Dashboard/Meals";
+import Meals from "./pages/Dashboard/Nutrition";
 import Analytics from "./pages/Dashboard/Analytics";
 import Reviews from "./pages/Dashboard/Reviews";
 import Chat from "./pages/Dashboard/Chat";

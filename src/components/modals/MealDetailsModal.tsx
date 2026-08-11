@@ -29,11 +29,11 @@ export default function MealDetailsModal({
       >
         <div className="flex items-start justify-between border-b border-border pb-4">
           <div className="flex items-center gap-3">
-            <Avatar className="w-14 h-14 rounded-2xl shrink-0 bg-brand/10 border border-brand/20">
+            <Avatar className="w-14 h-14 shrink-0 bg-brand/10 border border-brand/20">
               {meal.photoUrl ? (
-                <AvatarImage src={meal.photoUrl} alt={meal.name} className="object-cover rounded-2xl" />
+                <AvatarImage src={meal.photoUrl} alt={meal.name} className="object-cover" />
               ) : null}
-              <AvatarFallback className="rounded-2xl bg-brand/10 text-brand">
+              <AvatarFallback className="bg-brand/10 text-brand">
                 <Utensils className="w-6 h-6" />
               </AvatarFallback>
             </Avatar>

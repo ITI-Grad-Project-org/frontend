@@ -76,9 +76,9 @@ export function FoodFilters({
       <div className="h-px bg-border" />
 
       {/* Filters row */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         {/* Serving Unit */}
-        <div className="relative min-w-37.5 flex-1">
+        <div className="relative w-full sm:min-w-37.5 sm:flex-1">
           <select
             value={filters.servingUnit}
             onChange={(e) =>
@@ -99,7 +99,7 @@ export function FoodFilters({
         </div>
 
         {/* Dietary Tag */}
-        <div className="relative min-w-37.5 flex-1">
+        <div className="relative w-full sm:min-w-37.5 sm:flex-1">
           <select
             value={filters.dietaryTag}
             onChange={(e) =>
@@ -120,7 +120,7 @@ export function FoodFilters({
         </div>
 
         {/* Allergen */}
-        <div className="relative min-w-37.5 flex-1">
+        <div className="relative w-full sm:min-w-37.5 sm:flex-1">
           <input
             type="text"
             value={filters.allergen}
@@ -131,7 +131,7 @@ export function FoodFilters({
         </div>
 
         {/* Include archived */}
-        <label className="flex cursor-pointer select-none items-center gap-2 rounded-2xl border border-border bg-background px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+        <label className="flex w-fit cursor-pointer select-none items-center gap-2 rounded-2xl border border-border bg-background px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
           <input
             type="checkbox"
             checked={filters.includeInactive}
@@ -142,7 +142,7 @@ export function FoodFilters({
         </label>
 
         {/* Show archived only */}
-        <label className="flex cursor-pointer select-none items-center gap-2 rounded-2xl border border-border bg-background px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
+        <label className="flex w-fit cursor-pointer select-none items-center gap-2 rounded-2xl border border-border bg-background px-3.5 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted">
           <input
             type="checkbox"
             checked={filters.showArchivedOnly}
@@ -153,7 +153,7 @@ export function FoodFilters({
         </label>
 
         {/* Counter */}
-        <span className="ml-auto shrink-0 text-xs font-semibold text-muted-foreground">
+        <span className="shrink-0 text-xs font-semibold text-muted-foreground sm:ml-auto">
           {hasActiveFilter
             ? `${filteredCount} of ${totalFoods}`
             : `${totalFoods} food items`}

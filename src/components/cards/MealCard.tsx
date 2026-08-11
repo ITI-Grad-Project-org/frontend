@@ -38,9 +38,9 @@ export default function MealCard({
         <CardMain>
             <div className="flex items-start justify-between">
                 <Avatar className="h-14 w-14">
-                    <AvatarImage src={thumbnail} />
-                    <AvatarFallback>
-                        <UtensilsCrossed />
+                    <AvatarImage src={thumbnail} alt={name} className="object-cover rounded-full" />
+                    <AvatarFallback className="rounded-full bg-muted text-muted-foreground">
+                        <UtensilsCrossed className="w-6 h-6" />
                     </AvatarFallback>
                 </Avatar>
 

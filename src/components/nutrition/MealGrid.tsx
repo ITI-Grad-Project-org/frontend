@@ -1,6 +1,7 @@
 // src/components/nutrition/MealGrid.tsx
 import { MealCard } from "./MealCard";
 import { Plus, RefreshCw, Utensils } from "lucide-react";
+import { Pagination } from "@/components/ui/Pagination";
 import type { Meal } from "@/types/nutrition";
 
 interface MealGridProps {
@@ -8,6 +9,9 @@ interface MealGridProps {
   error: string;
   meals: Meal[];
   hasActiveFilter: boolean;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
   onRetry: () => void;
   onOpenAdd: () => void;
   onView: (meal: Meal) => void;
@@ -21,6 +25,9 @@ export function MealGrid({
   error,
   meals,
   hasActiveFilter,
+  currentPage,
+  totalPages,
+  onPageChange,
   onRetry,
   onOpenAdd,
   onView,
@@ -99,17 +106,28 @@ export function MealGrid({
   }
 
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 animate-in fade-in duration-200">
-      {meals.map((meal) => (
-        <MealCard
-          key={meal.id}
-          meal={meal}
-          onView={onView}
-          onEdit={onEdit}
-          onArchive={onArchive}
-          onUnarchive={onUnarchive}
+    <div className="space-y-6">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 animate-in fade-in duration-200">
+        {meals.map((meal) => (
+          <MealCard
+            key={meal.id}
+            meal={meal}
+            onView={onView}
+            onEdit={onEdit}
+            onArchive={onArchive}
+            onUnarchive={onUnarchive}
+          />
+        ))}
+      </div>
+
+      {currentPage != null && totalPages != null && totalPages > 1 && onPageChange && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
         />
-      ))}
+      )}
     </div>
   );
 }
+
