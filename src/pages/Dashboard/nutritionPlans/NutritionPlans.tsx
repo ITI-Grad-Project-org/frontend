@@ -2,15 +2,15 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { Ban } from "lucide-react";
-import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
-import { CreateNutritionPlanModal } from "@/components/modals/CreateNutritionPlanModal";
-import { UpdateNutritionPlanModal } from "@/components/modals/UpdateNutritionPlanModal";
-import { RescheduleNutritionPlanModal } from "@/components/modals/RescheduleNutritionPlanModal";
+import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
+import { CreateNutritionPlanModal } from "@/components/modals/nutritionPlans/CreateNutritionPlanModal";
+import { UpdateNutritionPlanModal } from "@/components/modals/nutritionPlans/UpdateNutritionPlanModal";
+import { RescheduleNutritionPlanModal } from "@/components/modals/nutritionPlans/RescheduleNutritionPlanModal";
 import { NutritionPlansFilters } from "@/components/nutritionPlans/NutritionPlansFilters";
 import { NutritionPlansHeader } from "@/components/nutritionPlans/NutritionPlansHeader";
 import { NutritionPlansList } from "@/components/nutritionPlans/NutritionPlansList";
 import { NutritionPlansStats } from "@/components/nutritionPlans/NutritionPlansStats";
-import { useNutritionPlansData } from "@/hooks/useNutritionPlansData";
+import { useNutritionPlansData } from "@/hooks/nutritionPlans/useNutritionPlansData";
 import {
   archiveNutritionPlan,
   cancelNutritionPlan,

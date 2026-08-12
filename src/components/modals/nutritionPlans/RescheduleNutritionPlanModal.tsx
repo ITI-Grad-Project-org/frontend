@@ -1,4 +1,4 @@
-// src/components/modals/RescheduleNutritionPlanModal.tsx
+// src/components/modals/nutritionPlans/RescheduleNutritionPlanModal.tsx
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { CalendarClock, X } from "lucide-react";

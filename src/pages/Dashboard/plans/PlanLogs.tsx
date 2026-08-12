@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { ArrowLeft, Dumbbell, AlertCircle } from "lucide-react";
-import { usePlanLogs } from "@/hooks/usePlanLogs";
+import { usePlanLogs } from "@/hooks/plans/usePlanLogs";
 import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { PlanSummaryCard } from "@/components/plans/logs/PlanSummaryCard";
 import { PlanLogsStats } from "@/components/plans/logs/PlanLogsStats";

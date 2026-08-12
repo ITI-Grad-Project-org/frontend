@@ -78,6 +78,11 @@ export default function ExerciseCard({ exercise, onClick, onEdit, onArchive, onU
               <AvatarImage
                 src={thumbnailUrl}
                 alt={name}
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                width={48}
+                height={48}
                 className="object-cover rounded-full"
               />
             ) : null}

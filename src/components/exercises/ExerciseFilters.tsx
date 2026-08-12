@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { Search, X, RotateCcw } from "lucide-react";
-import type { ExercisesFilters } from "@/hooks/useExercisesData";
+import type { ExercisesFilters } from "@/hooks/exercises/useExercisesData";
 
 
 // ─── Option lists ─────────────────────────────────────────────────────────────

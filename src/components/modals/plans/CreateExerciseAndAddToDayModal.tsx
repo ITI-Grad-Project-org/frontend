@@ -20,7 +20,7 @@ import type {
     CreateExerciseAndAddToDayFormValues,
     CreateExerciseAndAddToDaySubmitValues,
 } from "@/schemas/createExerciseAndAddToDay";
-import { ConnectedSetRow } from "../plans/ConnectedSetRow";
+import { ConnectedSetRow } from "../../plans/ConnectedSetRow";
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 

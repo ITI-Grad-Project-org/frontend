@@ -5,7 +5,7 @@ import { Dialog as DialogPrimitive } from "radix-ui";
 import { useTheme } from "@/theme";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useProfileData } from "@/hooks/useProfileData";
+import { useProfileData } from "@/hooks/profile/useProfileData";
 
 function DashboardLayout() {
     const { isDark } = useTheme();
@@ -55,7 +55,7 @@ function DashboardLayout() {
                         return (
                             <NavLink
                                 key={item.to}
-                                to={item.to}
+                                to={`/dashboard/${item.to}`}
                                 className={({ isActive }) =>
                                     `flex items-center gap-2 px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-all duration-200 hover:shadow-card md:gap-3 md:px-4 md:py-3 md:rounded-xl
                             ${isActive ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`
@@ -98,7 +98,7 @@ function DashboardLayout() {
                 {primaryItems.map((item) => (
                     <NavLink
                         key={item.to}
-                        to={item.to}
+                        to={`/dashboard/${item.to}`}
                         className={({ isActive }) =>
                             cn(
                                 "flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
@@ -152,8 +152,8 @@ function DashboardLayout() {
                                 {secondaryItems.map((item) => (
                                     <DialogPrimitive.Close asChild key={item.to}>
                                         <Link
-                                            to={item.to}
-                                            onClick={() => setPendingNav(item.to)}
+                                            to={`/dashboard/${item.to}`}
+                                            onClick={() => setPendingNav(`/dashboard/${item.to}`)}
                                             className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/70 bg-muted/30 p-4 text-xs font-medium text-muted-foreground transition-colors active:bg-muted"
                                         >
                                             <item.icon className="h-5 w-5" strokeWidth={2} />

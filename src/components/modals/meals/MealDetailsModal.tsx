@@ -1,7 +1,7 @@
-// src/components/modals/MealDetailsModal.tsx
+// src/components/modals/meals/MealDetailsModal.tsx
 import { X, Utensils, Pencil } from "lucide-react";
 import type { Meal } from "@/types/nutrition";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../ui/avatar";
 
 interface MealDetailsModalProps {
   meal: Meal | null;
@@ -31,7 +31,7 @@ export default function MealDetailsModal({
           <div className="flex items-center gap-3">
             <Avatar className="w-14 h-14 shrink-0 bg-brand/10 border border-brand/20">
               {meal.photoUrl ? (
-                <AvatarImage src={meal.photoUrl} alt={meal.name} className="object-cover" />
+                <AvatarImage src={meal.photoUrl} alt={meal.name} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="object-cover" />
               ) : null}
               <AvatarFallback className="bg-brand/10 text-brand">
                 <Utensils className="w-6 h-6" />

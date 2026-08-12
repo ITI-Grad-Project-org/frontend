@@ -1,4 +1,4 @@
-// src/components/modals/CreateMealAndAddToDayModal.tsx
+// src/components/modals/nutritionPlans/CreateMealAndAddToDayModal.tsx
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useForm, useFieldArray } from "react-hook-form";

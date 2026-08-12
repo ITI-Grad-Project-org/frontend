@@ -2,21 +2,21 @@
 import { useState } from "react";
 import { Plus, Utensils, Apple } from "lucide-react";
 import { Chip } from "@/components/ui/Chip";
-import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
+import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
 
 // Food Components & Hooks
 import { FoodFilters } from "@/components/nutrition/FoodFilters";
 import { FoodGrid } from "@/components/nutrition/FoodGrid";
-import AddEditFoodModal from "@/components/modals/AddEditFoodModal";
-import FoodDetailsModal from "@/components/modals/FoodDetailsModal";
-import { useFoodsData } from "@/hooks/useFoodsData";
+import AddEditFoodModal from "@/components/modals/foods/AddEditFoodModal";
+import FoodDetailsModal from "@/components/modals/foods/FoodDetailsModal";
+import { useFoodsData } from "@/hooks/nutrition/useFoodsData";
 
 // Meal Components & Hooks
 import { MealFilters } from "@/components/nutrition/MealFilters";
 import { MealGrid } from "@/components/nutrition/MealGrid";
-import AddEditMealModal from "@/components/modals/AddEditMealModal";
-import MealDetailsModal from "@/components/modals/MealDetailsModal";
-import { useMealsData } from "@/hooks/useMealsData";
+import AddEditMealModal from "@/components/modals/meals/AddEditMealModal";
+import MealDetailsModal from "@/components/modals/meals/MealDetailsModal";
+import { useMealsData } from "@/hooks/nutrition/useMealsData";
 
 import type { Food, Meal, CreateFoodDto, UpdateFoodDto, CreateMealDto, UpdateMealDto, ReplaceMealItemsDto } from "@/types/nutrition";
 

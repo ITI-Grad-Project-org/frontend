@@ -1,34 +1,30 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router";
-import DashboardLayout from "./pages/Dashboard/DashboardLayout";
-import Clients from "./pages/Dashboard/Clients";
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Route, Routes } from "react-router";
+import { Loader2 } from "lucide-react";
 import Homepage from "./pages/Homepage";
 import DefaultPage from "./pages/DefaultPage";
-import Overview from "./pages/Dashboard/Overview";
-import Plans from "./pages/Dashboard/Plans";
-import PlanBuilder from "./pages/Dashboard/PlanBuilder";
-import PlanLogs from "./pages/Dashboard/PlanLogs";
-import PlanDayLog from "./pages/Dashboard/PlanDayLog";
-import NutritionPlans from "./pages/Dashboard/NutritionPlans";
-import NutritionPlanBuilder from "./pages/Dashboard/NutritionPlanBuilder";
-import NutritionPlanLogs from "./pages/Dashboard/NutritionPlanLogs";
-import NutritionPlanDayLog from "./pages/Dashboard/NutritionPlanDayLog";
-import Exercises from "./pages/Dashboard/Exercises";
-import Meals from "./pages/Dashboard/Nutrition";
-import Analytics from "./pages/Dashboard/Analytics";
-import Reviews from "./pages/Dashboard/Reviews";
-import Chat from "./pages/Dashboard/Chat";
 import CoachProfile from "./pages/CoachProfile";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
+import SignIn from "./pages/auth/SignIn";
+import SignUp from "./pages/auth/SignUp";
 import { ThemeProvider } from "./theme";
 import Profile from "./pages/Profile";
-import ForgotPassword from "./pages/ForgotPassword";
+import ForgotPassword from "./pages/auth/ForgotPassword";
 import { AuthSessionBootstrap } from "./components/auth/AuthSessionBootstrap";
 import { RequireAuth } from "./components/auth/RequireAuth";
 import { RequireGuest } from "./components/auth/RequireGuest";
 import { ThemeToggleFab } from "./components/ui/ThemeToggleFab";
 import { AppToaster } from "./components/ui/AppToaster";
-import ResetPassword from "./pages/ResetPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+
+const DashboardRoutes = lazy(() => import("./pages/Dashboard"));
+
+function DashboardFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+      <Loader2 className="size-7 animate-spin" />
+    </div>
+  );
+}
 
 function App() {
   return (
@@ -79,33 +75,15 @@ function App() {
             />
 
             <Route
-              path="/dashboard"
+              path="/dashboard/*"
               element={
                 <RequireAuth>
-                  <DashboardLayout />
+                  <Suspense fallback={<DashboardFallback />}>
+                    <DashboardRoutes />
+                  </Suspense>
                 </RequireAuth>
               }
-            >
-              <Route index element={<Navigate to="overview" replace />} />
-              <Route path="overview" element={<Overview />} />
-              <Route path="clients" element={<Clients />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="chat/:clientId" element={<Chat />} />
-              <Route path="plans" element={<Plans />} />
-              <Route path="plans/:programId" element={<PlanBuilder />} />
-              <Route path="plans/:programId/logs" element={<PlanLogs />} />
-              <Route path="plans/:programId/days/:programDayId/log" element={<PlanDayLog />} />
-              <Route path="exercise-plans" element={<Navigate to="/dashboard/plans" replace />} />
-              <Route path="nutrition-plans" element={<NutritionPlans />} />
-              <Route path="nutrition-plans/:planId" element={<NutritionPlanBuilder />} />
-              <Route path="nutrition-plans/:planId/logs" element={<NutritionPlanLogs />} />
-              <Route path="nutrition-plans/:planId/days/:dayId/log" element={<NutritionPlanDayLog />} />
-              <Route path="nutrition" element={<Navigate to="/dashboard/nutrition-plans" replace />} />
-              <Route path="exercises" element={<Exercises />} />
-              <Route path="meals" element={<Meals />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="reviews" element={<Reviews />} />
-            </Route>
+            />
 
             <Route path="/coach/:tenantId" element={<CoachProfile />} />
 

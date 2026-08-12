@@ -1,5 +1,6 @@
 import type { ClientProgramDraft } from "@/types/plans";
 import { PlanCard } from "./PlanCard";
+import { ListShell } from "@/components/cards/ListShell";
 import { AlertCircle, RotateCcw, SearchX } from "lucide-react";
 
 interface PlansListProps {
@@ -20,15 +21,6 @@ interface PlansListProps {
 }
 
 const SKELETON_COUNT = 4;
-
-// Shared shell so loading / error / empty / loaded states don't visually jump around
-function ListShell({ children }: { children: React.ReactNode }) {
-    return (
-        <section className="mt-6 rounded-3xl border border-border bg-card p-6 shadow-(--shadow-card)">
-            {children}
-        </section>
-    );
-}
 
 export function PlansList({
     programs,

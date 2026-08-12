@@ -1,4 +1,4 @@
-// src/components/modals/AddEditMealModal.tsx
+// src/components/modals/meals/AddEditMealModal.tsx
 import { useEffect, useState, useRef } from "react";
 import { X, Utensils, Plus, Trash2, Check, AlertCircle } from "lucide-react";
 import type {

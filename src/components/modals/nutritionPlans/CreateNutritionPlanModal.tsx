@@ -1,4 +1,4 @@
-// src/components/modals/CreateNutritionPlanModal.tsx
+// src/components/modals/nutritionPlans/CreateNutritionPlanModal.tsx
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Plus, X, Flame, Target } from "lucide-react";

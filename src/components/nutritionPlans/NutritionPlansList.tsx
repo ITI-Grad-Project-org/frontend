@@ -1,6 +1,7 @@
 // src/components/nutritionPlans/NutritionPlansList.tsx
 import type { NutritionPlanSummary } from "@/types/nutritionPlans";
 import { NutritionPlanCard } from "./NutritionPlanCard";
+import { ListShell } from "@/components/cards/ListShell";
 import { AlertCircle, RotateCcw, SearchX } from "lucide-react";
 
 interface NutritionPlansListProps {
@@ -19,14 +20,6 @@ interface NutritionPlansListProps {
 }
 
 const SKELETON_COUNT = 4;
-
-function ListShell({ children }: { children: React.ReactNode }) {
-  return (
-    <section className="mt-6 rounded-3xl border border-border bg-card p-6 shadow-(--shadow-card)">
-      {children}
-    </section>
-  );
-}
 
 export function NutritionPlansList({
   plans,

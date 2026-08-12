@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { UserRoundPlus } from "lucide-react";
-import InviteClientModal from "@/components/modals/InviteClientModal";
-import { CreatePlanModal } from "@/components/modals/CreatePlanModal";
-import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
-import { useClientsData } from "@/hooks/useClientsData";
+import InviteClientModal from "@/components/modals/clients/InviteClientModal";
+import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
+import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
+import { useClientsData } from "@/hooks/clients/useClientsData";
 
 import { ClientsTab } from "@/components/clients/ClientsTab";
 import { InvitationsTab } from "@/components/clients/InvitationsTab";
@@ -69,8 +69,8 @@ export default function Clients() {
           data={clients.data}
           loading={clients.loading}
           error={clients.error}
-          onRetry={() => clients.refetch(true)}
-          onClientDeleted={() => clients.refetch(true)}
+          onRetry={() => clients.refetch()}
+          onClientDeleted={() => clients.refetch()}
           onCreatePlan={(connection) => {
             setSelectedClientId(connection.id);
             const fullName = `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim();
@@ -88,7 +88,7 @@ export default function Clients() {
           data={invitations.data}
           loading={invitations.loading}
           error={invitations.error}
-          onRetry={() => invitations.refetch(true)}
+          onRetry={() => invitations.refetch()}
           onRevoke={(id) => actions.setInvitationToRevoke(id)}
         />
       )}
@@ -98,7 +98,7 @@ export default function Clients() {
           data={joinRequests.data}
           loading={joinRequests.loading}
           error={joinRequests.error}
-          onRetry={() => joinRequests.refetch(true)}
+          onRetry={() => joinRequests.refetch()}
           onApprove={(id) => actions.setRequestToApprove(id)}
           onReject={(id) => actions.setRequestToReject(id)}
         />
@@ -109,7 +109,7 @@ export default function Clients() {
         open={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
         onSuccess={() => {
-          invitations.refetch(true);
+          invitations.refetch();
           setActiveTab("invitations");
         }}
       />

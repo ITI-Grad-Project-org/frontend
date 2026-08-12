@@ -2,15 +2,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { Ban } from "lucide-react";
-import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
-import { CreatePlanModal } from "@/components/modals/CreatePlanModal";
-import { ReschedulePlanModal } from "@/components/modals/ReschedulePlanModal";
-import { UpdatePlanModal } from "@/components/modals/UpdatePlanModal";
+import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
+import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
+import { ReschedulePlanModal } from "@/components/modals/plans/ReschedulePlanModal";
+import { UpdatePlanModal } from "@/components/modals/plans/UpdatePlanModal";
 import { PlansFilters } from "@/components/plans/PlansFilters";
 import { PlansHeader } from "@/components/plans/PlansHeader";
 import { PlansList } from "@/components/plans/PlansList";
 import { PlansStats } from "@/components/plans/PlansStats";
-import { usePlansData } from "@/hooks/usePlansData";
+import { usePlansData } from "@/hooks/plans/usePlansData";
 import {
     archiveClientProgramDraft,
     cancelClientProgram,

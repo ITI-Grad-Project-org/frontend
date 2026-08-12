@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import AddExerciseModal from "@/components/modals/AddExerciseModal";
-import ExerciseDetailsModal from "@/components/modals/ExerciseDetailsModal";
-import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
+import AddExerciseModal from "@/components/modals/exercises/AddExerciseModal";
+import ExerciseDetailsModal from "@/components/modals/exercises/ExerciseDetailsModal";
+import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
 import { ExerciseFilters } from "@/components/exercises/ExerciseFilters";
 import { ExerciseGrid } from "@/components/exercises/ExerciseGrid";
 import { Pagination } from "@/components/ui/Pagination";
-import { useExercisesData } from "@/hooks/useExercisesData";
+import { useExercisesData } from "@/hooks/exercises/useExercisesData";
 import type { Exercise } from "@/types/exercise";
 import { Plus } from "lucide-react";
 

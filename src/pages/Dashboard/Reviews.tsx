@@ -1,5 +1,5 @@
 // src/pages/Dashboard/Reviews.tsx
-import { useReviewsData } from "@/hooks/useReviewsData";
+import { useReviewsData } from "@/hooks/reviews/useReviewsData";
 import { RatingSummaryCard } from "@/components/reviews/ReviewCard";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import SummarySkeleton from "@/components/skeletons/SummarySkeleton";

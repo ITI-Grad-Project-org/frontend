@@ -1,21 +1,21 @@
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import type { Control, FieldValues, UseFormRegister, UseFormSetValue } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
-import { Plus, DumbbellIcon, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { getApiErrorMessage } from "@/lib/api";
-import { addLibraryExerciseToDay } from "@/services/plans";
-import type { Exercise } from "@/types/exercise";
+import { replacePlannedExerciseSets, updatePlannedExercise } from "@/services/plans";
 import type { PlannedExercise } from "@/types/plans";
 import { TempoTooltip } from "@/components/ui/TempoTooltip";
 import {
-    addDayExerciseFormSchema,
-    defaultAddDayExerciseValues,
+    editPlannedExerciseFormSchema,
+    buildEditDefaultValues,
     makeDefaultSet,
 } from "@/schemas/addDayExercise";
-import type { AddDayExerciseFormValues, AddDayExerciseSubmitValues } from "@/schemas/addDayExercise";
-import { ConnectedSetRow } from "../plans/ConnectedSetRow";
+import type { EditPlannedExerciseFormValues, EditPlannedExerciseSubmitValues } from "@/schemas/addDayExercise";
+import { ConnectedSetRow } from "../../plans/ConnectedSetRow";
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
@@ -30,35 +30,37 @@ const errorMsgCls = "mt-1.5 text-xs text-destructive";
 type Props = {
     open: boolean;
     programId: string | null;
-    programDayId: string | null;
-    dayLabel: string;
-    exercise: Exercise | null;
-    defaultPosition: number;
+    exercise: PlannedExercise | null;
     onClose: () => void;
-    onAdded: (plannedExercise: PlannedExercise) => void;
+    onUpdated: (exercise: PlannedExercise) => void;
 };
 
 // ─── Modal content ────────────────────────────────────────────────────────────
 
-function AddDayExerciseModalContent({
+function EditPlannedExerciseModalContent({
     programId,
-    programDayId,
-    dayLabel,
     exercise,
-    defaultPosition,
     onClose,
-    onAdded,
+    onUpdated,
 }: Omit<Props, "open">) {
     const {
         register,
         control,
         handleSubmit,
+        reset,
         setValue,
         formState: { errors, isSubmitting },
-    } = useForm<AddDayExerciseFormValues, unknown, AddDayExerciseSubmitValues>({
-        resolver: zodResolver(addDayExerciseFormSchema),
-        defaultValues: { ...defaultAddDayExerciseValues, position: String(defaultPosition) },
+    } = useForm<EditPlannedExerciseFormValues, unknown, EditPlannedExerciseSubmitValues>({
+        resolver: zodResolver(editPlannedExerciseFormSchema),
+        defaultValues: exercise ? buildEditDefaultValues(exercise) : undefined,
     });
+
+    // Sync form whenever the exercise prop changes (modal reused for different exercises)
+    useEffect(() => {
+        if (exercise) {
+            reset(buildEditDefaultValues(exercise));
+        }
+    }, [exercise, reset]);
 
     const { fields, append, remove } = useFieldArray({ control, name: "sets" });
 
@@ -69,23 +71,21 @@ function AddDayExerciseModalContent({
     const fvRegister = register as unknown as UseFormRegister<FieldValues>;
     const fvSetValue = setValue as unknown as UseFormSetValue<FieldValues>;
 
-    const handleClose = () => {
-        if (!isPending) onClose();
-    };
-
-    const onSubmit = async (values: AddDayExerciseSubmitValues) => {
-        if (!programId || !programDayId || !exercise) return;
+    const onSubmit = async (values: EditPlannedExerciseSubmitValues) => {
+        if (!programId || !exercise) return;
 
         const tempo = `${values.tempo0}-${values.tempo1}-${values.tempo2}-${values.tempo3}`;
 
         try {
-            const plannedExercise = await addLibraryExerciseToDay(programId, programDayId, {
-                exerciseId: exercise.id,
+            const updatedExercise = await updatePlannedExercise(programId, exercise.id, {
                 position: values.position,
                 supersetGroup: values.supersetGroup,
                 restSeconds: values.restSeconds,
                 tempo,
                 coachNotes: values.coachNotes.trim() || null,
+            });
+
+            const updatedSets = await replacePlannedExerciseSets(programId, exercise.id, {
                 sets: values.sets.map((set) => ({
                     setType: set.setType,
                     repsMin: set.mode === "reps" ? set.repsMin : null,
@@ -97,11 +97,11 @@ function AddDayExerciseModalContent({
                 })),
             });
 
-            toast.success("Exercise added to the day.");
-            onAdded(plannedExercise);
+            onUpdated({ ...updatedExercise, sets: updatedSets } as PlannedExercise);
+            toast.success("Exercise updated.");
             onClose();
         } catch (error) {
-            toast.error(getApiErrorMessage(error, "We could not add this exercise to the day. Please try again."));
+            toast.error(getApiErrorMessage(error, "We could not update this exercise."));
         }
     };
 
@@ -110,7 +110,7 @@ function AddDayExerciseModalContent({
             className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
-            onClick={handleClose}
+            onClick={onClose}
         >
             <form
                 className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-2xl animate-in fade-in zoom-in-95 duration-200"
@@ -121,48 +121,31 @@ function AddDayExerciseModalContent({
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border p-6 pb-4">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                            Add exercise to day
+                            Edit exercise
                         </p>
-                        <h2 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
-                            {exercise?.name ?? "Exercise"}
+                        <h2 className="mt-1 text-2xl font-bold text-foreground">
+                            {exercise?.exerciseName ?? "Exercise"}
                         </h2>
-                        <p className="mt-1.5 text-sm text-muted-foreground">
-                            {dayLabel} · Configure the prescription before saving.
-                        </p>
                     </div>
                     <button
                         type="button"
-                        onClick={handleClose}
+                        onClick={onClose}
                         aria-label="Close"
-                        className="cursor-pointer rounded-xl border border-border p-2 transition-colors hover:bg-muted"
+                        className="rounded-xl border border-border p-2 transition hover:bg-muted"
                     >
                         <X size={18} />
                     </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6">
-                    {/* Exercise badge */}
-                    <div className="rounded-3xl border border-border bg-muted/20 p-4">
-                        <div className="flex items-start gap-3">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-background text-muted-foreground">
-                                <DumbbellIcon size={20} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-semibold text-foreground">{exercise?.name}</p>
-                                <p className="mt-1 text-xs text-muted-foreground capitalize">
-                                    {exercise?.primaryMuscle?.replaceAll("_", " ")}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Prescription fields */}
-                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2">
                         {/* Position */}
                         <div>
                             <label className="block">
                                 <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Position *</span>
                                 <input
+                                    readOnly
                                     {...register("position")}
                                     type="number" min={1} max={30} disabled={isPending}
                                     className={`${fieldCls} ${errors.position ? fieldErrorCls : ""}`}
@@ -170,7 +153,7 @@ function AddDayExerciseModalContent({
                             </label>
                             {errors.position
                                 ? <p className={errorMsgCls} role="alert">{errors.position.message}</p>
-                                : <p className="mt-1 text-[11px] text-muted-foreground">Allowed range: 1 to 30.</p>
+                                : <p className="mt-1 text-[11px] text-muted-foreground">drag the exercise to change its order for the client</p>
                             }
                         </div>
 
@@ -285,7 +268,7 @@ function AddDayExerciseModalContent({
                 <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border p-6 pt-4">
                     <button
                         type="button"
-                        onClick={handleClose}
+                        onClick={onClose}
                         disabled={isPending}
                         className="rounded-2xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-60"
                     >
@@ -294,9 +277,9 @@ function AddDayExerciseModalContent({
                     <button
                         type="submit"
                         disabled={isPending}
-                        className="inline-flex items-center justify-center rounded-2xl bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-2xl bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {isPending ? "Adding…" : "Add to day"}
+                        {isPending ? "Saving…" : "Save exercise"}
                     </button>
                 </div>
             </form>
@@ -306,13 +289,11 @@ function AddDayExerciseModalContent({
 
 // ─── Public export ────────────────────────────────────────────────────────────
 
-export default function AddDayExerciseModal(props: Props) {
+export default function EditPlannedExerciseModal(props: Props) {
     if (!props.open || typeof document === "undefined") return null;
 
-    const resetKey = `${props.programDayId ?? ""}::${props.exercise?.id ?? ""}::${props.defaultPosition}`;
-
     return createPortal(
-        <AddDayExerciseModalContent key={resetKey} {...props} />,
+        <EditPlannedExerciseModalContent {...props} />,
         document.body,
     );
 }

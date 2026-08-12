@@ -1,4 +1,4 @@
-// src/components/modals/EditNutritionPlanDayModal.tsx
+// src/components/modals/nutritionPlans/EditNutritionPlanDayModal.tsx
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useForm, useWatch } from "react-hook-form";

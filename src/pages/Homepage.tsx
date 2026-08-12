@@ -4,7 +4,7 @@ import { LandingFeaturesSection } from "@/components/homepage/LandingFeaturesSec
 import { LandingFooter } from "@/components/homepage/LandingFooter";
 import { LandingNav } from "@/components/homepage/LandingNav";
 import { LandingHeroSection } from "@/components/homepage/LandingHeroSection";
-import { useMouseParallax } from "@/hooks/useMouseParallax";
+import { useMouseParallax } from "@/hooks/shared/useMouseParallax";
 
 export default function Homepage() {
     const { x, y } = useMouseParallax();

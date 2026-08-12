@@ -1,4 +1,4 @@
-// src/components/modals/EditPlannedMealModal.tsx
+// src/components/modals/nutritionPlans/EditPlannedMealModal.tsx
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useForm, useFieldArray } from "react-hook-form";

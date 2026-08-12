@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import CardMain from "./CardMain";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import type { ClientConnection } from "@/types/client";
-import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
+import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
 import { deleteClient } from "@/services/clients";
 
 interface ClientCardProps {

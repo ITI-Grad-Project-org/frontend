@@ -1,8 +1,8 @@
 // src/components/nutritionPlans/NutritionPlansFilters.tsx
 import { RefreshCw, Search } from "lucide-react";
 import { nutritionGoalOptions } from "@/schemas/nutritionPlans";
-import type { NutritionPlansFilters as NutritionPlansFiltersState } from "@/hooks/useNutritionPlansData";
-import { formatNutritionFilterLabel } from "@/hooks/useNutritionPlansData";
+import type { NutritionPlansFilters as NutritionPlansFiltersState } from "@/hooks/nutritionPlans/useNutritionPlansData";
+import { formatNutritionFilterLabel } from "@/hooks/nutritionPlans/useNutritionPlansData";
 import type { ClientConnection } from "@/types/client";
 
 interface NutritionPlansFiltersProps {

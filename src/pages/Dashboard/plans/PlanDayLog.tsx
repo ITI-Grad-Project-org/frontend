@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { ArrowLeft, Activity, AlertCircle } from "lucide-react";
-import { usePlanDayLog } from "@/hooks/usePlanDayLog";
+import { usePlanDayLog } from "@/hooks/plans/usePlanDayLog";
 import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { PlanSummaryCard } from "@/components/plans/logs/PlanSummaryCard";
 import { LogStatusBadge } from "@/components/plans/logs/LogStatusBadge";

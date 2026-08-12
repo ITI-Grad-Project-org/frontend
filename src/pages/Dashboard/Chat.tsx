@@ -17,7 +17,7 @@ import { Message, MessageAvatar, MessageContent, MessageFooter, MessageGroup, Me
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { useCoachChat } from "@/hooks/useCoachChat";
+import { useCoachChat } from "@/hooks/coach/useCoachChat";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
 

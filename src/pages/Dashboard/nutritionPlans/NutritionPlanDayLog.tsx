@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Activity, AlertCircle, ArrowLeft } from "lucide-react";
-import { useNutritionPlanDayLog } from "@/hooks/useNutritionPlanDayLog";
+import { useNutritionPlanDayLog } from "@/hooks/nutritionPlans/useNutritionPlanDayLog";
 import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { LogStatusBadge } from "@/components/plans/logs/LogStatusBadge";
 import { NutritionPlanDayLogDetail } from "@/components/nutritionPlans/logs/NutritionPlanDayLogDetail";

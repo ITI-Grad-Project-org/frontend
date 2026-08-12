@@ -1,3 +1,4 @@
+@import "@fontsource-variable/inter";
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -48,7 +49,7 @@
     --color-chip-yellow: var(--chip-yellow);
 
     --font-display: "Inter Tight", "SF Pro Display", system-ui, sans-serif;
-    --font-sans: "Inter", system-ui, sans-serif;
+    --font-sans: "Inter Variable", "Inter", system-ui, sans-serif;
 
     --shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px -12px oklch(0 0 0 / 0.08);
     --shadow-card-hover: 0 2px 4px oklch(0 0 0 / 0.05), 0 18px 40px -16px oklch(0 0 0 / 0.18);

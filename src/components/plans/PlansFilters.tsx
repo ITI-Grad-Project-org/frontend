@@ -3,8 +3,8 @@ import {
     planDifficultyOptions,
     planGoalOptions,
 } from "@/schemas/plans";
-import type { PlansFilters as PlansFiltersState } from "@/hooks/usePlansData";
-import { formatFilterLabel } from "@/hooks/usePlansData";
+import type { PlansFilters as PlansFiltersState } from "@/hooks/plans/usePlansData";
+import { formatFilterLabel } from "@/hooks/plans/usePlansData";
 import type { ClientConnection } from "@/types/client";
 
 interface PlansFiltersProps {

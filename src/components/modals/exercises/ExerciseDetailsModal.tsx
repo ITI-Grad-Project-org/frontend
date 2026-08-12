@@ -59,7 +59,7 @@ export default function ExerciseDetailsModal({ exercise, onEdit, onClose }: Prop
           <div className="flex items-center gap-4">
             <Avatar className="w-12 h-12 shrink-0 bg-card">
               {thumbnailUrl ? (
-                <AvatarImage src={thumbnailUrl} alt={name} className="object-cover" />
+                <AvatarImage src={thumbnailUrl} alt={name} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="object-cover" />
               ) : null}
               <AvatarFallback className="bg-muted text-muted-foreground">
                 <DumbbellIcon className="w-6 h-6" />

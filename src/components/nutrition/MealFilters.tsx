@@ -1,6 +1,6 @@
 // src/components/nutrition/MealFilters.tsx
 import { Search, X, RotateCcw } from "lucide-react";
-import type { MealsFilters } from "@/hooks/useMealsData";
+import type { MealsFilters } from "@/hooks/nutrition/useMealsData";
 import { DIETARY_TAGS } from "@/types/nutrition";
 
 const selectCls =

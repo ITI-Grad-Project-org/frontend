@@ -62,7 +62,7 @@ export function MealCard({
           <div className="flex items-start justify-between gap-2">
             <Avatar className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 bg-brand/10 border border-brand/20">
               {photoUrl ? (
-                <AvatarImage src={photoUrl} alt={name} className="object-cover" />
+                <AvatarImage src={photoUrl} alt={name} loading="lazy" decoding="async" referrerPolicy="no-referrer" width={48} height={48} className="object-cover" />
               ) : null}
               <AvatarFallback className="bg-brand/10 text-brand">
                 <Utensils className="w-6 h-6" />

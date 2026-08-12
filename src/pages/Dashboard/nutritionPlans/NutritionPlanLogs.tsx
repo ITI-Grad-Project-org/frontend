@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { Activity, AlertCircle, ArrowLeft, Utensils } from "lucide-react";
-import { useNutritionPlanLogs } from "@/hooks/useNutritionPlanLogs";
+import { useNutritionPlanLogs } from "@/hooks/nutritionPlans/useNutritionPlanLogs";
 import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { NutritionLogsStats } from "@/components/nutritionPlans/logs/NutritionLogsStats";
 import { NutritionLogsTable } from "@/components/nutritionPlans/logs/NutritionLogsTable";

@@ -1,4 +1,4 @@
-// src/components/modals/FoodDetailsModal.tsx
+// src/components/modals/foods/FoodDetailsModal.tsx
 import { useState } from "react";
 import { X, Apple, Calculator, Pencil } from "lucide-react";
 import type { Food } from "@/types/nutrition";
