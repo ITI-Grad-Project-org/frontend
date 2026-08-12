@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { queryClient } from "@/lib/query-client";
 import { clearRefreshToken, setRefreshToken } from "@/lib/token-session";
 import type { AuthResponse, Coach, TokenResponse } from "@/types/auth";
 
@@ -18,6 +19,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     accessToken: null,
     isReady: false,
     setSession: (session) => {
+        queryClient.clear();
         setRefreshToken(session.refreshToken);
         set({ user: session.user, accessToken: session.accessToken || null });
     },
@@ -34,6 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     setUser: (user) => set({ user }),
     setReady: (isReady) => set({ isReady }),
     clearSession: () => {
+        queryClient.clear();
         clearRefreshToken();
         set({ user: null, accessToken: null });
     },

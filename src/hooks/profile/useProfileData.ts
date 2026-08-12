@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router";
@@ -20,7 +21,7 @@ import {
   toFormValues,
   toUpdateCoachPayload,
   type ProfileFormData,
-} from "../schemas/profileSchema";
+} from "../../schemas/profileSchema";
 
 interface UseProfileDataOptions {
   onSuccessfulSave?: () => void;
@@ -34,9 +35,7 @@ export function useProfileData({
   const setUser = useAuthStore((state) => state.setUser);
   const clearSession = useAuthStore((state) => state.clearSession);
 
-  const [loadError, setLoadError] = useState("");
   const [submissionError, setSubmissionError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -59,45 +58,46 @@ export function useProfileData({
     [setValue],
   );
 
-  // ── Initial load ─────────────────────────────────────────────────────────────
+  const applyProfile = useCallback(
+    (coach: Awaited<ReturnType<typeof getCoachProfile>>) => {
+      setUser(coach);
+      reset(toFormValues(coach));
+      updateSpecialties(coach.specialties ?? [], false);
+    },
+    [reset, setUser, updateSpecialties],
+  );
 
+  // Cached profile — revisits within the stale window skip the network call.
+  const profileQuery = useQuery({
+    queryKey: ["coach-profile"],
+    queryFn: () => getCoachProfile(),
+    staleTime: 5 * 60_000,
+  });
+
+  // Populate the form + auth store once from the first result. Later background
+  // refetches are ignored so the user's in-progress edits survive.
+  const initializedRef = useRef(false);
   useEffect(() => {
-    let isActive = true;
+    if (initializedRef.current || !profileQuery.data) return;
+    initializedRef.current = true;
+    applyProfile(profileQuery.data);
+  }, [profileQuery.data, applyProfile]);
 
-    void getCoachProfile()
-      .then((coach) => {
-        if (!isActive) return;
-        setUser(coach);
-        reset(toFormValues(coach));
-        updateSpecialties(coach.specialties ?? [], false);
-      })
-      .catch((error) => {
-        if (!isActive) return;
-        setLoadError(
-          getApiErrorMessage(
-            error,
-            "We could not load your profile. Please refresh and try again.",
-          ),
-        );
-      })
-      .finally(() => {
-        if (isActive) setIsLoading(false);
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [reset, setUser, updateSpecialties]);
+  const loadError = profileQuery.error
+    ? getApiErrorMessage(
+        profileQuery.error,
+        "We could not load your profile. Please refresh and try again.",
+      )
+    : "";
 
   // ── Helpers ───────────────────────────────────────────────────────────────────
 
   const refreshProfile = useCallback(async () => {
-    const refreshed = await getCoachProfile();
-    setUser(refreshed);
-    reset(toFormValues(refreshed));
-    updateSpecialties(refreshed.specialties ?? [], false);
-    return refreshed;
-  }, [reset, setUser, updateSpecialties]);
+    const result = await profileQuery.refetch();
+    const coach = result.data;
+    if (coach) applyProfile(coach);
+    return coach;
+  }, [profileQuery, applyProfile]);
 
   const addSpecialty = (nextSpecialty: string) => {
     if (!specialties.includes(nextSpecialty)) {
@@ -230,7 +230,7 @@ export function useProfileData({
     user,
     form,
     specialties,
-    isLoading,
+    isLoading: profileQuery.isPending,
     loadError,
     submissionError,
     isDeleting,
