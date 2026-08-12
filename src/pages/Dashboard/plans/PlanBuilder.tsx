@@ -209,7 +209,7 @@ export default function PlanBuilder() {
             <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                        <p className="text-sm font-semibold uppercase text-muted-foreground">
                             Plan Builder
                         </p>
                         <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground">

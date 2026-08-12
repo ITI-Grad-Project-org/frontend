@@ -196,8 +196,6 @@ function Profile() {
                                 </button>
                             </div>
                         </form>
-
-                        {/* <ProfileSidebar user={user} /> */}
                     </div>
                 )}
             </div>

@@ -156,45 +156,18 @@ export function UserCard({ user }: UserCardProps) {
                     <span className={valueClass}>{user?.gender ?? "N/A"}</span>
                 </div>
                 <div className={detailRowClass}>
-                    <span className={labelClass}>Offline Availability</span>
+                    <span className={labelClass}>In-Person Availability</span>
                     <span className={valueClass}>{user?.offlineAvailability ?? "N/A"}</span>
                 </div>
-                <div className={detailRowClass + " text-xs"}>
-                    <span className={labelClass}>Availability hours</span>
-                    <span className={valueClass}>{user?.availabilityHours ?? "N/A"}</span>
+                <div className={detailRowClass}>
+                    <span className={labelClass}>Working Hours</span>
+                    <span className={valueClass + " text-xs"}>{user?.availabilityHours ?? "N/A"}</span>
                 </div>
                 <div className={detailRowClass}>
                     <span className={labelClass}>Price range</span>
                     <span className={valueClass}>{priceRange}</span>
                 </div>
             </div>
-
-            {/* <div className="w-full border-t border-border my-4 pt-4 space-y-3 text-left">
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Email Status</span>
-                    {user?.isEmailVerified ? (
-                        <span className="inline-flex items-center gap-1.5 font-semibold text-success">
-                            <CheckCircle2 className="w-4 h-4" /> Verified
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 font-semibold text-danger">
-                            <XCircle className="w-4 h-4" /> Unverified
-                        </span>
-                    )}
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Phone Status</span>
-                    {user?.isPhoneVerified ? (
-                        <span className="inline-flex items-center gap-1.5 font-semibold text-success">
-                            <CheckCircle2 className="w-4 h-4" /> Verified
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 font-semibold text-danger">
-                            <XCircle className="w-4 h-4" /> Unverified
-                        </span>
-                    )}
-                </div>
-            </div> */}
 
             <div className="w-full border-t border-border pt-4 space-y-3 text-left text-sm">
                 <div className={detailRowClass}>

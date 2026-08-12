@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useFieldArray, Controller, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { Trash2, Loader2, Upload } from "lucide-react";
 import { inputClassName, type ProfileFormData } from "../../../schemas/profileSchema";
@@ -62,19 +62,22 @@ function ExistingPhotoRow({ url, index, onRemove }: { url: string; index: number
 
 function NewPhotoUploader({ index, file, onChange }: { index: number; file: File | null; onChange: (f: File | null) => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
-    const [preview, setPreview] = useState<string | null>(null);
+    const [preview, setPreview] = useState<string | null>(() =>
+        file ? URL.createObjectURL(file) : null,
+    );
     const [previewOpen, setPreviewOpen] = useState(false);
 
-    useEffect(() => {
-        if (!file) { setPreview(null); return; }
-        const url = URL.createObjectURL(file);
-        setPreview(url);
-        return () => URL.revokeObjectURL(url);
-    }, [file]);
+    const clearFile = () => {
+        if (preview) URL.revokeObjectURL(preview);
+        setPreview(null);
+        onChange(null);
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selected = e.target.files?.[0] ?? null;
         e.target.value = "";
+        if (preview) URL.revokeObjectURL(preview);
+        setPreview(selected ? URL.createObjectURL(selected) : null);
         onChange(selected);
     };
 
@@ -91,7 +94,7 @@ function NewPhotoUploader({ index, file, onChange }: { index: number; file: File
                         <p className="text-sm font-medium truncate">{file.name}</p>
                         <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · Will upload on save</p>
                     </div>
-                    <button type="button" onClick={() => onChange(null)} className="text-xs font-semibold text-destructive hover:opacity-80 shrink-0">Remove</button>
+                    <button type="button" onClick={clearFile} className="text-xs font-semibold text-destructive hover:opacity-80 shrink-0">Remove</button>
                     {previewOpen && (
                         <MediaPreviewModal src={preview} alt={file.name} onClose={() => setPreviewOpen(false)} />
                     )}

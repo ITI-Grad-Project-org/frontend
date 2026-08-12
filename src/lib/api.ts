@@ -117,15 +117,67 @@ export function getApiErrorMessage(error: unknown, fallback: string) {
   }
 
   if (typeof data === "object" && data !== null) {
-    const message = (data as { message?: unknown; error?: unknown }).message;
-    const apiError = (data as { error?: unknown }).error;
+    const { message, error, errors } = data as {
+      message?: unknown;
+      error?: unknown;
+      errors?: unknown;
+    };
+
+    if (Array.isArray(errors)) {
+      const fieldErrors = errors
+        .map((entry) => {
+          if (typeof entry === "string" && entry.trim()) {
+            return entry;
+          }
+
+          if (
+            typeof entry === "object" &&
+            entry !== null &&
+            typeof (entry as { message?: unknown }).message === "string"
+          ) {
+            const message_ = (entry as { message: string }).message.trim();
+            const field = (entry as { field?: unknown }).field;
+            return field && typeof field === "string" && field.trim()
+              ? `${field}: ${message_}`
+              : message_;
+          }
+
+          return null;
+        })
+        .filter((entry): entry is string => entry !== null);
+
+      if (fieldErrors.length > 0) {
+        return fieldErrors.join(" · ");
+      }
+    }
+
+    if (
+      typeof errors === "object" &&
+      errors !== null &&
+      !Array.isArray(errors)
+    ) {
+      const fieldEntries = Object.entries(errors).filter(([, values]) =>
+        Array.isArray(values),
+      );
+
+      if (fieldEntries.length > 0) {
+        return fieldEntries
+          .map(([field, values]) => {
+            const first = (values as unknown[])[0];
+            const text =
+              typeof first === "string" ? first : JSON.stringify(values);
+            return `${field}: ${text}`;
+          })
+          .join(" · ");
+      }
+    }
 
     if (typeof message === "string" && message.trim()) {
       return message;
     }
 
-    if (typeof apiError === "string" && apiError.trim()) {
-      return apiError;
+    if (typeof error === "string" && error.trim()) {
+      return error;
     }
   }
 

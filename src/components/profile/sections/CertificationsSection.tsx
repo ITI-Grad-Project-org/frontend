@@ -194,7 +194,9 @@ function ExistingPhotoRow({ url, index, onRemove }: { url: string; index: number
 
 function NewPhotoUploader({ index, file, onChange }: { index: number; file: File | null; onChange: (f: File | null) => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
-    const [preview, setPreview] = useState<string | null>(null);
+    const [preview, setPreview] = useState<string | null>(() =>
+        file ? URL.createObjectURL(file) : null,
+    );
 
     const clearFile = () => {
         if (preview) URL.revokeObjectURL(preview);

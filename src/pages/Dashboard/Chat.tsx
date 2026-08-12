@@ -314,7 +314,7 @@ export default function Chat() {
                             )}
                           >
                             {!isCoach && (
-                              <MessageHeader className="px-0 pb-2 text-[11px] uppercase tracking-[0.18em] text-current/70">
+                              <MessageHeader className="px-0 pb-2 text-[11px] uppercase text-current/70">
                                 {senderLabel}
                               </MessageHeader>
                             )}

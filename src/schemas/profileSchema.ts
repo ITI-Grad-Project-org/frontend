@@ -128,9 +128,14 @@ export const profileSchema = z.object({
     .min(2, "First name must be at least 2 characters"),
   lastName: z.string().trim().min(2, "Last name must be at least 2 characters"),
   phone: z
-    .string()
-    .trim()
-    .regex(/^\+\d{8,15}$/, "Use an international phone number"),
+    .union([
+      z
+        .string()
+        .trim()
+        .regex(/^\+\d{8,15}$/, "Use an international phone number"),
+      z.literal(""),
+    ])
+    .optional(),
   age: boundedNumberSchema(16, 100, "Use a whole number between 16 and 100"),
   gender: z
     .union([z.enum(["male", "female", "other"]), z.literal("")])
@@ -203,7 +208,7 @@ export const emptyProfile: ProfileFormData = {
   careerExperience: "",
   certifications: [],
   portfolioUrl: "",
-  transformationPhotos: [{ url: "", file: null, key: "" }],
+  transformationPhotos: [],
   featuredReviews: "",
   bio: "",
   offlineAvailability: "",
@@ -349,7 +354,7 @@ export function toFormValues(coach: Coach): ProfileFormData {
     portfolioUrl: coach.portfolioUrl ?? "",
     transformationPhotos: coach.transformationPhotos?.length
       ? coach.transformationPhotos.map((url) => ({ url, file: null, key: "" }))
-      : [{ url: "", file: null, key: "" }],
+      : [],
     featuredReviews: coach.featuredReviews ?? "",
     bio: coach.bio ?? "",
     offlineAvailability: coach.offlineAvailability ?? "",
