@@ -1,62 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { getProgramWorkoutLogs } from "@/services/plans";
 import { getClients } from "@/services/clients";
 import { getApiErrorMessage } from "@/lib/api";
-import type { ProgramWorkoutLogsResponse, WorkoutLog } from "@/types/plans";
-import type { ClientConnection } from "@/types/client";
+import type { WorkoutLog } from "@/types/plans";
+
+const toError = (error: unknown, fallback: string) =>
+  error ? getApiErrorMessage(error, fallback) : "";
 
 export function usePlanLogs() {
   const { programId } = useParams();
-  const [data, setData] = useState<ProgramWorkoutLogsResponse | null>(null);
-  const [client, setClient] = useState<ClientConnection | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  useEffect(() => {
-    let isActive = true;
+  const logsQuery = useQuery({
+    queryKey: ["plan-logs", programId],
+    queryFn: () => getProgramWorkoutLogs(programId!),
+    enabled: !!programId,
+  });
 
-    if (!programId) {
-      setError("Program ID is missing.");
-      setIsLoading(false);
-      return;
-    }
+  // The clients list is cached from the Clients page, so the owner lookup
+  // usually resolves without a network call.
+  const clientsQuery = useQuery({
+    queryKey: ["clients"],
+    queryFn: () => getClients(),
+    staleTime: 5 * 60_000,
+  });
 
-    setIsLoading(true);
-    setError("");
+  const membershipId = logsQuery.data?.program?.membershipId;
+  const client = membershipId
+    ? clientsQuery.data?.find((c) => c.id === membershipId) ?? null
+    : null;
 
-    void (async () => {
-      try {
-        const res = await getProgramWorkoutLogs(programId);
-        if (!isActive) return;
-        setData(res);
-
-        if (res.program?.membershipId) {
-          try {
-            const allClients = await getClients();
-            const found = allClients.find((c) => c.id === res.program.membershipId);
-            if (isActive && found) setClient(found);
-          } catch {
-            // Optional fallback
-          }
-        }
-      } catch (err) {
-        if (isActive) {
-          setError(getApiErrorMessage(err, "Failed to load workout logs for this plan."));
-        }
-      } finally {
-        if (isActive) setIsLoading(false);
-      }
-    })();
-
-    return () => {
-      isActive = false;
-    };
-  }, [programId]);
-
-  const logs = useMemo(() => data?.logs || [], [data]);
+  const logs = useMemo(() => logsQuery.data?.logs || [], [logsQuery.data]);
 
   const filteredLogs = useMemo(() => {
     return logs.filter((log: WorkoutLog) => {
@@ -87,14 +64,18 @@ export function usePlanLogs() {
     setExpandedLogId((current) => (current === logId ? null : logId));
   };
 
+  const error = !programId
+    ? "Program ID is missing."
+    : toError(logsQuery.error, "Failed to load workout logs for this plan.");
+
   return {
     programId,
-    program: data?.program || null,
+    program: logsQuery.data?.program || null,
     logs,
     filteredLogs,
     client,
     stats,
-    isLoading,
+    isLoading: logsQuery.isPending,
     error,
     statusFilter,
     setStatusFilter,

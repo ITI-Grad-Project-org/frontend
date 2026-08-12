@@ -1,7 +1,7 @@
 // src/hooks/useNutritionPlansData.ts
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
-import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { getClients } from "@/services/clients";
 import { getNutritionPlans } from "@/services/nutritionPlans";
@@ -74,6 +74,9 @@ function sortByCreatedDesc(data: NutritionPlanSummary[]): NutritionPlanSummary[]
   );
 }
 
+const toError = (error: unknown, fallback: string) =>
+  error ? getApiErrorMessage(error, fallback) : "";
+
 export function useNutritionPlansData() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -89,14 +92,7 @@ export function useNutritionPlansData() {
     };
   }, []); // Only parse on mount
 
-  const [clients, setClients] = useState<ClientConnection[]>([]);
-  const [plans, setPlans] = useState<NutritionPlanSummary[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filters, setFiltersState] = useState<NutritionPlansFilters>(initialFilters);
-
-  const seqRef = useRef(0);
 
   // Sync state changes with URL query parameters
   const updateFilters = useCallback(
@@ -120,87 +116,42 @@ export function useNutritionPlansData() {
     [setSearchParams],
   );
 
-  const filtersRef = useRef(filters);
-  useEffect(() => {
-    filtersRef.current = filters;
+  // Clients are cached once and shared with the Clients page, logs, and the
+  // training hooks; each consumer derives its own view of the same cache.
+  const clientsQuery = useQuery({
+    queryKey: ["clients"],
+    queryFn: () => getClients(),
+    staleTime: 5 * 60_000,
   });
 
-  useEffect(() => {
-    const seq = ++seqRef.current;
+  // Each filter combination is its own cached query, so revisiting the plans
+  // page (or re-applying a filter) reads from cache instead of refetching.
+  const plansQuery = useQuery({
+    queryKey: ["nutrition-plans", buildApiParams(filters)],
+    queryFn: async () => {
+      const data = await getNutritionPlans(buildApiParams(filters));
+      return Array.isArray(data) ? sortByCreatedDesc(data) : [];
+    },
+    staleTime: 5 * 60_000,
+  });
 
-    Promise.all([
-      getClients(),
-      getNutritionPlans(buildApiParams(filtersRef.current)),
-    ])
-      .then(([clientData, planData]) => {
-        if (seq !== seqRef.current) return;
-
-        setIsLoading(false);
-        setLoadError("");
-        setClients(
-          Array.isArray(clientData)
-            ? clientData.filter((c) => c && c.client && c.status === "active")
-            : [],
-        );
-        setPlans(
-          Array.isArray(planData) ? sortByCreatedDesc(planData) : [],
-        );
-      })
-      .catch((error) => {
-        if (seq !== seqRef.current) return;
-        const message = getApiErrorMessage(
-          error,
-          "Failed to load nutrition plans. Please try again.",
-        );
-        setIsLoading(false);
-        setLoadError(message);
-        toast.error(message);
-      });
-  }, [
-    filters.search,
-    filters.membershipId,
-    filters.status,
-    filters.goal,
-    filters.isArchived,
-  ]);
-
-  const refreshData = useCallback(async () => {
-    const seq = ++seqRef.current;
-    setIsRefreshing(true);
-    setLoadError("");
-
-    try {
-      const [clientData, planData] = await Promise.all([
-        getClients(),
-        getNutritionPlans(buildApiParams(filters)),
-      ]);
-
-      if (seq !== seqRef.current) return;
-
-      setClients(
-        Array.isArray(clientData)
-          ? clientData.filter((c) => c && c.client && c.status === "active")
-          : [],
-      );
-      setPlans(
-        Array.isArray(planData) ? sortByCreatedDesc(planData) : [],
-      );
-    } catch (error) {
-      if (seq !== seqRef.current) return;
-      const message = getApiErrorMessage(
-        error,
-        "Failed to load nutrition plans. Please try again.",
-      );
-      setLoadError(message);
-      toast.error(message);
-    } finally {
-      if (seq === seqRef.current) setIsRefreshing(false);
-    }
-  }, [filters]);
+  const clients = useMemo(
+    () =>
+      (clientsQuery.data ?? []).filter(
+        (c) => c && c.client && c.status === "active",
+      ),
+    [clientsQuery.data],
+  );
+  const plans = useMemo(() => plansQuery.data ?? [], [plansQuery.data]);
 
   const resetFilters = useCallback(() => {
     updateFilters(defaultFilters);
   }, [updateFilters]);
+
+  const refreshData = useCallback(() => {
+    void plansQuery.refetch();
+    void clientsQuery.refetch();
+  }, [clientsQuery, plansQuery]);
 
   const clientNameMap = useMemo(
     () => new Map(clients.map((c) => [c.id, getClientName(c)])),
@@ -232,9 +183,9 @@ export function useNutritionPlansData() {
     stats,
     filters,
     setFilters: updateFilters,
-    isLoading,
-    loadError,
-    isRefreshing,
+    isLoading: plansQuery.isPending,
+    loadError: toError(plansQuery.error, "Failed to load nutrition plans. Please try again."),
+    isRefreshing: plansQuery.isFetching && !plansQuery.isPending,
     refreshData,
     resetFilters,
     clientNameMap,

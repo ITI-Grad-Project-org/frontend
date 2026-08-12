@@ -1,5 +1,6 @@
 // src/hooks/useFoodsData.ts
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getFoods,
   createFood,
@@ -8,13 +9,8 @@ import {
   unarchiveFood,
 } from "@/services/nutrition";
 import { getApiErrorMessage } from "@/lib/api";
-import type {
-  Food,
-  CreateFoodDto,
-  UpdateFoodDto,
-  ServingUnit,
-  DietaryTag,
-} from "@/types/nutrition";
+import { queryClient } from "@/lib/query-client";
+import type { Food, CreateFoodDto, UpdateFoodDto, ServingUnit, DietaryTag } from "@/types/nutrition";
 import { toast } from "react-toastify";
 
 export type FoodsFilters = {
@@ -45,58 +41,35 @@ function buildParams(f: FoodsFilters) {
   return params;
 }
 
+const toError = (error: unknown, fallback: string) =>
+  error ? getApiErrorMessage(error, fallback) : "";
+
 export function useFoodsData() {
-  const [foods, setFoods] = useState<Food[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filters, setFilters] = useState<FoodsFilters>(defaultFilters);
 
   // Archive modal state
   const [foodToArchive, setFoodToArchive] = useState<Food | null>(null);
-  const [isArchiving, setIsArchiving] = useState(false);
 
-  const seqRef = useRef(0);
-  const filtersRef = useRef(filters);
-  useEffect(() => {
-    filtersRef.current = filters;
+  // Each filter combination is cached, so the food library loads once per
+  // combo instead of on every page visit.
+  const foodsQuery = useQuery({
+    queryKey: ["foods", buildParams(filters)],
+    queryFn: () => getFoods(buildParams(filters)),
+    staleTime: 5 * 60_000,
   });
 
-  const fetchFoods = useCallback(async (isRefresh = false) => {
-    const seq = ++seqRef.current;
-    if (isRefresh) {
-      setIsRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    setError("");
-
-    try {
-      const data = await getFoods(buildParams(filtersRef.current));
-      if (seq !== seqRef.current) return;
-      setFoods(data);
-    } catch (err) {
-      if (seq !== seqRef.current) return;
-      setError(getApiErrorMessage(err, "Failed to load foods. Please try again."));
-    } finally {
-      if (seq === seqRef.current) {
-        setLoading(false);
-        setIsRefreshing(false);
-      }
-    }
+  const markLibraryStale = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: ["foods"],
+      refetchType: "none",
+    });
   }, []);
 
-  useEffect(() => {
-    void fetchFoods();
-  }, [
-    filters.search,
-    filters.servingUnit,
-    filters.dietaryTag,
-    filters.allergen,
-    filters.includeInactive,
-    filters.showArchivedOnly,
-    fetchFoods,
-  ]);
+  const archiveMutation = useMutation({
+    mutationFn: (id: string) => archiveFood(id),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to archive food.")),
+  });
 
   const handleFiltersChange = useCallback((next: Partial<FoodsFilters>) => {
     setFilters((prev) => ({ ...prev, ...next }));
@@ -110,58 +83,74 @@ export function useFoodsData() {
     async (dto: CreateFoodDto): Promise<Food> => {
       try {
         const newFood = await createFood(dto);
+        queryClient.setQueryData<Food[]>(
+          ["foods", buildParams(filters)],
+          (prev) => [newFood, ...(prev ?? [])],
+        );
+        markLibraryStale();
         toast.success(`Food "${newFood.name}" created.`);
-        void fetchFoods(true);
         return newFood;
       } catch (err) {
         toast.error(getApiErrorMessage(err, "Failed to create food."));
         throw err;
       }
     },
-    [fetchFoods]
+    [filters, markLibraryStale],
   );
 
   const handleUpdateFood = useCallback(
     async (foodId: string, dto: UpdateFoodDto): Promise<Food> => {
       try {
         const updated = await updateFood(foodId, dto);
+        queryClient.setQueryData<Food[]>(
+          ["foods", buildParams(filters)],
+          (prev) => prev?.map((f) => (f.id === foodId ? updated : f)),
+        );
+        markLibraryStale();
         toast.success(`Food "${updated.name}" updated.`);
-        setFoods((prev) => prev.map((f) => (f.id === foodId ? updated : f)));
         return updated;
       } catch (err) {
         toast.error(getApiErrorMessage(err, "Failed to update food."));
         throw err;
       }
     },
-    []
+    [filters, markLibraryStale],
   );
 
   const handleArchiveConfirm = useCallback(async () => {
     if (!foodToArchive) return;
-    setIsArchiving(true);
     try {
-      await archiveFood(foodToArchive.id);
-      toast.success(`Food "${foodToArchive.name}" archived.`);
-      setFoods((prev) =>
-        prev.map((f) => (f.id === foodToArchive.id ? { ...f, isActive: false } : f))
+      await archiveMutation.mutateAsync(foodToArchive.id);
+      queryClient.setQueryData<Food[]>(
+        ["foods", buildParams(filters)],
+        (prev) =>
+          prev?.map((f) =>
+            f.id === foodToArchive.id ? { ...f, isActive: false } : f,
+          ),
       );
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Failed to archive food."));
+      markLibraryStale();
+      toast.success(`Food "${foodToArchive.name}" archived.`);
     } finally {
-      setIsArchiving(false);
       setFoodToArchive(null);
     }
-  }, [foodToArchive]);
+  }, [foodToArchive, archiveMutation, filters, markLibraryStale]);
 
-  const handleUnarchive = useCallback(async (food: Food) => {
-    try {
-      const restored = await unarchiveFood(food.id);
-      toast.success(`Food "${food.name}" unarchived.`);
-      setFoods((prev) => prev.map((f) => (f.id === food.id ? restored : f)));
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Failed to unarchive food."));
-    }
-  }, []);
+  const handleUnarchive = useCallback(
+    async (food: Food) => {
+      try {
+        const restored = await unarchiveFood(food.id);
+        queryClient.setQueryData<Food[]>(
+          ["foods", buildParams(filters)],
+          (prev) => prev?.map((f) => (f.id === food.id ? restored : f)),
+        );
+        markLibraryStale();
+        toast.success(`Food "${food.name}" unarchived.`);
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, "Failed to unarchive food."));
+      }
+    },
+    [filters, markLibraryStale],
+  );
 
   const hasActiveFilter =
     !!filters.search ||
@@ -171,6 +160,8 @@ export function useFoodsData() {
     filters.includeInactive ||
     filters.showArchivedOnly;
 
+  const foods = foodsQuery.data ?? [];
+
   const filteredFoods = filters.showArchivedOnly
     ? foods.filter((f) => !f.isActive)
     : foods;
@@ -178,21 +169,21 @@ export function useFoodsData() {
   return {
     foods,
     filteredFoods,
-    loading,
-    error,
-    isRefreshing,
+    loading: foodsQuery.isPending,
+    error: toError(foodsQuery.error, "Failed to load foods. Please try again."),
+    isRefreshing: foodsQuery.isFetching && !foodsQuery.isPending,
     filters,
     hasActiveFilter,
     handleFiltersChange,
     resetFilters,
-    refreshData: () => fetchFoods(true),
+    refreshData: () => void foodsQuery.refetch(),
     handleCreateFood,
     handleUpdateFood,
     handleUnarchive,
     actions: {
       foodToArchive,
       setFoodToArchive,
-      isArchiving,
+      isArchiving: archiveMutation.isPending,
       handleArchiveConfirm,
     },
   };

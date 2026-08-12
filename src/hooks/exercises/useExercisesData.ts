@@ -1,7 +1,13 @@
 // src/hooks/useExercisesData.ts
-import { useCallback, useEffect, useRef, useState } from "react";
-import { getExercises, deleteExercise, unarchiveExercise } from "@/services/exercises";
+import { useCallback, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  getExercises,
+  deleteExercise,
+  unarchiveExercise,
+} from "@/services/exercises";
 import { getApiErrorMessage } from "@/lib/api";
+import { queryClient } from "@/lib/query-client";
 import type { Exercise, ExerciseCategory, MuscleGroup } from "@/types/exercise";
 import { toast } from "react-toastify";
 
@@ -44,80 +50,51 @@ function buildExerciseParams(f: ExercisesFilters) {
   return params;
 }
 
+const toError = (error: unknown, fallback: string) =>
+  error ? getApiErrorMessage(error, fallback) : "";
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useExercisesData() {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filters, setFilters] = useState<ExercisesFilters>(defaultFilters);
 
   // Delete action state
   const [exerciseToDelete, setExerciseToDelete] = useState<Exercise | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sequence counter — stale responses whose seq no longer matches are dropped.
-  const seqRef = useRef(0);
-
-  // Keep a stable ref to the latest filters so the effect always reads the
-  // current value without needing `filters` in the dependency array.
-  const filtersRef = useRef(filters);
-  useEffect(() => {
-    filtersRef.current = filters;
+  // Each filter combination is its own cached query, so revisiting a page
+  // (or re-applying a filter) reads from cache instead of re-fetching the
+  // whole image-heavy library. Long staleTime: exercises rarely change.
+  const exercisesQuery = useQuery({
+    queryKey: ["exercises", buildExerciseParams(filters)],
+    queryFn: async () => {
+      const data = await getExercises(buildExerciseParams(filters));
+      return Array.isArray(data) ? data : [];
+    },
+    staleTime: 5 * 60_000,
   });
 
-  // ── Effect: re-fetch on every server-side filter change ──────────────────
-  useEffect(() => {
-    const seq = ++seqRef.current;
-    setLoading(true);
-    setError("");
+  // Mutations update the current filter view's cache in place (no refetch) and
+  // mark every other cached combination stale so they refresh on their next visit.
+  const markLibraryStale = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: ["exercises"],
+      refetchType: "none",
+    });
+  }, []);
 
-    void (async () => {
-      try {
-        const data = await getExercises(buildExerciseParams(filtersRef.current));
-        if (seq !== seqRef.current) return;
-        setExercises(Array.isArray(data) ? data : []);
-      } catch (err) {
-        if (seq !== seqRef.current) return;
-        setError(getApiErrorMessage(err, "Failed to load exercises. Please try again."));
-      } finally {
-        if (seq === seqRef.current) setLoading(false);
-      }
-    })();
-  }, [
-    // Every change fires a new request.
-    // showArchivedOnly implies includeInactive, handled in buildExerciseParams.
-    filters.search,
-    filters.category,
-    filters.primaryMuscle,
-    filters.includeInactive,
-    filters.showArchivedOnly,
-  ]);
-
-  // ── Manual refresh — re-fetches with current filters ─────────────────────
-  const refreshData = useCallback(async () => {
-    const seq = ++seqRef.current;
-    setIsRefreshing(true);
-    setError("");
-
-    try {
-      const data = await getExercises(buildExerciseParams(filters));
-      if (seq !== seqRef.current) return;
-      setExercises(Array.isArray(data) ? data : []);
-    } catch (err) {
-      if (seq !== seqRef.current) return;
-      setError(getApiErrorMessage(err, "Failed to load exercises. Please try again."));
-    } finally {
-      if (seq === seqRef.current) setIsRefreshing(false);
-    }
-  }, [filters]);
+  const deleteExerciseMutation = useMutation({
+    mutationFn: (id: string) => deleteExercise(id),
+    onSuccess: () => toast.success("Exercise deleted."),
+    onError: (error) =>
+      toast.error(
+        getApiErrorMessage(error, "Failed to delete exercise. Please try again."),
+      ),
+  });
 
   // ── Retry ─────────────────────────────────────────────────────────────────
   const handleRetry = useCallback(() => {
-    // Reset seq so the pending effect re-runs cleanly
-    setFilters((f) => ({ ...f }));
-  }, []);
+    void exercisesQuery.refetch();
+  }, [exercisesQuery]);
 
   // ── Reset ─────────────────────────────────────────────────────────────────
   const resetFilters = useCallback(() => setFilters(defaultFilters), []);
@@ -132,42 +109,57 @@ export function useExercisesData() {
   // ── Optimistic local updates after add/edit (avoids a round-trip) ─────────
   const handleSavedExercise = useCallback(
     (saved: Exercise, isEditing: boolean) => {
-      setExercises((prev) =>
-        isEditing
-          ? prev.map((e) => (e.id === saved.id ? saved : e))
-          : [saved, ...prev],
+      queryClient.setQueryData<Exercise[]>(
+        ["exercises", buildExerciseParams(filters)],
+        (prev) =>
+          isEditing
+            ? prev?.map((e) => (e.id === saved.id ? saved : e))
+            : [saved, ...(prev ?? [])],
       );
+      markLibraryStale();
     },
-    [],
+    [filters, markLibraryStale],
   );
 
   // ── Delete ────────────────────────────────────────────────────────────────
   const handleDeleteConfirm = useCallback(async () => {
     if (!exerciseToDelete) return;
-    setIsDeleting(true);
     try {
-      await deleteExercise(exerciseToDelete.id);
-      setExercises((prev) => prev.filter((e) => e.id !== exerciseToDelete.id));
-      toast.success("Exercise deleted.");
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Failed to delete exercise. Please try again."));
+      await deleteExerciseMutation.mutateAsync(exerciseToDelete.id);
+      queryClient.setQueryData<Exercise[]>(
+        ["exercises", buildExerciseParams(filters)],
+        (prev) => prev?.filter((e) => e.id !== exerciseToDelete.id),
+      );
+      markLibraryStale();
     } finally {
-      setIsDeleting(false);
       setExerciseToDelete(null);
     }
-  }, [exerciseToDelete]);
+  }, [exerciseToDelete, deleteExerciseMutation, filters, markLibraryStale]);
+
   // ── Unarchive ─────────────────────────────────────────────────────────────
-  const handleUnarchive = useCallback(async (exercise: Exercise) => {
-    try {
-      const updated = await unarchiveExercise(exercise.id);
-      setExercises((prev) =>
-        prev.map((e) => (e.id === exercise.id ? (updated ? updated : { ...e, isActive: true }) : e))
-      );
-      toast.success(`"${exercise.name}" unarchived.`);
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Failed to unarchive exercise. Please try again."));
-    }
-  }, []);
+  const handleUnarchive = useCallback(
+    async (exercise: Exercise) => {
+      try {
+        const updated = await unarchiveExercise(exercise.id);
+        queryClient.setQueryData<Exercise[]>(
+          ["exercises", buildExerciseParams(filters)],
+          (prev) =>
+            prev?.map((e) =>
+              e.id === exercise.id
+                ? updated ?? { ...e, isActive: true }
+                : e,
+            ),
+        );
+        markLibraryStale();
+        toast.success(`"${exercise.name}" unarchived.`);
+      } catch (err) {
+        toast.error(
+          getApiErrorMessage(err, "Failed to unarchive exercise. Please try again."),
+        );
+      }
+    },
+    [filters, markLibraryStale],
+  );
 
   const hasActiveFilter =
     !!filters.search ||
@@ -175,6 +167,8 @@ export function useExercisesData() {
     !!filters.primaryMuscle ||
     filters.includeInactive ||
     filters.showArchivedOnly;
+
+  const exercises = exercisesQuery.data ?? [];
 
   // Client-side post-filter: when showArchivedOnly, keep only inactive exercises
   const filteredExercises = filters.showArchivedOnly
@@ -184,21 +178,21 @@ export function useExercisesData() {
   return {
     exercises,
     filteredExercises,
-    loading,
-    error,
-    isRefreshing,
+    loading: exercisesQuery.isPending,
+    error: toError(exercisesQuery.error, "Failed to load exercises. Please try again."),
+    isRefreshing: exercisesQuery.isFetching && !exercisesQuery.isPending,
     hasActiveFilter,
     filters,
     setFilters,
     handleFiltersChange,
     resetFilters,
-    refreshData,
+    refreshData: () => void exercisesQuery.refetch(),
     actions: {
       handleRetry,
       handleSavedExercise,
       exerciseToDelete,
       setExerciseToDelete,
-      isDeleting,
+      isDeleting: deleteExerciseMutation.isPending,
       handleDeleteConfirm,
       handleUnarchive,
     },

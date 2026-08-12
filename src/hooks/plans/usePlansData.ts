@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "react-toastify";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getApiErrorMessage } from "@/lib/api";
 import { getClients } from "@/services/clients";
 import { getClientPrograms } from "@/services/plans";
@@ -82,108 +82,48 @@ function sortByCreatedDesc(data: ClientProgramDraft[]): ClientProgramDraft[] {
   );
 }
 
+const toError = (error: unknown, fallback: string) =>
+  error ? getApiErrorMessage(error, fallback) : "";
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function usePlansData() {
-  const [clients, setClients] = useState<ClientConnection[]>([]);
-  const [programs, setPrograms] = useState<ClientProgramDraft[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filters, setFilters] = useState<PlansFilters>(defaultFilters);
 
-  // Incremented before every fetch — stale responses whose seq no longer
-  // matches seqRef.current are silently dropped.
-  const seqRef = useRef(0);
-
-  // Keep a ref to the latest filters so the effect callback always reads the
-  // current value without needing filters itself in the dependency array.
-  // showCancelled is intentionally excluded from triggering a fetch.
-  const filtersRef = useRef(filters);
-  useEffect(() => {
-    filtersRef.current = filters;
+  // Clients are cached once and shared with the Clients page, logs, and the
+  // nutrition hooks; each consumer derives its own view of the same cache.
+  const clientsQuery = useQuery({
+    queryKey: ["clients"],
+    queryFn: () => getClients(),
+    staleTime: 5 * 60_000,
   });
 
-  // ── Effect: fetch clients + programs together on mount and on every
-  //    API-backed filter change. Always fetching both avoids any ref-based
-  //    "is this the first run?" logic that breaks under React Strict Mode.
-  useEffect(() => {
-    const seq = ++seqRef.current;
+  // Each filter combination is its own cached query, so revisiting the Plans
+  // page (or re-applying a filter) reads from cache instead of refetching.
+  const programsQuery = useQuery({
+    queryKey: ["programs", buildProgramParams(filters)],
+    queryFn: async () => {
+      const data = await getClientPrograms(buildProgramParams(filters));
+      return Array.isArray(data) ? sortByCreatedDesc(data) : [];
+    },
+    staleTime: 5 * 60_000,
+  });
 
-    Promise.all([
-      getClients(),
-      getClientPrograms(buildProgramParams(filtersRef.current)),
-    ])
-      .then(([clientData, programData]) => {
-        if (seq !== seqRef.current) return;
-
-        setIsLoading(false);
-        setLoadError("");
-        setClients(
-          Array.isArray(clientData)
-            ? clientData.filter((c) => c && c.client && c.status === "active")
-            : [],
-        );
-        setPrograms(
-          Array.isArray(programData) ? sortByCreatedDesc(programData) : [],
-        );
-      })
-      .catch((error) => {
-        if (seq !== seqRef.current) return;
-        const message = getApiErrorMessage(
-          error,
-          "Failed to load plans. Please try again.",
-        );
-        setIsLoading(false);
-        setLoadError(message);
-        toast.error(message);
-      });
-  }, [
-    // showCancelled intentionally omitted — it's a client-side filter
-    filters.search,
-    filters.membershipId,
-    filters.status,
-    filters.goal,
-    filters.difficulty,
-    filters.isArchived,
-  ]);
-
-  // ── Manual refresh — re-fetches clients + programs with current filters ───
-  const refreshData = useCallback(async () => {
-    const seq = ++seqRef.current;
-    setIsRefreshing(true);
-    setLoadError("");
-
-    try {
-      const [clientData, programData] = await Promise.all([
-        getClients(),
-        getClientPrograms(buildProgramParams(filters)),
-      ]);
-
-      if (seq !== seqRef.current) return;
-
-      setClients(
-        Array.isArray(clientData)
-          ? clientData.filter((c) => c && c.client && c.status === "active")
-          : [],
-      );
-      setPrograms(
-        Array.isArray(programData) ? sortByCreatedDesc(programData) : [],
-      );
-    } catch (error) {
-      if (seq !== seqRef.current) return;
-      const message = getApiErrorMessage(
-        error,
-        "Failed to load plans. Please try again.",
-      );
-      setLoadError(message);
-      toast.error(message);
-    } finally {
-      if (seq === seqRef.current) setIsRefreshing(false);
-    }
-  }, [filters]);
+  const clients = useMemo(
+    () =>
+      (clientsQuery.data ?? []).filter(
+        (c) => c && c.client && c.status === "active",
+      ),
+    [clientsQuery.data],
+  );
+  const programs = useMemo(() => programsQuery.data ?? [], [programsQuery.data]);
 
   const resetFilters = useCallback(() => setFilters(defaultFilters), []);
+
+  const refreshData = useCallback(() => {
+    void programsQuery.refetch();
+    void clientsQuery.refetch();
+  }, [clientsQuery, programsQuery]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
 
@@ -223,9 +163,9 @@ export function usePlansData() {
     stats,
     filters,
     setFilters,
-    isLoading,
-    loadError,
-    isRefreshing,
+    isLoading: programsQuery.isPending,
+    loadError: toError(programsQuery.error, "Failed to load plans. Please try again."),
+    isRefreshing: programsQuery.isFetching && !programsQuery.isPending,
     refreshData,
     resetFilters,
     clientNameMap,

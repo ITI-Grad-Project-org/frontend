@@ -1,5 +1,6 @@
 // src/hooks/useMealsData.ts
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getMeals,
   createMeal,
@@ -9,6 +10,7 @@ import {
   unarchiveMeal,
 } from "@/services/nutrition";
 import { getApiErrorMessage } from "@/lib/api";
+import { queryClient } from "@/lib/query-client";
 import type {
   Meal,
   CreateMealDto,
@@ -43,57 +45,35 @@ function buildParams(f: MealsFilters) {
   return params;
 }
 
+const toError = (error: unknown, fallback: string) =>
+  error ? getApiErrorMessage(error, fallback) : "";
+
 export function useMealsData() {
-  const [meals, setMeals] = useState<Meal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filters, setFilters] = useState<MealsFilters>(defaultFilters);
 
   // Archive modal state
   const [mealToArchive, setMealToArchive] = useState<Meal | null>(null);
-  const [isArchiving, setIsArchiving] = useState(false);
 
-  const seqRef = useRef(0);
-  const filtersRef = useRef(filters);
-  useEffect(() => {
-    filtersRef.current = filters;
+  // Each filter combination is cached, so the image-heavy meal library loads
+  // once per combo instead of on every page visit.
+  const mealsQuery = useQuery({
+    queryKey: ["meals", buildParams(filters)],
+    queryFn: () => getMeals(buildParams(filters)),
+    staleTime: 5 * 60_000,
   });
 
-  const fetchMeals = useCallback(async (isRefresh = false) => {
-    const seq = ++seqRef.current;
-    if (isRefresh) {
-      setIsRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    setError("");
-
-    try {
-      const data = await getMeals(buildParams(filtersRef.current));
-      if (seq !== seqRef.current) return;
-      setMeals(data);
-    } catch (err) {
-      if (seq !== seqRef.current) return;
-      setError(getApiErrorMessage(err, "Failed to load meals. Please try again."));
-    } finally {
-      if (seq === seqRef.current) {
-        setLoading(false);
-        setIsRefreshing(false);
-      }
-    }
+  const markLibraryStale = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: ["meals"],
+      refetchType: "none",
+    });
   }, []);
 
-  useEffect(() => {
-    void fetchMeals();
-  }, [
-    filters.search,
-    filters.dietaryTag,
-    filters.allergen,
-    filters.includeInactive,
-    filters.showArchivedOnly,
-    fetchMeals,
-  ]);
+  const archiveMutation = useMutation({
+    mutationFn: (id: string) => archiveMeal(id),
+    onError: (error) =>
+      toast.error(getApiErrorMessage(error, "Failed to archive meal.")),
+  });
 
   const handleFiltersChange = useCallback((next: Partial<MealsFilters>) => {
     setFilters((prev) => ({ ...prev, ...next }));
@@ -107,67 +87,84 @@ export function useMealsData() {
     async (dto: CreateMealDto): Promise<Meal> => {
       try {
         const newMeal = await createMeal(dto);
+        queryClient.setQueryData<Meal[]>(
+          ["meals", buildParams(filters)],
+          (prev) => [newMeal, ...(prev ?? [])],
+        );
+        markLibraryStale();
         toast.success(`Meal "${newMeal.name}" created.`);
-        void fetchMeals(true);
         return newMeal;
       } catch (err) {
         toast.error(getApiErrorMessage(err, "Failed to create meal."));
         throw err;
       }
     },
-    [fetchMeals]
+    [filters, markLibraryStale],
   );
 
   const handleUpdateMeal = useCallback(
     async (
       mealId: string,
       metaDto: UpdateMealDto,
-      recipeDto?: ReplaceMealItemsDto
+      recipeDto?: ReplaceMealItemsDto,
     ): Promise<Meal> => {
       try {
         // Strip items if present because PATCH /nutrition/library/meals/:mealId rejects items
-        const { items: _items, ...patchBody } = metaDto as UpdateMealDto & { items?: unknown };
+        const patchBody = { ...(metaDto as UpdateMealDto & { items?: unknown }) };
+        delete patchBody.items;
         let updated = await updateMeal(mealId, patchBody);
         if (recipeDto && recipeDto.items.length > 0) {
           updated = await replaceMealItems(mealId, recipeDto);
         }
+        queryClient.setQueryData<Meal[]>(
+          ["meals", buildParams(filters)],
+          (prev) => prev?.map((m) => (m.id === mealId ? updated : m)),
+        );
+        markLibraryStale();
         toast.success(`Meal "${updated.name}" updated.`);
-        setMeals((prev) => prev.map((m) => (m.id === mealId ? updated : m)));
         return updated;
       } catch (err) {
         toast.error(getApiErrorMessage(err, "Failed to update meal."));
         throw err;
       }
     },
-    []
+    [filters, markLibraryStale],
   );
 
   const handleArchiveConfirm = useCallback(async () => {
     if (!mealToArchive) return;
-    setIsArchiving(true);
     try {
-      await archiveMeal(mealToArchive.id);
-      toast.success(`Meal "${mealToArchive.name}" archived.`);
-      setMeals((prev) =>
-        prev.map((m) => (m.id === mealToArchive.id ? { ...m, isActive: false } : m))
+      await archiveMutation.mutateAsync(mealToArchive.id);
+      queryClient.setQueryData<Meal[]>(
+        ["meals", buildParams(filters)],
+        (prev) =>
+          prev?.map((m) =>
+            m.id === mealToArchive.id ? { ...m, isActive: false } : m,
+          ),
       );
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Failed to archive meal."));
+      markLibraryStale();
+      toast.success(`Meal "${mealToArchive.name}" archived.`);
     } finally {
-      setIsArchiving(false);
       setMealToArchive(null);
     }
-  }, [mealToArchive]);
+  }, [mealToArchive, archiveMutation, filters, markLibraryStale]);
 
-  const handleUnarchive = useCallback(async (meal: Meal) => {
-    try {
-      const restored = await unarchiveMeal(meal.id);
-      toast.success(`Meal "${meal.name}" unarchived.`);
-      setMeals((prev) => prev.map((m) => (m.id === meal.id ? restored : m)));
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, "Failed to unarchive meal."));
-    }
-  }, []);
+  const handleUnarchive = useCallback(
+    async (meal: Meal) => {
+      try {
+        const restored = await unarchiveMeal(meal.id);
+        queryClient.setQueryData<Meal[]>(
+          ["meals", buildParams(filters)],
+          (prev) => prev?.map((m) => (m.id === meal.id ? restored : m)),
+        );
+        markLibraryStale();
+        toast.success(`Meal "${meal.name}" unarchived.`);
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, "Failed to unarchive meal."));
+      }
+    },
+    [filters, markLibraryStale],
+  );
 
   const hasActiveFilter =
     !!filters.search ||
@@ -176,6 +173,8 @@ export function useMealsData() {
     filters.includeInactive ||
     filters.showArchivedOnly;
 
+  const meals = mealsQuery.data ?? [];
+
   const filteredMeals = filters.showArchivedOnly
     ? meals.filter((m) => !m.isActive)
     : meals;
@@ -183,21 +182,21 @@ export function useMealsData() {
   return {
     meals,
     filteredMeals,
-    loading,
-    error,
-    isRefreshing,
+    loading: mealsQuery.isPending,
+    error: toError(mealsQuery.error, "Failed to load meals. Please try again."),
+    isRefreshing: mealsQuery.isFetching && !mealsQuery.isPending,
     filters,
     hasActiveFilter,
     handleFiltersChange,
     resetFilters,
-    refreshData: () => fetchMeals(true),
+    refreshData: () => void mealsQuery.refetch(),
     handleCreateMeal,
     handleUpdateMeal,
     handleUnarchive,
     actions: {
       mealToArchive,
       setMealToArchive,
-      isArchiving,
+      isArchiving: archiveMutation.isPending,
       handleArchiveConfirm,
     },
   };

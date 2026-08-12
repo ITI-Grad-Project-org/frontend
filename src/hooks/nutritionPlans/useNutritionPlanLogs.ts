@@ -1,53 +1,39 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router";
+import { useQuery } from "@tanstack/react-query";
 import { getNutritionPlanLogs } from "@/services/nutritionPlans";
 import { getClients } from "@/services/clients";
 import { getApiErrorMessage } from "@/lib/api";
-import type { NutritionPlanLogsResponse, NutritionDayLog } from "@/types/nutritionPlans";
-import type { ClientConnection } from "@/types/client";
+import type { NutritionDayLog } from "@/types/nutritionPlans";
+
+const toError = (error: unknown, fallback: string) =>
+  error ? getApiErrorMessage(error, fallback) : "";
 
 export function useNutritionPlanLogs() {
   const { planId } = useParams();
-  const [data, setData] = useState<NutritionPlanLogsResponse | null>(null);
-  const [client, setClient] = useState<ClientConnection | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  useEffect(() => {
-    let isActive = true;
-    if (!planId) {
-      setError("Plan ID is missing.");
-      setIsLoading(false);
-      return;
-    }
-    setIsLoading(true);
-    setError("");
-    void (async () => {
-      try {
-        const res = await getNutritionPlanLogs(planId);
-        if (!isActive) return;
-        setData(res);
-        if (res.plan?.membershipId) {
-          try {
-            const allClients = await getClients();
-            const found = allClients.find((c) => c.id === res.plan.membershipId);
-            if (isActive && found) setClient(found);
-          } catch {
-            // optional
-          }
-        }
-      } catch (err) {
-        if (isActive) setError(getApiErrorMessage(err, "Failed to load nutrition logs for this plan."));
-      } finally {
-        if (isActive) setIsLoading(false);
-      }
-    })();
-    return () => { isActive = false; };
-  }, [planId]);
+  const logsQuery = useQuery({
+    queryKey: ["nutrition-plan-logs", planId],
+    queryFn: () => getNutritionPlanLogs(planId!),
+    enabled: !!planId,
+  });
 
-  const logs = useMemo(() => data?.logs ?? [], [data]);
+  // The clients list is cached from the Clients page, so the owner lookup
+  // usually resolves without a network call.
+  const clientsQuery = useQuery({
+    queryKey: ["clients"],
+    queryFn: () => getClients(),
+    staleTime: 5 * 60_000,
+  });
+
+  const membershipId = logsQuery.data?.plan?.membershipId;
+  const client = membershipId
+    ? clientsQuery.data?.find((c) => c.id === membershipId) ?? null
+    : null;
+
+  const logs = useMemo(() => logsQuery.data?.logs ?? [], [logsQuery.data]);
 
   const filteredLogs = useMemo(() => {
     if (statusFilter === "all") return logs;
@@ -72,14 +58,18 @@ export function useNutritionPlanLogs() {
     setExpandedLogId((cur) => (cur === logId ? null : logId));
   };
 
+  const error = !planId
+    ? "Plan ID is missing."
+    : toError(logsQuery.error, "Failed to load nutrition logs for this plan.");
+
   return {
     planId,
-    plan: data?.plan ?? null,
+    plan: logsQuery.data?.plan ?? null,
     logs,
     filteredLogs,
     client,
     stats,
-    isLoading,
+    isLoading: logsQuery.isPending,
     error,
     statusFilter,
     setStatusFilter,
