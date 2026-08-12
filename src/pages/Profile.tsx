@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Save, Trash2, User, Briefcase, Award, ImageIcon } from "lucide-react";
-import { ConfirmDialog } from "@/components/modals/ConfirmDialog";
-import { useProfileData } from "../hooks/useProfileData";
-import { ProfileHeader } from "../components/profile/ProfileHeader";
-import { PersonalDetailsSection } from "../components/profile/PersonalDetailsSection";
-import { CoachingExperienceSection } from "../components/profile/CoachingExperienceSection";
-import { CredentialsPricingSection } from "../components/profile/CredentialsPricingSection";
-import { ClientProofSection } from "../components/profile/ClientProofSection";
-import { ProfileSidebar } from "../components/profile/ProfileSidebar";
+import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
+import { useProfileData } from "../hooks/profile/useProfileData";
+import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { PersonalDetailsSection } from "@/components/profile/sections/PersonalDetailsSection";
+import { CoachingExperienceSection } from "@/components/profile/sections/CoachingExperienceSection";
+import { CredentialsPricingSection } from "@/components/profile/sections/CredentialsPricingSection";
+import { ClientProofSection } from "@/components/profile/sections/ClientProofSection";
+import { ProfileSidebar } from "@/components/profile/sidebar/ProfileSidebar";
 import { clearProfileSetupFlowFlag, isProfileSetupFlowActive } from "@/lib/profile-setup";
-import { ProfileSetupWizard } from "@/components/profile/ProfileSetupWizard";
+import { ProfileSetupWizard } from "@/components/profile/wizard/ProfileSetupWizard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function Profile() {
@@ -44,7 +44,7 @@ function Profile() {
     const {
         register,
         control,
-        formState: { errors, isSubmitting, isDirty },
+        formState: { errors, isSubmitting },
     } = form;
 
     useEffect(() => {
@@ -98,6 +98,7 @@ function Profile() {
                             onAddSpecialty={addSpecialty}
                             onRemoveSpecialty={removeSpecialty}
                             onSubmit={handleSubmit}
+                            user={user}
                         />
 
                         {submissionError && (
@@ -143,7 +144,6 @@ function Profile() {
                                 <TabsContent value="experience" className="mt-0 outline-none">
                                     <CoachingExperienceSection
                                         register={register}
-                                        control={control}
                                         errors={errors}
                                         specialties={specialties}
                                         onAddSpecialty={addSpecialty}
@@ -188,7 +188,7 @@ function Profile() {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting || !isDirty}
+                                    disabled={isSubmitting}
                                     className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition rounded-xl bg-ink text-ink-foreground hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <Save className="w-4 h-4" />

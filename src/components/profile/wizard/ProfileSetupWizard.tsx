@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import type { FieldErrors, UseFormReturn } from "react-hook-form";
-import { CertificationsSection } from "./CertificationsSection";
-import { CoachingExperienceSection } from "./CoachingExperienceSection";
-import { PersonalDetailsSection } from "./PersonalDetailsSection";
+import { CertificationsSection } from "../sections/CertificationsSection";
+import { CoachingExperienceSection } from "../sections/CoachingExperienceSection";
+import { PersonalDetailsSection } from "../sections/PersonalDetailsSection";
 import { ProfileStepper } from "./ProfileStepper";
-import type { ProfileFormData } from "../../schemas/profileSchema";
+import { ProfilePhotoUploader } from "./ProfilePhotoUploader";
+import { TenantBrandingStep } from "./TenantBrandingStep";
+import type { ProfileFormData } from "../../../schemas/profileSchema";
+import type { Coach } from "@/types/auth";
 
 interface ProfileSetupWizardProps {
     form: UseFormReturn<ProfileFormData>;
@@ -13,13 +16,14 @@ interface ProfileSetupWizardProps {
     onAddSpecialty: (specialty: string) => void;
     onRemoveSpecialty: (specialty: string) => void;
     onSubmit: () => void | Promise<void>;
+    user: Coach | null;
 }
 
 const setupSteps = [
     {
         title: "Personal details",
         description: "Your identity and contact information.",
-        fields: ["firstName", "lastName", "phone", "age", "gender", "location", "avatarUrl"],
+        fields: ["firstName", "lastName", "phone", "age", "gender", "location"],
     },
     {
         title: "Coaching profile",
@@ -41,6 +45,11 @@ const setupSteps = [
         description: "Pricing, certifications, and proof links.",
         fields: ["certifications", "portfolioUrl", "priceFrom", "priceTo", "featuredReviews", "transformationPhotos"],
     },
+    {
+        title: "Company branding",
+        description: "Your business logo and company info.",
+        fields: [],
+    },
 ] as const;
 
 export function ProfileSetupWizard({
@@ -49,6 +58,7 @@ export function ProfileSetupWizard({
     onAddSpecialty,
     onRemoveSpecialty,
     onSubmit,
+    user,
 }: ProfileSetupWizardProps) {
     const [activeStep, setActiveStep] = useState(0);
 
@@ -90,12 +100,18 @@ export function ProfileSetupWizard({
             >
                 <input type="hidden" {...register("specialties")} />
 
-                {activeStep === 0 && <PersonalDetailsSection register={register} control={control} errors={errors as FieldErrors<ProfileFormData>} />}
+                {activeStep === 0 && (
+                    <>
+                        <div className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card) sm:p-7">
+                            <ProfilePhotoUploader />
+                        </div>
+                        <PersonalDetailsSection register={register} control={control} errors={errors as FieldErrors<ProfileFormData>} />
+                    </>
+                )}
 
                 {activeStep === 1 && (
                     <CoachingExperienceSection
                         register={register}
-                        control={control}
                         errors={errors as FieldErrors<ProfileFormData>}
                         specialties={specialties}
                         onAddSpecialty={onAddSpecialty}
@@ -112,6 +128,10 @@ export function ProfileSetupWizard({
                         onClearTransformationPhoto={async () => { }}
                         onRefreshProfile={async () => { }}
                     />
+                )}
+
+                {activeStep === 3 && (
+                    <TenantBrandingStep tenants={user?.tenants ?? []} />
                 )}
 
                 <div className="flex flex-wrap items-center justify-between gap-4 pb-8">

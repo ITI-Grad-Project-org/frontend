@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { compressImageFile, compressImageFiles } from "@/lib/image-compress";
 
 export type UploadType = "avatar" | "transformation" | "certificate";
 
@@ -24,8 +25,9 @@ export async function uploadImage(
   file: File,
   type: UploadType,
 ): Promise<UploadImageResponse> {
+  const prepared = await compressImageFile(file);
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", prepared);
   formData.append("type", type);
 
   const { data } = await api.post<UploadImageResponse>(
@@ -48,8 +50,9 @@ export async function uploadImages(
   files: File[],
   type: UploadType,
 ): Promise<UploadImagesResponse> {
+  const prepared = await compressImageFiles(files);
   const formData = new FormData();
-  files.forEach((file) => {
+  prepared.forEach((file) => {
     formData.append("files", file);
   });
   formData.append("type", type);
@@ -74,8 +77,9 @@ export async function uploadDocument(
   file: File,
   type: UploadType,
 ): Promise<UploadDocumentResponse> {
+  const prepared = await compressImageFile(file);
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append("file", prepared);
   formData.append("type", type);
 
   const { data } = await api.post<UploadDocumentResponse>(

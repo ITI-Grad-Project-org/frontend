@@ -1,7 +1,6 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router";
 import {
-  Star,
   RefreshCw,
   User,
   Building2,
@@ -10,341 +9,37 @@ import {
   ExternalLink,
   MessageSquare,
   ChevronLeft,
-  ChevronRight,
   SearchX,
   MapPin,
   Clock,
   BadgeCheck,
   Wallet,
-  X,
-  Link2,
   Images,
   UserCircle2,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import axios from "axios";
-import { getCoachPublicProfile } from "@/services/reviews";
-import { getApiErrorMessage } from "@/lib/api";
-import type { CoachPublicProfile, Review } from "@/types/reviews";
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function StarRating({ rating, size = 16 }: { rating: number; size?: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          style={{ width: size, height: size }}
-          className={i < rating ? "fill-warn text-warn" : "fill-muted text-muted"}
-          strokeWidth={1.5}
-        />
-      ))}
-    </div>
-  );
-}
-
-function specialtyLabel(value: string) {
-  const labels: Record<string, string> = {
-    strength: "Strength",
-    hypertrophy: "Hypertrophy",
-    endurance: "Endurance",
-    weight_loss: "Weight loss",
-    mobility: "Mobility",
-    powerlifting: "Powerlifting",
-    crossfit: "CrossFit",
-    calisthenics: "Calisthenics",
-    postpartum: "Postpartum",
-    yoga: "Yoga",
-    nutrition: "Nutrition",
-    rehab: "Rehab",
-    general_fitness: "General fitness",
-  };
-  return labels[value] ?? value;
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return null;
-  const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
-
-function genderLabel(value: string | null | undefined) {
-  if (!value) return null;
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function socialIcon(_key: string) {
-  return <Link2 className="w-4 h-4" />;
-}
-
-// ─── Lightbox ─────────────────────────────────────────────────────────────────
-
-function Lightbox({
-  photos,
-  initialIndex,
-  onClose,
-}: {
-  photos: string[];
-  initialIndex: number;
-  onClose: () => void;
-}) {
-  const [current, setCurrent] = useState(initialIndex);
-
-  const prev = useCallback(() => setCurrent((c) => (c - 1 + photos.length) % photos.length), [photos.length]);
-  const next = useCallback(() => setCurrent((c) => (c + 1) % photos.length), [photos.length]);
-
-  // keyboard navigation
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "ArrowRight") next();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [onClose, prev, next]);
-
-  // prevent body scroll while open
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Transformation photo gallery"
-    >
-      {/* Close */}
-      <button
-        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
-        onClick={onClose}
-        aria-label="Close gallery"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
-      {/* Counter */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold backdrop-blur-sm">
-        {current + 1} / {photos.length}
-      </div>
-
-      {/* Prev */}
-      {photos.length > 1 && (
-        <button
-          className="absolute left-3 sm:left-6 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
-          onClick={(e) => { e.stopPropagation(); prev(); }}
-          aria-label="Previous photo"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Image */}
-      <img
-        key={current}
-        src={photos[current]}
-        alt={`Transformation ${current + 1}`}
-        className="max-h-[85vh] max-w-[90vw] sm:max-w-[80vw] object-contain rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
-      />
-
-      {/* Next */}
-      {photos.length > 1 && (
-        <button
-          className="absolute right-3 sm:right-6 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
-          onClick={(e) => { e.stopPropagation(); next(); }}
-          aria-label="Next photo"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Thumbnail strip */}
-      {photos.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-4 overflow-x-auto max-w-[90vw]">
-          {photos.map((url, i) => (
-            <button
-              key={i}
-              onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
-              className={`shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${i === current ? "border-white scale-110" : "border-white/30 opacity-60 hover:opacity-90"
-                }`}
-              aria-label={`Go to photo ${i + 1}`}
-            >
-              <img src={url} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Review card ──────────────────────────────────────────────────────────────
-
-function ReviewCard({ review }: { review: Review }) {
-  const { client, rating, comment, created_at } = review;
-  const initials = `${client.firstName[0] ?? ""}${client.lastName[0] ?? ""}`.toUpperCase();
-
-  return (
-    <div className="flex gap-4 p-5 border border-white/10 bg-white/5 backdrop-blur-md rounded-2xl shadow-md hover:bg-white/10 transition-colors">
-      <Avatar className="w-11 h-11 shrink-0">
-        {client.avatarUrl ? (
-          <AvatarImage
-            src={client.avatarUrl}
-            alt={`${client.firstName} ${client.lastName}`}
-            className="object-cover"
-          />
-        ) : null}
-        <AvatarFallback className="bg-white/10 text-white text-sm font-semibold">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex flex-wrap items-start justify-between gap-2 mb-1.5">
-          <p className="font-semibold text-white leading-tight">
-            {client.firstName} {client.lastName}
-          </p>
-          <time dateTime={created_at} className="text-xs text-white/50 whitespace-nowrap">
-            {new Date(created_at).toLocaleDateString(undefined, {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </time>
-        </div>
-        <StarRating rating={rating} size={13} />
-        {comment && (
-          <p className="mt-2.5 text-sm text-white/70 leading-relaxed">{comment}</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Page skeleton ────────────────────────────────────────────────────────────
-
-function PageSkeleton() {
-  return (
-    <div className="animate-pulse max-w-5xl mx-auto px-6 pt-10">
-      <div className="flex flex-col sm:flex-row gap-5 mb-8 items-end">
-        <div className="w-32 h-32 rounded-full bg-white/10 shrink-0" />
-        <div className="space-y-3 pb-2">
-          <div className="h-9 bg-white/10 rounded-xl w-56" />
-          <div className="h-4 bg-white/10 rounded-lg w-36" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="h-24 bg-white/10 rounded-3xl" />
-          <div className="h-20 bg-white/10 rounded-3xl" />
-          <div className="h-48 bg-white/10 rounded-3xl" />
-        </div>
-        <div className="space-y-4">
-          <div className="h-48 bg-white/10 rounded-3xl" />
-          <div className="h-28 bg-white/10 rounded-3xl" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Section heading ──────────────────────────────────────────────────────────
-
-function SectionHeading({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <h2 className="flex items-center gap-2 text-base font-bold text-white mb-4">
-      <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-brand/20 text-brand shrink-0">
-        {icon}
-      </span>
-      {children}
-    </h2>
-  );
-}
-
-// ─── Stat pill ────────────────────────────────────────────────────────────────
-
-function StatPill({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/5 border border-white/10">
-      <span className="text-white/50 shrink-0">{icon}</span>
-      <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">{label}</p>
-        <p className="text-sm font-semibold text-white truncate">{value}</p>
-      </div>
-    </div>
-  );
-}
+import { StarRating } from "@/components/reviews/ReviewCard";
+import { Lightbox } from "@/components/coachProfile/Lightbox";
+import { PageSkeleton } from "@/components/coachProfile/PageSkeleton";
+import { SectionHeading } from "@/components/coachProfile/SectionHeading";
+import { StatPill } from "@/components/coachProfile/StatPill";
+import { CoachReviewCard } from "@/components/coachProfile/CoachReviewCard";
+import {
+  formatDate,
+  genderLabel,
+  socialIcon,
+  specialtyLabel,
+} from "@/components/coachProfile/profile-utils";
+import { useCoachPublicProfile } from "@/hooks/coach/useCoachPublicProfile";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-function CoachProfile() {
+export default function CoachProfile() {
   const { tenantId } = useParams<{ tenantId: string }>();
-
-  const [profile, setProfile] = useState<CoachPublicProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isNotFound, setIsNotFound] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  const fetchProfile = () => {
-    if (!tenantId) return;
-    setLoading(true);
-    setError("");
-    setIsNotFound(false);
-    getCoachPublicProfile(tenantId)
-      .then((data) => { setProfile(data); })
-      .catch((err) => {
-        if (axios.isAxiosError(err) && err.response?.status === 404) {
-          setIsNotFound(true);
-        } else {
-          setError(getApiErrorMessage(err, "Could not load this coach's profile. Please try again."));
-        }
-      })
-      .finally(() => { setLoading(false); });
-  };
-
-  useEffect(() => {
-    void (async () => {
-      if (!tenantId) return;
-      setLoading(true);
-      setError("");
-      setIsNotFound(false);
-      try {
-        const data = await getCoachPublicProfile(tenantId);
-        setProfile(data);
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response?.status === 404) {
-          setIsNotFound(true);
-        } else {
-          setError(getApiErrorMessage(err, "Could not load this coach's profile. Please try again."));
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [tenantId]);
+  const { profile, loading, error, isNotFound, fetchProfile } =
+    useCoachPublicProfile(tenantId);
 
   const coach = profile?.coach;
   const reviews = profile?.reviews ?? [];
@@ -379,11 +74,6 @@ function CoachProfile() {
                 className="h-7 w-auto"
               />
             </Link>
-            {/* {coach && (
-            <p className="text-sm font-semibold text-muted-foreground hidden sm:block">
-              {coach.firstName} {coach.lastName}
-            </p>
-          )} */}
           </div>
         </header>
 
@@ -467,12 +157,20 @@ function CoachProfile() {
                     <section className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md p-6 shadow-md">
                       <SectionHeading icon={<User className="w-4 h-4" />}>About</SectionHeading>
                       {coach.bio && (
-                        <p className="text-sm text-white/70 leading-relaxed">{coach.bio}</p>
+                        <>
+                          <p className="text-sm text-white/70 leading-relaxed">{coach.bio}</p>
+                        </>
+                      )}
+                      {coach.bio && coach.careerExperience && (
+                        <div aria-hidden className="my-4 h-px bg-white/10" />
                       )}
                       {coach.careerExperience && (
-                        <p className={`text-sm text-white/70 leading-relaxed ${coach.bio ? "mt-3" : ""}`}>
-                          {coach.careerExperience}
-                        </p>
+                        <>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-white/50 mb-3">
+                            Career Experience
+                          </p>
+                          <p className="text-sm text-white/70 leading-relaxed">{coach.careerExperience}</p>
+                        </>
                       )}
                     </section>
                   )}
@@ -612,7 +310,7 @@ function CoachProfile() {
                     ) : (
                       <div className="flex flex-col gap-3">
                         {reviews.map((review) => (
-                          <ReviewCard key={review.id} review={review} />
+                          <CoachReviewCard key={review.id} review={review} />
                         ))}
                       </div>
                     )}
@@ -697,23 +395,13 @@ function CoachProfile() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-2.5 text-sm font-semibold text-white hover:text-brand transition-colors"
                           >
-                            <span className="text-white/50">{socialIcon(platform)}</span>
+                            <span className="text-white/50">{socialIcon()}</span>
                             <span className="capitalize">{platform}</span>
                           </a>
                         ))}
                       </div>
                     </section>
                   )}
-
-                  {/* Featured review quote */}
-                  {/* {coach.featuredReviews && (
-                    <section className="rounded-3xl border border-brand/30 bg-brand/10 backdrop-blur-md p-5 shadow-md">
-                      <Quote className="w-6 h-6 text-brand mb-3" />
-                      <p className="text-sm text-foreground leading-relaxed italic">
-                        {coach.featuredReviews}
-                      </p>
-                    </section>
-                  )} */}
 
                   {/* Tenant card */}
                   <section className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md p-5 shadow-md">
@@ -751,5 +439,3 @@ function CoachProfile() {
     </div>
   );
 }
-
-export default CoachProfile;

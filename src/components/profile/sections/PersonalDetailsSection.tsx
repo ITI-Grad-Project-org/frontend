@@ -3,8 +3,8 @@ import {
     genderOptions,
     inputClassName,
     type ProfileFormData,
-} from "../../schemas/profileSchema";
-import { LocationSelect } from "./LocationSelect";
+} from "../../../schemas/profileSchema";
+import { LocationSelect } from "../fields/LocationSelect";
 
 interface PersonalDetailsProps {
     register: UseFormRegister<ProfileFormData>;

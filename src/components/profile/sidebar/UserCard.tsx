@@ -159,7 +159,7 @@ export function UserCard({ user }: UserCardProps) {
                     <span className={labelClass}>Offline Availability</span>
                     <span className={valueClass}>{user?.offlineAvailability ?? "N/A"}</span>
                 </div>
-                <div className={detailRowClass}>
+                <div className={detailRowClass + " text-xs"}>
                     <span className={labelClass}>Availability hours</span>
                     <span className={valueClass}>{user?.availabilityHours ?? "N/A"}</span>
                 </div>

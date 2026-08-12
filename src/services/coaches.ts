@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { compressImageFile, compressImageFiles } from "@/lib/image-compress";
 import type { Coach, UpdateCoachPayload } from "@/types/auth";
 
 // ── Profile ────────────────────────────────────────────────────────────────────
@@ -27,8 +28,9 @@ export async function deleteCoachProfile(): Promise<void> {
 
 /** PUT /coaches/me/avatar — set or replace profile photo */
 export async function uploadCoachAvatar(file: File): Promise<Coach> {
+  const prepared = await compressImageFile(file, { maxDimension: 600 });
   const formData = new FormData();
-  formData.append("avatar", file);
+  formData.append("avatar", prepared);
   const { data } = await api.put<Coach>("/coaches/me/avatar", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
@@ -45,8 +47,9 @@ export async function removeCoachAvatar(): Promise<Coach> {
 
 /** POST /coaches/me/transformation-photos — upload one or more photos */
 export async function addTransformationPhotos(files: File[]): Promise<Coach> {
+  const prepared = await compressImageFiles(files);
   const formData = new FormData();
-  files.forEach((file) => formData.append("photos", file));
+  prepared.forEach((file) => formData.append("photos", file));
   const { data } = await api.post<Coach>(
     "/coaches/me/transformation-photos",
     formData,
@@ -83,6 +86,7 @@ export interface AddCertificationOptions {
 export async function addCertification(
   options: AddCertificationOptions,
 ): Promise<Coach> {
+  const prepared = await compressImageFile(options.file);
   const formData = new FormData();
   formData.append("name", options.name);
   if (options.issuer) formData.append("issuer", options.issuer);
@@ -90,7 +94,7 @@ export async function addCertification(
   if (options.expiryDate) formData.append("expiryDate", options.expiryDate);
   if (options.credentialUrl)
     formData.append("credentialUrl", options.credentialUrl);
-  formData.append("file", options.file);
+  formData.append("file", prepared);
 
   const { data } = await api.post<Coach>(
     "/coaches/me/certifications",

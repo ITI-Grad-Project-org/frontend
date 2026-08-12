@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useFieldArray, Controller, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { Trash2, Loader2, Upload } from "lucide-react";
-import { inputClassName, type ProfileFormData } from "../../schemas/profileSchema";
+import { inputClassName, type ProfileFormData } from "../../../schemas/profileSchema";
 import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 
 // ── Multi photo button ─────────────────────────────────────────────────────────
