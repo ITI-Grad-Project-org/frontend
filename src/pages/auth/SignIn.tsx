@@ -10,19 +10,7 @@ import { signIn } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
 import { signInSchema, type SignInFormData } from "@/schemas/auth";
-
-function Field({ label, error, ...props }: { label: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
-    return (
-        <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">{label}</span>
-            <input
-                {...props}
-                className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand"
-            />
-            {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-        </label>
-    );
-}
+import { Field } from "@/components/auth/Field";
 
 function SignIn() {
     const { isDark } = useTheme();

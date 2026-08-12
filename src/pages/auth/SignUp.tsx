@@ -11,32 +11,45 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
 import { signUpSchema, type SignUpFormData } from "@/schemas/auth";
 import { markProfileSetupFlowActive } from "@/lib/profile-setup";
+import { detectLocaleDefaults } from "@/lib/locale-defaults";
+import { CURRENCY_BY_REGION } from "@/lib/locale-defaults";
+import { Field } from "@/components/auth/Field";
 
+const CURRENCY_OPTIONS = [...new Set(Object.values(CURRENCY_BY_REGION))].sort();
 
-function Field({ label, error, ...props }: { label: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
-    return (
-        <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">{label}</span>
-            <input
-                {...props}
-                className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand"
-            />
-            {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-        </label>
-    );
-}
+const TIMEZONE_OPTIONS =
+    typeof Intl.supportedValuesOf === "function"
+        ? [...Intl.supportedValuesOf("timeZone")].sort()
+        : ["UTC"];
+
+const selectCls =
+    "w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand";
 
 function SignUp() {
     const { isDark } = useTheme();
     const navigate = useNavigate();
     const setSession = useAuthStore((state) => state.setSession);
     const [submissionError, setSubmissionError] = useState("");
+
+    const detected = detectLocaleDefaults({
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+    });
+
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
     } = useForm<SignUpFormData>({
         resolver: zodResolver(signUpSchema),
+        defaultValues: {
+            timezone: TIMEZONE_OPTIONS.includes(detected.timezone)
+                ? detected.timezone
+                : "UTC",
+            currency: CURRENCY_OPTIONS.includes(detected.currency)
+                ? detected.currency
+                : "USD",
+        },
     });
 
     const onSubmit = async (data: SignUpFormData) => {
@@ -45,8 +58,6 @@ function SignUp() {
         try {
             const session = await registerCoach({
                 ...data,
-                timezone: "Africa/Cairo",
-                currency: "EGP",
             });
 
             setSession(session);
@@ -90,6 +101,26 @@ function SignUp() {
                     </div>
                     <Field label="Email" type="email" autoComplete="email" placeholder="alex@yourgym.com" error={errors.email?.message} {...register("email")} />
                     <Field label="Business name" type="text" autoComplete="organization" placeholder="Your coaching business" error={errors.businessName?.message} {...register("businessName")} />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <label className="block">
+                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Currency</span>
+                            <select className={selectCls} {...register("currency")}>
+                                {CURRENCY_OPTIONS.map((code) => (
+                                    <option key={code} value={code}>{code}</option>
+                                ))}
+                            </select>
+                            {errors.currency && <p className="mt-1 text-xs text-destructive">{errors.currency.message}</p>}
+                        </label>
+                        <label className="block">
+                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Timezone</span>
+                            <select className={selectCls} {...register("timezone")}>
+                                {TIMEZONE_OPTIONS.map((tz) => (
+                                    <option key={tz} value={tz}>{tz}</option>
+                                ))}
+                            </select>
+                            {errors.timezone && <p className="mt-1 text-xs text-destructive">{errors.timezone.message}</p>}
+                        </label>
+                    </div>
                     <Field label="Password" type="password" autoComplete="new-password" placeholder="Min. 8 characters" error={errors.password?.message} {...register("password")} />
                     <Field label="Confirm password" type="password" autoComplete="new-password" placeholder="Repeat your password" error={errors.confirmPassword?.message} {...register("confirmPassword")} />
 

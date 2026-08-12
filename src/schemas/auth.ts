@@ -41,6 +41,8 @@ export const signUpSchema = z
       .string()
       .trim()
       .min(2, "Business name must be at least 2 characters"),
+    timezone: z.string().min(1, "Select a timezone"),
+    currency: z.string().min(1, "Select a currency"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
