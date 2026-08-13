@@ -15,6 +15,8 @@ import { RequireGuest } from "./components/auth/RequireGuest";
 import { ThemeToggleFab } from "./components/ui/ThemeToggleFab";
 import { AppToaster } from "./components/ui/AppToaster";
 import ResetPassword from "./pages/auth/ResetPassword";
+import Privacy from "./pages/marketing/Privacy";
+import Terms from "./pages/marketing/Terms";
 
 const DashboardRoutes = lazy(() => import("./pages/Dashboard"));
 
@@ -86,6 +88,9 @@ function App() {
             />
 
             <Route path="/coach/:tenantId" element={<CoachProfile />} />
+
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
 
             <Route path="*" element={<DefaultPage />} />
           </Routes>

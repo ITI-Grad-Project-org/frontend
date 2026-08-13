@@ -351,7 +351,7 @@
 @keyframes reveal-up {
     from {
         opacity: 0;
-        transform: translateY(24px);
+        transform: translateY(12px);
     }
 
     to {
@@ -371,7 +371,7 @@
 }
 
 @utility reveal {
-    animation: reveal-up 900ms cubic-bezier(.2, .7, .2, 1) both;
+    animation: reveal-up 500ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
 @utility glass-nav {

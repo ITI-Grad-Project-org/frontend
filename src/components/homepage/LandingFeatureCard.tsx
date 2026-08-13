@@ -4,11 +4,20 @@ type LandingFeatureCardProps = {
     icon: ComponentType<{ className?: string }>;
     title: string;
     desc: string;
+    tiltXVar?: string;
+    tiltYVar?: string;
 };
 
-export function LandingFeatureCard({ icon: Icon, title, desc }: LandingFeatureCardProps) {
+export function LandingFeatureCard({ icon: Icon, title, desc, tiltXVar, tiltYVar }: LandingFeatureCardProps) {
     return (
-        <div className="glass-panel group relative overflow-hidden p-7 transition hover:-translate-y-1 hover:border-white/20">
+        <div
+            className="glass-panel group relative overflow-hidden p-7 transition-[border-color] duration-200 hover:border-white/20"
+            style={
+                tiltXVar
+                    ? { transform: `perspective(900px) rotateX(var(${tiltXVar}, 0deg)) rotateY(var(${tiltYVar}, 0deg))` }
+                    : undefined
+            }
+        >
             <div
                 aria-hidden
                 className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-0 blur-2xl transition group-hover:opacity-100"

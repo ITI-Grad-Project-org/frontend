@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { LayoutDashboard, Smartphone } from "lucide-react";
 import dumbbell1 from "@/assets/dumbbell-1.webp";
+import { MOBILE_APP_URL } from "@/lib/links";
 
 export function LandingAccessSection() {
     return (
@@ -26,12 +27,16 @@ export function LandingAccessSection() {
                             >
                                 <LayoutDashboard className="h-4 w-4" /> Open dashboard
                             </Link>
-                            <a
-                                href="#"
-                                className="btn-magnetic inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-6 py-3.5 text-sm font-semibold backdrop-blur hover:bg-white/8"
-                            >
-                                <Smartphone className="h-4 w-4" /> Open mobile app
-                            </a>
+                            {MOBILE_APP_URL && (
+                                <a
+                                    href={MOBILE_APP_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn-magnetic inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-6 py-3.5 text-sm font-semibold backdrop-blur hover:bg-white/8"
+                                >
+                                    <Smartphone className="h-4 w-4" /> Open mobile app
+                                </a>
+                            )}
                         </div>
                     </div>
                     <div className="hidden justify-end md:flex">
@@ -40,6 +45,8 @@ export function LandingAccessSection() {
                             alt=""
                             width={520}
                             height={520}
+                            loading="lazy"
+                            decoding="async"
                             className="float-b w-65 max-w-full opacity-90 drop-shadow-[0_40px_60px_rgba(0,0,0,0.6)]"
                             style={{ ["--rot" as string]: "-8deg" }}
                         />

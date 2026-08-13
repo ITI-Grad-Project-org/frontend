@@ -1,13 +1,16 @@
 import { LandingAccessSection } from "@/components/homepage/LandingAccessSection";
 import { LandingEcosystemSection } from "@/components/homepage/LandingEcosystemSection";
+import { LandingFaqSection } from "@/components/homepage/LandingFaqSection";
 import { LandingFeaturesSection } from "@/components/homepage/LandingFeaturesSection";
 import { LandingFooter } from "@/components/homepage/LandingFooter";
 import { LandingNav } from "@/components/homepage/LandingNav";
 import { LandingHeroSection } from "@/components/homepage/LandingHeroSection";
-import { useMouseParallax } from "@/hooks/shared/useMouseParallax";
+import { LandingPricingSection } from "@/components/homepage/LandingPricingSection";
+import { LandingTestimonialsSection } from "@/components/homepage/LandingTestimonialsSection";
+import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 export default function Homepage() {
-    const { x, y } = useMouseParallax();
+    useDocumentTitle("Uply · Train smarter. Coach better.");
 
     return (
         <div className="landing-page relative min-h-screen overflow-x-clip bg-background text-foreground">
@@ -32,13 +35,19 @@ export default function Homepage() {
 
             <LandingNav />
 
-            <LandingHeroSection x={x} y={y} />
+            <LandingHeroSection />
 
-            <LandingEcosystemSection x={x} y={y} />
+            <LandingEcosystemSection />
 
             <LandingFeaturesSection />
 
+            <LandingPricingSection />
+
+            <LandingTestimonialsSection />
+
             <LandingAccessSection />
+
+            <LandingFaqSection />
 
             <LandingFooter />
         </div>

@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { useTheme } from "@/theme";
 
 export function LandingFooter() {
@@ -14,8 +15,8 @@ export function LandingFooter() {
                     <span>© {new Date().getFullYear()} Uply. Crafted for coaches.</span>
                 </div>
                 <div className="flex gap-6">
-                    <a href="#" className="hover:text-foreground">Privacy</a>
-                    <a href="#" className="hover:text-foreground">Terms</a>
+                    <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+                    <Link to="/terms" className="hover:text-foreground">Terms</Link>
                     <a href="#" className="hover:text-foreground">Contact</a>
                 </div>
             </div>
