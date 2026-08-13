@@ -3,6 +3,7 @@ import { useFieldArray, Controller, type Control, type FieldErrors, type UseForm
 import { Trash2, Loader2, Upload } from "lucide-react";
 import { inputClassName, type ProfileFormData } from "../../../schemas/profileSchema";
 import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
+import { SectionCard } from "../SectionCard";
 
 // ── Multi photo button ─────────────────────────────────────────────────────────
 
@@ -127,14 +128,12 @@ export function ClientProofSection({
     const transformationPhotos = useFieldArray({ control, name: "transformationPhotos" });
 
     return (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card) sm:p-7 space-y-6">
-            <div>
-                <h2 className="text-lg font-bold">Client proof</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Transformation photos and featured reviews visible on your public profile.
-                </p>
-            </div>
-
+        <SectionCard
+            kicker="Results"
+            title="Client proof"
+            description="Transformation photos and featured reviews visible on your public profile."
+            className="space-y-6"
+        >
             {/* ── Transformation photos ── */}
             <div>
                 <div className="flex items-center justify-between gap-3">
@@ -218,6 +217,6 @@ export function ClientProofSection({
                     </p>
                 </label>
             </div>
-        </section>
+        </SectionCard>
     );
 }

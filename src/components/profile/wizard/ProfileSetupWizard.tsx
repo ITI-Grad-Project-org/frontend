@@ -123,10 +123,10 @@ export function ProfileSetupWizard({
                     <CertificationsSection
                         control={control}
                         register={register}
+                        setValue={form.setValue}
                         errors={errors as FieldErrors<ProfileFormData>}
                         existingCertifications={[]}
                         onClearTransformationPhoto={async () => { }}
-                        onRefreshProfile={async () => { }}
                     />
                 )}
 

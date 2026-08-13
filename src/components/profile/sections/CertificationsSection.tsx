@@ -1,9 +1,10 @@
 import { useState, useRef } from "react";
-import { useFieldArray, Controller, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
+import { useFieldArray, useWatch, Controller, type Control, type FieldErrors, type UseFormRegister, type UseFormSetValue } from "react-hook-form";
 import { Trash2, ExternalLink, Upload, Loader2 } from "lucide-react";
 import { inputClassName, type ProfileFormData } from "../../../schemas/profileSchema";
 import type { Coach } from "@/types/auth";
 import { CertificationsManager } from "../certifications/CertificationsManager";
+import { SectionCard } from "../SectionCard";
 
 // ── Multi photo button ─────────────────────────────────────────────────────────
 
@@ -42,30 +43,55 @@ function MultiPhotoButton({ onFiles }: { onFiles: (files: File[]) => void }) {
 interface CertificationsSectionProps {
     control: Control<ProfileFormData>;
     register: UseFormRegister<ProfileFormData>;
+    setValue: UseFormSetValue<ProfileFormData>;
     errors: FieldErrors<ProfileFormData>;
     /** Existing certifications from the server */
     existingCertifications: Coach["certifications"];
     onClearTransformationPhoto: (url: string) => Promise<void>;
-    onRefreshProfile: () => Promise<void>;
 }
 
 export function CertificationsSection({
     control,
     register,
+    setValue,
     errors,
     existingCertifications,
     onClearTransformationPhoto,
-    onRefreshProfile,
 }: CertificationsSectionProps) {
     const transformationPhotos = useFieldArray({ control, name: "transformationPhotos" });
+    const stagedCertifications = useFieldArray({ control, name: "stagedCertifications" });
+    const removedCertificationIds =
+        useWatch({ control, name: "removedCertificationIds" }) ?? [];
+
+    const addCertification = () => {
+        stagedCertifications.append({
+            name: "", issuer: "", issueDate: "", expiryDate: "", credentialUrl: "", file: null,
+        });
+    };
+
+    const stageRemoval = (id: string) => {
+        setValue("removedCertificationIds", [...removedCertificationIds, id], { shouldDirty: true });
+    };
+
+    const restoreRemoval = (id: string) => {
+        setValue("removedCertificationIds", removedCertificationIds.filter((value) => value !== id), { shouldDirty: true });
+    };
 
     return (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card) sm:p-7 space-y-6">
+        <SectionCard className="space-y-6">
 
             {/* ── Certifications ── */}
             <CertificationsManager
                 existingCertifications={existingCertifications}
-                onRefreshProfile={onRefreshProfile}
+                stagedCertifications={stagedCertifications.fields}
+                removedCertificationIds={removedCertificationIds}
+                register={register}
+                control={control}
+                errors={errors}
+                onAddCertification={addCertification}
+                onRemoveStaged={(index) => stagedCertifications.remove(index)}
+                onStageRemoval={stageRemoval}
+                onRestoreRemoval={restoreRemoval}
                 description="Certificates, proof links, coaching rates, and client-facing highlights."
             />
 
@@ -160,7 +186,7 @@ export function CertificationsSection({
                     )}
                 </div>
             </div>
-        </section>
+        </SectionCard>
     );
 }
 

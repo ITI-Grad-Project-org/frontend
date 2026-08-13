@@ -9,6 +9,7 @@ import {
     weekdayOptions,
     type ProfileFormData,
 } from "../../../schemas/profileSchema";
+import { SectionCard } from "../SectionCard";
 
 interface CoachingExperienceProps {
     register: UseFormRegister<ProfileFormData>;
@@ -26,9 +27,8 @@ export function CoachingExperienceSection({
     onRemoveSpecialty,
 }: CoachingExperienceProps) {
     return (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card) sm:p-7">
-            <h2 className="text-lg font-bold">Coaching experience</h2>
-            <div className="grid gap-4 mt-5 sm:grid-cols-2">
+        <SectionCard kicker="Coaching" title="Coaching experience">
+            <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block sm:col-span-2">
                     <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Bio</span>
                     <textarea className={`${inputClassName} min-h-28 resize-y`} placeholder="Share the coaching style clients can expect from you." {...register("bio")} />
@@ -152,6 +152,6 @@ export function CoachingExperienceSection({
                     <span className="block mt-1 text-xs text-muted-foreground">These values are merged into one string before saving.</span>
                 </div>
             </div>
-        </section>
+        </SectionCard>
     );
 }

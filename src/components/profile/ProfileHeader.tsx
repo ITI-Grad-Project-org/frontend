@@ -9,12 +9,7 @@ interface ProfileHeaderProps {
     description?: string;
 }
 
-export function ProfileHeader({
-    onSignOut,
-    eyebrow = "Coach profile",
-    title = "Your profile",
-    description = "Review and update the coaching details your clients see.",
-}: ProfileHeaderProps) {
+export function ProfileHeader({ onSignOut, eyebrow, title, description }: ProfileHeaderProps) {
     const { isDark } = useTheme();
 
     return (
@@ -42,11 +37,18 @@ export function ProfileHeader({
                 </div>
             </header>
 
-            <div className="mb-8 animate-text">
-                <p className="text-sm font-semibold text-brand">{eyebrow}</p>
-                <h1 className="mt-2 text-3xl font-extrabold">{title}</h1>
-                <p className="max-w-2xl mt-2 text-sm text-muted-foreground">{description}</p>
-            </div>
+            {title && (
+                <div className="mb-8 animate-text">
+                    {eyebrow && (
+                        <p className="flex items-center gap-2 text-sm font-semibold text-brand">
+                            <span aria-hidden className="inline-block h-2 w-2 rounded-full bg-brand" />
+                            {eyebrow}
+                        </p>
+                    )}
+                    <h1 className="mt-2 text-3xl font-extrabold tracking-tight">{title}</h1>
+                    {description && <p className="max-w-2xl mt-2 text-sm text-muted-foreground">{description}</p>}
+                </div>
+            )}
         </>
     );
 }

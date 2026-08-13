@@ -51,6 +51,31 @@ export const certificationSchema = z.object({
   fileKey: z.string().optional(),
 });
 
+export interface NewCertificationOptions {
+  name: string;
+  issuer?: string;
+  issueDate?: string;
+  expiryDate?: string;
+  credentialUrl?: string;
+  file: File;
+}
+
+/** Maps a staged certification into the AddCertification payload, or null when no file is attached. */
+export function toNewCertification(
+  cert: ProfileFormData["stagedCertifications"][number],
+): NewCertificationOptions | null {
+  const file = cert.file;
+  if (!(file instanceof File)) return null;
+  return {
+    name: cert.name.trim(),
+    issuer: cert.issuer?.trim() || undefined,
+    issueDate: cert.issueDate || undefined,
+    expiryDate: cert.expiryDate || undefined,
+    credentialUrl: cert.credentialUrl?.trim() || undefined,
+    file,
+  };
+}
+
 export const specialtyOptions = [
   { value: "strength", label: "Strength" },
   { value: "hypertrophy", label: "Hypertrophy" },
@@ -153,6 +178,25 @@ export const profileSchema = z.object({
     .max(2000, "Career experience must be 2,000 characters or fewer")
     .optional(),
   certifications: z.array(certificationSchema),
+  stagedCertifications: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1, "Certification name is required"),
+        issuer: optionalTextSchema.optional(),
+        issueDate: optionalDateSchema.optional(),
+        expiryDate: optionalDateSchema.optional(),
+        credentialUrl: optionalUrlSchema.optional(),
+        file: z
+          .union([z.instanceof(File), z.null()])
+          .superRefine((value, ctx) => {
+            if (!(value instanceof File)) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Upload a certificate file" });
+            }
+          }),
+      }),
+    )
+    .default([]),
+  removedCertificationIds: z.array(z.string()).default([]),
   portfolioUrl: optionalUrlSchema.optional(),
   transformationPhotos: z
     .array(
@@ -207,6 +251,8 @@ export const emptyProfile: ProfileFormData = {
   yearsExperience: "",
   careerExperience: "",
   certifications: [],
+  stagedCertifications: [],
+  removedCertificationIds: [],
   portfolioUrl: "",
   transformationPhotos: [],
   featuredReviews: "",
@@ -351,6 +397,8 @@ export function toFormValues(coach: Coach): ProfileFormData {
         file: null,
         fileKey: "",
       })) ?? [],
+    stagedCertifications: [],
+    removedCertificationIds: [],
     portfolioUrl: coach.portfolioUrl ?? "",
     transformationPhotos: coach.transformationPhotos?.length
       ? coach.transformationPhotos.map((url) => ({ url, file: null, key: "" }))
@@ -364,7 +412,10 @@ export function toFormValues(coach: Coach): ProfileFormData {
   };
 }
 
-export function toUpdateCoachPayload(data: ProfileFormData): {
+export function toUpdateCoachPayload(
+  data: ProfileFormData,
+  dirtyFields: Partial<Record<keyof ProfileFormData, boolean>> = {},
+): {
   payload: UpdateCoachPayload;
   newTransformationPhotos: File[];
 } {
@@ -375,7 +426,7 @@ export function toUpdateCoachPayload(data: ProfileFormData): {
     .map((photo) => photo.file)
     .filter((file): file is File => file instanceof File);
 
-  const payload: UpdateCoachPayload = {
+  const fullPayload: UpdateCoachPayload = {
     firstName: cleanText(data.firstName),
     lastName: cleanText(data.lastName),
     phone: cleanNullableText(data.phone),
@@ -397,6 +448,41 @@ export function toUpdateCoachPayload(data: ProfileFormData): {
     priceFrom: cleanNullableNumber(data.priceFrom),
     priceTo: cleanNullableNumber(data.priceTo),
   };
+
+  const availabilityDirty =
+    dirtyFields.availabilityWeekdayStart ||
+    dirtyFields.availabilityWeekdayEnd ||
+    dirtyFields.availabilityStartHour ||
+    dirtyFields.availabilityEndHour;
+
+  // Send only the fields the user actually touched.
+  const payload: UpdateCoachPayload = {};
+
+  if (dirtyFields.firstName) payload.firstName = fullPayload.firstName;
+  if (dirtyFields.lastName) payload.lastName = fullPayload.lastName;
+  if (dirtyFields.phone) payload.phone = fullPayload.phone;
+  if (dirtyFields.age) payload.age = fullPayload.age;
+  if (dirtyFields.gender) payload.gender = fullPayload.gender;
+  if (dirtyFields.location) payload.location = fullPayload.location;
+  if (dirtyFields.specialties) payload.specialties = fullPayload.specialties;
+  if (dirtyFields.yearsExperience) payload.yearsExperience = fullPayload.yearsExperience;
+  if (dirtyFields.careerExperience)
+    payload.careerExperience = fullPayload.careerExperience;
+  if (dirtyFields.portfolioUrl) payload.portfolioUrl = fullPayload.portfolioUrl;
+  if (dirtyFields.featuredReviews)
+    payload.featuredReviews = fullPayload.featuredReviews;
+  if (dirtyFields.bio) payload.bio = fullPayload.bio;
+  if (dirtyFields.offlineAvailability)
+    payload.offlineAvailability = fullPayload.offlineAvailability;
+  if (availabilityDirty) payload.availabilityHours = fullPayload.availabilityHours;
+  if (dirtyFields.priceFrom) payload.priceFrom = fullPayload.priceFrom;
+  if (dirtyFields.priceTo) payload.priceTo = fullPayload.priceTo;
+
+  // Nothing was flagged dirty — fall back to the full payload so the profile
+  // setup flow (which can submit without an explicit edit) still works.
+  if (Object.keys(payload).length === 0) {
+    return { payload: fullPayload, newTransformationPhotos };
+  }
 
   return { payload, newTransformationPhotos };
 }

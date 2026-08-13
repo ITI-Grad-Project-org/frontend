@@ -127,18 +127,21 @@ function TenantAvatar({ tenantId, name, logoUrl, isPrimary }: TenantAvatarProps)
 
 export function TenantCard({ tenants }: TenantCardProps) {
     return (
-        <div className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card)">
-            <h3 className="text-lg font-bold flex items-center gap-2 mb-4">
-                <Building2 className="w-5 h-5 text-brand" />
-                Current Companies
-            </h3>
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-(--shadow-card) sm:p-6">
+            <div className="flex items-center gap-2.5">
+                <span className="chip bg-chip-peach text-brand">
+                    <Building2 className="h-5 w-5" />
+                </span>
+                <h2 className="text-base font-bold">Current companies</h2>
+            </div>
 
-            {tenants && tenants.length > 0 ? (
+            <div className="mt-5">
+                {tenants && tenants.length > 0 ? (
                 <div className="space-y-4">
                     {tenants.map((tenant, index) => (
                         <div
                             key={tenant.id}
-                            className="flex flex-col gap-3 p-3 rounded-xl border border-border bg-muted/40"
+                            className="flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-3"
                         >
                             <div className="flex items-center gap-3">
                                 <TenantAvatar
@@ -188,6 +191,7 @@ export function TenantCard({ tenants }: TenantCardProps) {
                     No current companies associated.
                 </p>
             )}
+            </div>
         </div>
     );
 }

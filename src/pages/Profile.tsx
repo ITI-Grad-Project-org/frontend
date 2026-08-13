@@ -4,6 +4,7 @@ import { Save, Trash2, User, Briefcase, Award, ImageIcon } from "lucide-react";
 import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
 import { useProfileData } from "../hooks/profile/useProfileData";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
+import { ProfileMasthead } from "@/components/profile/ProfileMasthead";
 import { PersonalDetailsSection } from "@/components/profile/sections/PersonalDetailsSection";
 import { CoachingExperienceSection } from "@/components/profile/sections/CoachingExperienceSection";
 import { CredentialsPricingSection } from "@/components/profile/sections/CredentialsPricingSection";
@@ -28,7 +29,6 @@ function Profile() {
         addSpecialty,
         removeSpecialty,
         clearTransformationPhoto,
-        refreshProfile,
         handleSubmit,
         handleSignOut,
         handleDeleteConfirm,
@@ -44,7 +44,8 @@ function Profile() {
     const {
         register,
         control,
-        formState: { errors, isSubmitting },
+        setValue,
+        formState: { errors, isSubmitting, isDirty },
     } = form;
 
     useEffect(() => {
@@ -78,15 +79,15 @@ function Profile() {
 
     return (
         <div className="min-h-screen px-6 py-8 bg-background text-foreground sm:py-12">
-            <div className={`w-full mx-auto ${isSetupFlow ? "max-w-3xl" : "max-w-4xl"}`}>
+            <div className={`w-full mx-auto ${isSetupFlow ? "max-w-3xl" : "max-w-5xl"}`}>
                 <ProfileHeader
                     onSignOut={handleSignOut}
-                    eyebrow={isSetupFlow ? "Profile setup" : "Coach profile"}
-                    title={isSetupFlow ? "Finish your coach profile" : "Your profile"}
+                    eyebrow={isSetupFlow ? "Profile setup" : undefined}
+                    title={isSetupFlow ? "Finish your coach profile" : undefined}
                     description={
                         isSetupFlow
                             ? "Complete the remaining details so clients can discover and trust your coaching profile."
-                            : "Review and update the coaching details your clients see."
+                            : undefined
                     }
                 />
 
@@ -108,30 +109,33 @@ function Profile() {
                         )}
                     </div>
                 ) : (
-                    <div className="grid gap-6 lg:grid-cols-3 animate-content">
-                        <ProfileSidebar user={user} />
-                        <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-6 lg:col-span-2">
-                            <input type="hidden" {...register("specialties")} />
+                    <div className="animate-content space-y-6">
+                        <ProfileMasthead user={user} />
 
-                            <Tabs defaultValue="personal" className="w-full block">
-                                <TabsList className="flex h-12 w-full items-center justify-start rounded-xl bg-card p-1 text-muted-foreground mb-6">
-                                    <TabsTrigger value="personal" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                                        <User className="w-4 h-4 mr-2 hidden sm:block" />
-                                        Personal
-                                    </TabsTrigger>
-                                    <TabsTrigger value="experience" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                                        <Briefcase className="w-4 h-4 mr-2 hidden sm:block" />
-                                        Experience
-                                    </TabsTrigger>
-                                    <TabsTrigger value="credentials" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                                        <Award className="w-4 h-4 mr-2 hidden sm:block" />
-                                        Credentials
-                                    </TabsTrigger>
-                                    <TabsTrigger value="proof" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-xs sm:text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm">
-                                        <ImageIcon className="w-4 h-4 mr-2 hidden sm:block" />
-                                        Client proof
-                                    </TabsTrigger>
-                                </TabsList>
+                        <div className="grid gap-6 lg:grid-cols-3">
+                            <ProfileSidebar user={user} />
+                            <form onSubmit={handleSubmit} className="w-full min-w-0 space-y-6 lg:col-span-2">
+                                <input type="hidden" {...register("specialties")} />
+
+                                <Tabs defaultValue="personal" className="w-full block">
+                                    <TabsList className="flex h-12 w-full items-center justify-start gap-1 rounded-full bg-muted p-1 text-muted-foreground mb-6">
+                                        <TabsTrigger value="personal" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-ink! data-[state=active]:text-ink-foreground! data-[state=active]:border-transparent! data-[state=active]:shadow-md">
+                                            <User className="w-4 h-4 mr-2 hidden sm:block" />
+                                            Personal
+                                        </TabsTrigger>
+                                        <TabsTrigger value="experience" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-ink! data-[state=active]:text-ink-foreground! data-[state=active]:border-transparent! data-[state=active]:shadow-md">
+                                            <Briefcase className="w-4 h-4 mr-2 hidden sm:block" />
+                                            Experience
+                                        </TabsTrigger>
+                                        <TabsTrigger value="credentials" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-ink! data-[state=active]:text-ink-foreground! data-[state=active]:border-transparent! data-[state=active]:shadow-md">
+                                            <Award className="w-4 h-4 mr-2 hidden sm:block" />
+                                            Credentials
+                                        </TabsTrigger>
+                                        <TabsTrigger value="proof" className="inline-flex h-10 flex-1 items-center justify-center whitespace-nowrap rounded-full px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-ink! data-[state=active]:text-ink-foreground! data-[state=active]:border-transparent! data-[state=active]:shadow-md">
+                                            <ImageIcon className="w-4 h-4 mr-2 hidden sm:block" />
+                                            Client proof
+                                        </TabsTrigger>
+                                    </TabsList>
 
                                 <TabsContent value="personal" className="mt-0 outline-none">
                                     <PersonalDetailsSection
@@ -154,9 +158,10 @@ function Profile() {
                                 <TabsContent value="credentials" className="mt-0 outline-none">
                                     <CredentialsPricingSection
                                         register={register}
+                                        control={control}
+                                        setValue={setValue}
                                         errors={errors}
                                         existingCertifications={user?.certifications}
-                                        onRefreshProfile={async () => { await refreshProfile(); }}
                                     />
                                 </TabsContent>
 
@@ -177,18 +182,24 @@ function Profile() {
                             )}
 
                             <div className="flex flex-wrap items-center justify-between gap-4 pt-2 pb-8">
-                                <button
-                                    type="button"
-                                    disabled={isDeleting}
-                                    onClick={() => setIsDeleteDialogOpen(true)}
-                                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold transition cursor-pointer rounded-xl text-destructive hover:bg-destructive/10 disabled:opacity-60"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                    {isDeleting ? "Deleting…" : "Delete profile"}
-                                </button>
+                                <div className="flex flex-col items-start gap-1.5">
+                                    <button
+                                        type="button"
+                                        disabled={isDeleting}
+                                        onClick={() => setIsDeleteDialogOpen(true)}
+                                        className="btn-danger w-fit cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        {isDeleting ? "Deleting…" : "Delete profile"}
+                                    </button>
+                                    <span className="hidden text-xs text-muted-foreground sm:block">
+                                        Permanently removes your profile and all coaching data.
+                                    </span>
+                                </div>
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || !isDirty}
+                                    title={!isDirty ? "Make a change to enable saving" : undefined}
                                     className="inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold transition rounded-xl bg-ink text-ink-foreground hover:opacity-90 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <Save className="w-4 h-4" />
@@ -196,6 +207,7 @@ function Profile() {
                                 </button>
                             </div>
                         </form>
+                        </div>
                     </div>
                 )}
             </div>

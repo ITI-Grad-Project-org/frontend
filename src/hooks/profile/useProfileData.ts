@@ -10,6 +10,7 @@ import {
   deleteCoachProfile,
   getCoachProfile,
   updateCoachProfile,
+  addCertification,
   addTransformationPhotos,
   removeTransformationPhoto,
   removeCertification,
@@ -20,6 +21,7 @@ import {
   emptyProfile,
   toFormValues,
   toUpdateCoachPayload,
+  toNewCertification,
   type ProfileFormData,
 } from "../../schemas/profileSchema";
 
@@ -163,10 +165,13 @@ export function useProfileData({
 
     setSubmissionError("");
 
-    const { payload, newTransformationPhotos } = toUpdateCoachPayload({
-      ...data,
-      specialties: specialties.join(", "),
-    });
+    const { payload, newTransformationPhotos } = toUpdateCoachPayload(
+      {
+        ...data,
+        specialties: specialties.join(", "),
+      },
+      form.formState.dirtyFields as Partial<Record<keyof ProfileFormData, boolean>>,
+    );
 
     try {
       // 1. Save all text/scalar profile fields
@@ -175,6 +180,17 @@ export function useProfileData({
       // 2. Upload any new transformation photos
       if (newTransformationPhotos.length > 0) {
         await addTransformationPhotos(newTransformationPhotos);
+      }
+
+      // 3. Add staged certifications (each carries its own file)
+      for (const stagedCert of data.stagedCertifications) {
+        const newCert = toNewCertification(stagedCert);
+        if (newCert) await addCertification(newCert);
+      }
+
+      // 4. Remove certifications staged for deletion
+      for (const certificationId of data.removedCertificationIds) {
+        await removeCertification(certificationId);
       }
 
       await refreshProfile();
@@ -188,6 +204,10 @@ export function useProfileData({
       setSubmissionError(errorMessage);
       toast.error(errorMessage);
     }
+  };
+
+  const handleFormInvalid = () => {
+    toast.error("Please fill in the highlighted fields before saving.");
   };
 
   // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -241,7 +261,7 @@ export function useProfileData({
     clearTransformationPhoto,
     clearCertification,
     refreshProfile,
-    handleSubmit: handleSubmit(onSubmit),
+    handleSubmit: handleSubmit(onSubmit, handleFormInvalid),
     handleSignOut,
     handleDeleteConfirm,
   };

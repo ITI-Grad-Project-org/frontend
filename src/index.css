@@ -451,6 +451,29 @@
     }
 }
 
+@utility btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.7rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: oklch(0.99 0 0);
+    background: var(--color-danger);
+    transition: transform 220ms cubic-bezier(.2, .7, .2, 1), background 220ms ease, filter 220ms ease;
+
+    &:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.08);
+    }
+
+    &:active {
+        transform: translateY(0);
+    }
+}
+
 @utility btn-ghost {
     display: inline-flex;
     align-items: center;
