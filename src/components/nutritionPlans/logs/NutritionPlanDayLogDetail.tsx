@@ -108,8 +108,8 @@ function PrescribedMealsSection({ prescription }: { prescription: NutritionPlanD
         .map((meal) => (
           <div key={meal.id} className="rounded-2xl border border-border bg-background p-4 space-y-3">
             {/* Meal header */}
-            <div className="flex items-start justify-between gap-3 border-b border-border/40 pb-2">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2 border-b border-border/40 pb-2">
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   {meal.slot && (
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-success/10 text-success border border-success/20">
@@ -137,7 +137,8 @@ function PrescribedMealsSection({ prescription }: { prescription: NutritionPlanD
 
             {/* Foods */}
             {meal.foods && meal.foods.length > 0 && (
-              <table className="w-full text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
                 <thead>
                   <tr className="text-muted-foreground font-semibold border-b border-border/30">
                     <th className="py-1 text-left">Food</th>
@@ -172,6 +173,7 @@ function PrescribedMealsSection({ prescription }: { prescription: NutritionPlanD
                     ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         ))}

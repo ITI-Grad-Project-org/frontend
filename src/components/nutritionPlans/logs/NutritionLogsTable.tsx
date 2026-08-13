@@ -22,9 +22,9 @@ function MacroBar({ label, actual, target, color }: { label: string; actual: num
   const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
   return (
     <div className="space-y-0.5">
-      <div className="flex items-center justify-between text-[10px] font-semibold text-muted-foreground">
-        <span>{label}</span>
-        <span className="text-foreground">{actual}g / {target > 0 ? `${target}g` : "—"}</span>
+      <div className="flex items-center justify-between gap-2 text-[10px] font-semibold text-muted-foreground">
+        <span className="truncate">{label}</span>
+        <span className="shrink-0 text-foreground">{actual}g / {target > 0 ? `${target}g` : "—"}</span>
       </div>
       <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
@@ -101,7 +101,7 @@ export function NutritionLogsTable({ planId, logs, filteredLogs, statusFilter, o
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-5 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 text-xs text-muted-foreground">
                     <div className="text-center">
                       <span className="block font-medium">Adherence</span>
                       <NutritionAdherenceBadge outcome={log.adherenceOutcome} />
@@ -144,7 +144,7 @@ export function NutritionLogsTable({ planId, logs, filteredLogs, statusFilter, o
 
                     {/* Macro progress bars */}
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-border bg-card p-4 space-y-2.5">
+                      <div className="min-w-0 rounded-2xl border border-border bg-card p-4 space-y-2.5">
                         <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Actual vs Target</p>
                         <MacroBar label="Protein" actual={actual?.proteinG ?? 0} target={targets?.proteinG ?? 0} color="bg-info" />
                         <MacroBar label="Carbs" actual={actual?.carbsG ?? 0} target={targets?.carbsG ?? 0} color="bg-warn" />
@@ -156,11 +156,11 @@ export function NutritionLogsTable({ planId, logs, filteredLogs, statusFilter, o
 
                       {/* Meal outcomes */}
                       {log.mealOutcomes && log.mealOutcomes.length > 0 && (
-                        <div className="rounded-2xl border border-border bg-card p-4 space-y-2">
+                        <div className="min-w-0 rounded-2xl border border-border bg-card p-4 space-y-2">
                           <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Meal Outcomes</p>
                           {log.mealOutcomes.map((mo) => (
-                            <div key={mo.loggedMealId} className="flex items-center justify-between gap-2 text-xs">
-                              <span className="truncate text-foreground font-medium">{mo.mealName}</span>
+                            <div key={mo.loggedMealId} className="flex items-center justify-between gap-2 text-xs min-w-0">
+                              <span className="min-w-0 truncate text-foreground font-medium">{mo.mealName}</span>
                               <NutritionAdherenceBadge outcome={mo.outcome} />
                             </div>
                           ))}
