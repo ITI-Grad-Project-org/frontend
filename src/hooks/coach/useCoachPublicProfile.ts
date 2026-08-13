@@ -1,52 +1,37 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { getCoachPublicProfile } from "@/services/reviews";
 import { getApiErrorMessage } from "@/lib/api";
-import type { CoachPublicProfile } from "@/types/reviews";
 
 export function useCoachPublicProfile(tenantId?: string) {
-  const [profile, setProfile] = useState<CoachPublicProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isNotFound, setIsNotFound] = useState(false);
+  const query = useQuery({
+    queryKey: ["coach-public-profile", tenantId],
+    queryFn: () => getCoachPublicProfile(tenantId as string),
+    enabled: Boolean(tenantId),
+    staleTime: 5 * 60_000,
+  });
 
-  const fetchProfile = () => {
-    if (!tenantId) return;
-    setLoading(true);
-    setError("");
-    setIsNotFound(false);
-    getCoachPublicProfile(tenantId)
-      .then((data) => { setProfile(data); })
-      .catch((err) => {
-        if (axios.isAxiosError(err) && err.response?.status === 404) {
-          setIsNotFound(true);
-        } else {
-          setError(getApiErrorMessage(err, "Could not load this coach's profile. Please try again."));
-        }
-      })
-      .finally(() => { setLoading(false); });
+  const isNotFound =
+    Boolean(tenantId) &&
+    query.isError &&
+    axios.isAxiosError(query.error) &&
+    query.error.response?.status === 404;
+
+  const error =
+    isNotFound || !query.isError
+      ? ""
+      : getApiErrorMessage(
+          query.error,
+          "Could not load this coach's profile. Please try again.",
+        );
+
+  return {
+    profile: query.data ?? null,
+    loading: query.isPending && Boolean(tenantId),
+    error,
+    isNotFound: !tenantId ? true : isNotFound,
+    fetchProfile: () => {
+      void query.refetch();
+    },
   };
-
-  useEffect(() => {
-    void (async () => {
-      if (!tenantId) return;
-      setLoading(true);
-      setError("");
-      setIsNotFound(false);
-      try {
-        const data = await getCoachPublicProfile(tenantId);
-        setProfile(data);
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response?.status === 404) {
-          setIsNotFound(true);
-        } else {
-          setError(getApiErrorMessage(err, "Could not load this coach's profile. Please try again."));
-        }
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [tenantId]);
-
-  return { profile, loading, error, isNotFound, fetchProfile };
 }

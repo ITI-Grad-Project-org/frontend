@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router";
 import {
   RefreshCw,
@@ -15,8 +15,10 @@ import {
   BadgeCheck,
   Wallet,
   Images,
-  UserCircle2,
+  Share2,
+  Eye,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StarRating } from "@/components/reviews/ReviewCard";
 import { Lightbox } from "@/components/coachProfile/Lightbox";
@@ -24,6 +26,8 @@ import { PageSkeleton } from "@/components/coachProfile/PageSkeleton";
 import { SectionHeading } from "@/components/coachProfile/SectionHeading";
 import { StatPill } from "@/components/coachProfile/StatPill";
 import { CoachReviewCard } from "@/components/coachProfile/CoachReviewCard";
+import { RatingBreakdown } from "@/components/coachProfile/RatingBreakdown";
+import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 import {
   formatDate,
   genderLabel,
@@ -37,6 +41,8 @@ import { useCoachPublicProfile } from "@/hooks/coach/useCoachPublicProfile";
 export default function CoachProfile() {
   const { tenantId } = useParams<{ tenantId: string }>();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [previewCertUrl, setPreviewCertUrl] = useState<string | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
   const { profile, loading, error, isNotFound, fetchProfile } =
     useCoachPublicProfile(tenantId);
@@ -46,6 +52,32 @@ export default function CoachProfile() {
   const rating = profile?.rating ?? { average: 0, count: 0 };
 
   const hasPricing = coach?.priceFrom != null || coach?.priceTo != null;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success("Profile link copied.");
+    } catch {
+      toast.error("Could not copy the profile link.");
+    }
+  };
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 160);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    if (coach) {
+      document.title = `${coach.firstName} ${coach.lastName} · Uply Coach`;
+    }
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [coach]);
 
   return (
     <div className="min-h-screen text-white">
@@ -66,7 +98,7 @@ export default function CoachProfile() {
 
         {/* ── Nav ── */}
         <header className="sticky top-0 z-20 border-b border-white/10 bg-black/20 backdrop-blur-md">
-          <div className="max-w-5xl mx-auto flex items-center justify-center px-6 py-3.5">
+          <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5">
             <Link to="/">
               <img
                 src="/Uply-light-logo.webp"
@@ -74,6 +106,34 @@ export default function CoachProfile() {
                 className="h-7 w-auto"
               />
             </Link>
+
+            {scrolled && coach && (
+              <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                <Avatar className="w-8 h-8 shrink-0 border border-white/20">
+                  {coach.avatarUrl ? (
+                    <AvatarImage
+                      src={coach.avatarUrl}
+                      alt={`${coach.firstName} ${coach.lastName}`}
+                      className="object-cover"
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-white/10 text-white text-xs font-semibold">
+                    {`${coach.firstName[0] ?? ""}${coach.lastName[0] ?? ""}`.toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="max-w-44 truncate text-sm font-semibold text-white">
+                  {coach.firstName} {coach.lastName}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void handleCopyLink()}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-white/80 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  Share
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -143,6 +203,17 @@ export default function CoachProfile() {
                       {coach.location}
                     </p>
                   )}
+
+                  <div className="mt-4 flex justify-center sm:justify-start">
+                    <button
+                      type="button"
+                      onClick={() => void handleCopyLink()}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white rounded-full border border-white/20 hover:bg-white/10 transition-colors cursor-pointer"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share profile
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -208,36 +279,37 @@ export default function CoachProfile() {
                               </span>
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold text-white">{cert.name}</p>
-                                {(cert.issuer || cert.issueDate || cert.expiryDate) && (
-                                  <p className="text-xs text-white/60 mt-0.5">
-                                    {[cert.issuer, formatDate(cert.issueDate), formatDate(cert.expiryDate)]
-                                      .filter(Boolean)
-                                      .join(" · ")}
-                                  </p>
+                                {cert.issuer && (
+                                  <p className="text-xs text-white/60 mt-0.5">Issued by {cert.issuer}</p>
+                                )}
+                                {cert.issueDate && (
+                                  <p className="text-xs text-white/60 mt-0.5">Issued {formatDate(cert.issueDate)}</p>
+                                )}
+                                {cert.expiryDate && (
+                                  <p className="text-xs text-white/60 mt-0.5">Expires {formatDate(cert.expiryDate)}</p>
                                 )}
                               </div>
                             </div>
-                            <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex flex-col items-end gap-1.5 shrink-0">
                               {cert.fileUrl && (
-                                <a
-                                  href={cert.fileUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
-                                  title="View certificate"
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewCertUrl(cert.fileUrl!)}
+                                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white hover:bg-white/10 px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
                                 >
-                                  <ExternalLink className="w-4 h-4" />
-                                </a>
+                                  <Eye className="w-3.5 h-3.5" />
+                                  View certificate
+                                </button>
                               )}
                               {cert.credentialUrl && (
                                 <a
                                   href={cert.credentialUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="p-1.5 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition-colors"
-                                  title="View credential"
+                                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white hover:bg-white/10 px-2.5 py-1.5 rounded-lg transition-colors"
                                 >
-                                  <ExternalLink className="w-4 h-4" />
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                  View credential
                                 </a>
                               )}
                             </div>
@@ -282,6 +354,15 @@ export default function CoachProfile() {
                     />
                   )}
 
+                  {/* Certificate preview */}
+                  {previewCertUrl && (
+                    <MediaPreviewModal
+                      src={previewCertUrl}
+                      alt="Certificate preview"
+                      onClose={() => setPreviewCertUrl(null)}
+                    />
+                  )}
+
                   {/* Reviews */}
                   <section>
                     {/* Rating summary */}
@@ -290,15 +371,20 @@ export default function CoachProfile() {
                     </SectionHeading>
 
                     {rating.count > 0 && (
-                      <div className="flex items-center gap-4 p-5 mb-4 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md shadow-md">
-                        <span className="text-5xl font-black text-white tabular-nums leading-none">
-                          {rating.average.toFixed(1)}
-                        </span>
-                        <div className="flex flex-col gap-1.5">
-                          <StarRating rating={Math.round(rating.average)} size={18} />
-                          <span className="text-sm text-white/60">
-                            Based on {rating.count} {rating.count === 1 ? "review" : "reviews"}
+                      <div className="p-5 mb-4 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md shadow-md">
+                        <div className="flex items-center gap-4">
+                          <span className="text-5xl font-black text-white tabular-nums leading-none">
+                            {rating.average.toFixed(1)}
                           </span>
+                          <div className="flex flex-col gap-1.5">
+                            <StarRating rating={Math.round(rating.average)} size={18} />
+                            <span className="text-sm text-white/60">
+                              Based on {rating.count} {rating.count === 1 ? "review" : "reviews"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                          <RatingBreakdown reviews={reviews} />
                         </div>
                       </div>
                     )}
@@ -321,20 +407,13 @@ export default function CoachProfile() {
                 <div className="space-y-5">
 
                   {/* Quick stats — only render if at least one value exists */}
-                  {(coach.yearsExperience != null || coach.age != null || coach.gender || coach.offlineAvailability || coach.availabilityHours || hasPricing) && (
+                  {(coach.yearsExperience != null || coach.gender || coach.offlineAvailability || coach.availabilityHours || hasPricing) && (
                     <section className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md p-5 shadow-md space-y-3">
                       {coach.yearsExperience != null && (
                         <StatPill
                           icon={<Award className="w-4 h-4" />}
                           label="Experience"
                           value={`${coach.yearsExperience} ${coach.yearsExperience === 1 ? "year" : "years"}`}
-                        />
-                      )}
-                      {coach.age != null && (
-                        <StatPill
-                          icon={<UserCircle2 className="w-4 h-4" />}
-                          label="Age"
-                          value={`${coach.age} years old`}
                         />
                       )}
                       {coach.gender && (
