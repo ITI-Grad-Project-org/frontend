@@ -3,6 +3,7 @@ import { Activity, AlertCircle, ArrowLeft, Utensils } from "lucide-react";
 import { useNutritionPlanLogs } from "@/hooks/nutritionPlans/useNutritionPlanLogs";
 import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { NutritionLogsStats } from "@/components/nutritionPlans/logs/NutritionLogsStats";
+import { NutritionLogsCharts } from "@/components/nutritionPlans/logs/NutritionLogsCharts";
 import { NutritionLogsTable } from "@/components/nutritionPlans/logs/NutritionLogsTable";
 
 function formatDate(isoStr: string | null | undefined): string {
@@ -141,6 +142,9 @@ export default function NutritionPlanLogs() {
 
       {/* Stats row */}
       <NutritionLogsStats stats={stats} />
+
+      {/* Charts */}
+      <NutritionLogsCharts logs={logs} />
 
       {/* Logs table */}
       {logs.length === 0 ? (

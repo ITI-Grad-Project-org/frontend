@@ -164,6 +164,8 @@ export function PlanLogsCharts({ logs }: PlanLogsChartsProps) {
   const completedSets = outcomeData.find((d) => d.outcome === "completed")?.count || 0;
   const setCompletionRate = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
 
+  const adherenceChartHeight = Math.max(300, adherenceData.length * 44);
+
   return (
     <div className="space-y-6">
       {/* Adherence */}
@@ -181,21 +183,39 @@ export function PlanLogsCharts({ logs }: PlanLogsChartsProps) {
             </div>
           ) : (
             <>
-              <ChartContainer config={adherenceConfig} className="h-[260px] w-full min-w-0">
-                <BarChart accessibilityLayer data={adherenceData}>
-                  <CartesianGrid vertical={false} />
+              <ChartContainer
+                  config={adherenceConfig}
+                  className="w-full min-w-0"
+                  style={{ height: adherenceChartHeight }}
+                >
+                <BarChart
+                  accessibilityLayer
+                  data={adherenceData}
+                  layout="vertical"
+                  barCategoryGap="80%"
+                  margin={{ top: 5, right: 16, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid horizontal={false} />
                   <XAxis
-                    dataKey="name"
+                    type="number"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    interval={0}
+                    tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={140}
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
                     tickFormatter={(value) => truncateLabel(value)}
-                    tick={{ fontSize: 11 }}
+                    tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
                   />
                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                  <Bar dataKey="prescribed" fill="var(--color-prescribed)" radius={6} />
-                  <Bar dataKey="actual" fill="var(--color-actual)" radius={6} />
+                  <Bar dataKey="prescribed" fill="var(--color-prescribed)" radius={4} barSize={10} />
+                  <Bar dataKey="actual" fill="var(--color-actual)" radius={4} barSize={10} />
                 </BarChart>
               </ChartContainer>
               <ChartLegend content={<ChartLegendContent />} />

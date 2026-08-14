@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
 import { useClientsData } from "@/hooks/clients/useClientsData";
 
 import { ClientsTab } from "@/components/clients/ClientsTab";
+import { ClientsCharts } from "@/components/clients/ClientsCharts";
 import { InvitationsTab } from "@/components/clients/InvitationsTab";
 import { RequestsTab } from "@/components/clients/RequestsTab";
 
@@ -67,7 +68,9 @@ export default function Clients() {
 
       {/* Tab Panels */}
       {activeTab === "clients" && (
-        <ClientsTab
+        <div className="flex flex-col gap-8">
+          <ClientsCharts connections={clients.data} />
+          <ClientsTab
           data={clients.data}
           loading={clients.loading}
           error={clients.error}
@@ -89,6 +92,7 @@ export default function Clients() {
             navigate(`/dashboard/chat/${connection.client.id}`);
           }}
         />
+        </div>
       )}
 
       {activeTab === "invitations" && (

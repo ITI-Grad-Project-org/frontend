@@ -10,6 +10,7 @@ import { PlansFilters } from "@/components/plans/PlansFilters";
 import { PlansHeader } from "@/components/plans/PlansHeader";
 import { PlansList } from "@/components/plans/PlansList";
 import { PlansStats } from "@/components/plans/PlansStats";
+import { PlansCharts } from "@/components/plans/PlansCharts";
 import { usePlansData } from "@/hooks/plans/usePlansData";
 import {
     archiveClientProgramDraft,
@@ -171,6 +172,7 @@ function Plans() {
                     canceled={stats.canceled}
                     activeClients={stats.activeClients}
                 />
+                <PlansCharts programs={filteredPrograms} />
                 <PlansFilters
                     filters={filters}
                     onFiltersChange={handleFiltersChange}

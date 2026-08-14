@@ -10,6 +10,7 @@ import { NutritionPlansFilters } from "@/components/nutritionPlans/NutritionPlan
 import { NutritionPlansHeader } from "@/components/nutritionPlans/NutritionPlansHeader";
 import { NutritionPlansList } from "@/components/nutritionPlans/NutritionPlansList";
 import { NutritionPlansStats } from "@/components/nutritionPlans/NutritionPlansStats";
+import { NutritionPlansCharts } from "@/components/nutritionPlans/NutritionPlansCharts";
 import { useNutritionPlansData } from "@/hooks/nutritionPlans/useNutritionPlansData";
 import {
   archiveNutritionPlan,
@@ -188,6 +189,7 @@ export default function NutritionPlans() {
           canceled={stats.canceled}
           activeClients={stats.activeClients}
         />
+        <NutritionPlansCharts plans={filteredPlans} />
         <NutritionPlansFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}

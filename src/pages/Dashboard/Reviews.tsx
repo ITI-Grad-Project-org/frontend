@@ -1,6 +1,6 @@
 // src/pages/Dashboard/Reviews.tsx
 import { useReviewsData } from "@/hooks/reviews/useReviewsData";
-import { RatingSummaryCard } from "@/components/reviews/ReviewCard";
+import { RatingBreakdown } from "@/components/reviews/RatingBreakdown";
 import { ReviewList } from "@/components/reviews/ReviewList";
 import SummarySkeleton from "@/components/skeletons/SummarySkeleton";
 
@@ -24,7 +24,7 @@ export default function Reviews() {
         {loading ? (
           <SummarySkeleton />
         ) : !error && reviews.length > 0 ? (
-          <RatingSummaryCard summary={summary} />
+          <RatingBreakdown reviews={reviews} summary={summary} />
         ) : null}
       </div>
 
