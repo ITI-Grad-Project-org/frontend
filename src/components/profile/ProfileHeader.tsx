@@ -16,7 +16,7 @@ export function ProfileHeader({ onSignOut, eyebrow, title, description }: Profil
         <>
             <header className="flex flex-wrap items-center justify-between gap-4 mb-8 animate-text">
                 <Link to="/" className="inline-flex items-center">
-                    <img src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"} alt="Uply" className="w-auto h-8" />
+                    <img src={isDark ? "/uply-logo-extra-bold-dark-transparent.webp" : "/uply-logo-extra-bold-transparent.webp"} alt="Uply" className="w-auto h-8" />
                 </Link>
                 <div className="flex items-center gap-2">
                     <Link

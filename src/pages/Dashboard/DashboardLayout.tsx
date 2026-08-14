@@ -38,7 +38,7 @@ function DashboardLayout() {
                     className="md:mb-12 md:my-8"
                 >
                     <img
-                        src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
+                        src={isDark ? "/uply-logo-extra-bold-dark-transparent.webp" : "/uply-logo-extra-bold-transparent.webp"}
                         alt="UPLY"
                         className="h-auto place-self-center w-36 md:place-self-start md:w-2/3"
                     />

@@ -235,7 +235,7 @@ function ForgotPassword() {
 
         <Link to="/" className="mb-10 flex items-center justify-center">
           <img
-            src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
+            src={isDark ? "/uply-logo-extra-bold-dark-transparent.webp" : "/uply-logo-extra-bold-transparent.webp"}
             alt="Uply"
             className="h-14 w-auto"
           />

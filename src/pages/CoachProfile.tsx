@@ -101,7 +101,7 @@ export default function CoachProfile() {
           <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-3.5">
             <Link to="/">
               <img
-                src="/Uply-light-logo.webp"
+                src="/uply-logo-extra-bold-dark-transparent.webp"
                 alt="Uply"
                 className="h-7 w-auto"
               />

@@ -69,7 +69,7 @@ export function LandingNav() {
             <header className={`glass-nav flex items-center justify-between rounded-full px-3 py-2.5 transition-all md:px-4 ${scrolled ? "shadow-[0_18px_50px_-20px_rgba(0,0,0,0.6)]" : ""}`}>
                 <Link to={'/'} className="flex items-center gap-2 pl-3" onClick={(event) => handleAnchorClick(event, "/")}>
                     <img
-                        src={isDark ? "/Uply-light-logo.webp" : "/Uply-dark-logo.webp"}
+                        src={isDark ? "/uply-logo-extra-bold-dark-transparent.webp" : "/uply-logo-extra-bold-transparent.webp"}
                         alt="UPLY"
                         className="w-auto h-6 md:h-8"
                     />
