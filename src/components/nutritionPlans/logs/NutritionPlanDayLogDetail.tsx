@@ -13,7 +13,8 @@ function fmt(val: number | null | undefined, unit = "") {
   return `${val}${unit}`;
 }
 
-function diffColor(diff: number) {
+function diffColor(diff: number | null) {
+  if (diff == null) return "text-muted-foreground";
   if (diff > 0) return "text-danger";
   if (diff < 0) return "text-info";
   return "text-success";
@@ -22,6 +23,11 @@ function diffColor(diff: number) {
 function pctBar(actual: number, target: number) {
   if (target <= 0) return 0;
   return Math.min(100, Math.round((actual / target) * 100));
+}
+
+function pctDiff(value: number | null | undefined) {
+  if (value == null) return "—";
+  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
 const MACRO_ROWS: { key: keyof NutritionLogComparisons; label: string; unit: string; barColor: string }[] = [
@@ -64,11 +70,11 @@ function MacroComparisonTable({ comparisons }: { comparisons: NutritionLogCompar
                 <td className="py-2.5 px-3 bg-brand/5 font-semibold text-foreground">{fmt(c.actual, unit)}</td>
                 <td className={`py-2.5 px-3 bg-brand/5 font-semibold ${diffColor(vsTargetDiff)}`}>
                   {vsTargetDiff > 0 ? "+" : ""}{fmt(vsTargetDiff, unit)}
-                  <span className="ml-1 text-[10px] opacity-70">({c.actualVsTarget.percentageDifference > 0 ? "+" : ""}{c.actualVsTarget.percentageDifference.toFixed(1)}%)</span>
+                  <span className="ml-1 text-[10px] opacity-70">({pctDiff(c.actualVsTarget.percentageDifference)})</span>
                 </td>
                 <td className={`py-2.5 px-3 bg-brand/5 font-semibold ${diffColor(vsPrescDiff)}`}>
                   {vsPrescDiff > 0 ? "+" : ""}{fmt(vsPrescDiff, unit)}
-                  <span className="ml-1 text-[10px] opacity-70">({c.actualVsPrescription.percentageDifference > 0 ? "+" : ""}{c.actualVsPrescription.percentageDifference.toFixed(1)}%)</span>
+                  <span className="ml-1 text-[10px] opacity-70">({pctDiff(c.actualVsPrescription.percentageDifference)})</span>
                 </td>
                 <td className="py-2.5 px-3">
                   <div className="flex items-center gap-2 min-w-20">
