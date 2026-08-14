@@ -24,7 +24,7 @@ export default function MealDetailsModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg p-6 sm:p-8 my-8 shadow-2xl rounded-4xl bg-card border border-border animate-in fade-in zoom-in-95 text-foreground max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-lg p-6 sm:p-8 my-8 shadow-2xl rounded-4xl bg-card border border-border modal-card text-foreground max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-border pb-4">
@@ -58,36 +58,36 @@ export default function MealDetailsModal({
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
               Calculated Total Nutrition
             </h4>
-            <div className="grid grid-cols-5 gap-2 text-center">
-              <div className="p-3 rounded-2xl bg-brand/10 border border-brand/20">
+            <div className="grid grid-cols-3 gap-2 text-center sm:grid-cols-5">
+              <div className="min-w-0 p-3 rounded-2xl bg-brand/10 border border-brand/20">
                 <span className="text-[10px] font-bold uppercase text-brand block">
                   Calories
                 </span>
-                <span className="text-lg font-black text-brand">{meal.totals?.calories ?? 0}</span>
+                <span className="block text-base font-black text-brand sm:text-lg">{meal.totals?.calories ?? 0}</span>
               </div>
-              <div className="p-3 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-3 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Protein
                 </span>
-                <span className="text-base font-extrabold text-foreground">{meal.totals?.proteinG ?? 0}g</span>
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">{meal.totals?.proteinG ?? 0}g</span>
               </div>
-              <div className="p-3 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-3 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Carbs
                 </span>
-                <span className="text-base font-extrabold text-foreground">{meal.totals?.carbsG ?? 0}g</span>
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">{meal.totals?.carbsG ?? 0}g</span>
               </div>
-              <div className="p-3 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-3 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Fat
                 </span>
-                <span className="text-base font-extrabold text-foreground">{meal.totals?.fatG ?? 0}g</span>
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">{meal.totals?.fatG ?? 0}g</span>
               </div>
-              <div className="p-3 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-3 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Fiber
                 </span>
-                <span className="text-base font-extrabold text-foreground">
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">
                   {meal.totals?.fiberG != null ? `${meal.totals.fiberG}g` : "—"}
                 </span>
               </div>

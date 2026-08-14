@@ -201,7 +201,7 @@ export default function AddEditFoodModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg p-6 sm:p-8 my-8 shadow-2xl rounded-4xl bg-card border border-border animate-in fade-in zoom-in-95 text-foreground max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-lg p-6 sm:p-8 my-8 shadow-2xl rounded-4xl bg-card border border-border modal-card text-foreground max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-border pb-4">

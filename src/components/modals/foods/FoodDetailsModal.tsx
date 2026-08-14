@@ -35,7 +35,7 @@ export default function FoodDetailsModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md p-6 my-8 shadow-2xl rounded-4xl bg-card border border-border animate-in fade-in zoom-in-95 text-foreground"
+        className="w-full max-w-md p-6 my-8 shadow-2xl rounded-4xl bg-card border border-border modal-card text-foreground"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between border-b border-border pb-4">
@@ -64,36 +64,36 @@ export default function FoodDetailsModal({
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
               Reference Serving Nutrition ({food.servingSize} {food.servingUnit})
             </h4>
-            <div className="grid grid-cols-5 gap-2 text-center">
-              <div className="p-2.5 rounded-2xl bg-muted/60 border border-border/50">
+            <div className="grid grid-cols-3 gap-2 text-center sm:grid-cols-5">
+              <div className="min-w-0 p-2.5 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Calories
                 </span>
-                <span className="text-base font-extrabold text-foreground">{food.calories}</span>
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">{food.calories}</span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-2.5 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Protein
                 </span>
-                <span className="text-base font-extrabold text-foreground">{food.proteinG}g</span>
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">{food.proteinG}g</span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-2.5 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Carbs
                 </span>
-                <span className="text-base font-extrabold text-foreground">{food.carbsG}g</span>
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">{food.carbsG}g</span>
               </div>
-              <div className="p-2.5 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-2.5 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Fat
                 </span>
-                <span className="text-base font-extrabold text-foreground">{food.fatG}g</span>
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">{food.fatG}g</span>
               </div>
-              <div className="p-3 rounded-2xl bg-muted/60 border border-border/50">
+              <div className="min-w-0 p-2.5 rounded-2xl bg-muted/60 border border-border/50">
                 <span className="text-[10px] font-semibold uppercase text-muted-foreground block">
                   Fiber
                 </span>
-                <span className="text-base font-extrabold text-foreground">
+                <span className="block text-sm font-extrabold text-foreground sm:text-base">
                   {food.fiberG != null ? `${food.fiberG}g` : "—"}
                 </span>
               </div>
@@ -125,26 +125,26 @@ export default function FoodDetailsModal({
               <span className="text-sm font-bold text-foreground">{food.servingUnit}</span>
             </div>
 
-            <div className="grid grid-cols-5 gap-2 text-center pt-2 border-t border-brand/20">
-              <div>
+            <div className="grid grid-cols-3 gap-2 text-center pt-2 border-t border-brand/20 sm:grid-cols-5">
+              <div className="min-w-0">
                 <span className="text-[10px] font-semibold text-muted-foreground block">Calories</span>
-                <span className="text-sm font-black text-brand">{scaledCal} kcal</span>
+                <span className="block text-xs font-black text-brand sm:text-sm">{scaledCal} kcal</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] font-semibold text-muted-foreground block">Protein</span>
-                <span className="text-sm font-black text-foreground">{scaledProtein}g</span>
+                <span className="block text-xs font-black text-foreground sm:text-sm">{scaledProtein}g</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] font-semibold text-muted-foreground block">Carbs</span>
-                <span className="text-sm font-black text-foreground">{scaledCarbs}g</span>
+                <span className="block text-xs font-black text-foreground sm:text-sm">{scaledCarbs}g</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] font-semibold text-muted-foreground block">Fat</span>
-                <span className="text-sm font-black text-foreground">{scaledFat}g</span>
+                <span className="block text-xs font-black text-foreground sm:text-sm">{scaledFat}g</span>
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-[10px] font-semibold text-muted-foreground block">Fiber</span>
-                <span className="text-sm font-black text-foreground">{scaledFiber != null ? `${scaledFiber}g` : "—"}</span>
+                <span className="block text-xs font-black text-foreground sm:text-sm">{scaledFiber != null ? `${scaledFiber}g` : "—"}</span>
               </div>
             </div>
           </div>

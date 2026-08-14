@@ -95,14 +95,14 @@ function UpdatePlanModalContent({ program, onClose, onUpdated }: Omit<Props, "op
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"
             role="dialog"
             aria-modal="true"
             onClick={handleClose}
         >
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-2xl modal-card"
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border p-6 pb-4">

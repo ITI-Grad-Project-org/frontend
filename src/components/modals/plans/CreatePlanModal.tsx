@@ -103,7 +103,7 @@ function CreatePlanModalContent({
         >
             <form
                 onSubmit={handleSubmit(onSubmit)}
-                className="w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col rounded-3xl bg-background shadow-2xl border border-border animate-in fade-in zoom-in-95 duration-200"
+                className="w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col rounded-3xl bg-background shadow-2xl border border-border modal-card"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-start justify-between gap-4 p-6 pb-4 border-b border-border shrink-0">

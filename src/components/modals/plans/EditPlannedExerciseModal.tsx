@@ -107,13 +107,13 @@ function EditPlannedExerciseModalContent({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4"
             role="dialog"
             aria-modal="true"
             onClick={onClose}
         >
             <form
-                className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-2xl modal-card"
                 onClick={(e) => e.stopPropagation()}
                 onSubmit={handleSubmit(onSubmit)}
             >

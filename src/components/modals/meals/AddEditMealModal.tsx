@@ -258,7 +258,7 @@ export default function AddEditMealModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl p-6 sm:p-8 my-8 shadow-2xl rounded-4xl bg-card border border-border animate-in fade-in zoom-in-95 text-foreground max-h-[92vh] overflow-y-auto"
+        className="w-full max-w-2xl p-6 sm:p-8 my-8 shadow-2xl rounded-4xl bg-card border border-border modal-card text-foreground max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

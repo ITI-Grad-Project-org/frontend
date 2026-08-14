@@ -1,18 +1,13 @@
-import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, CircleUserRound, Star, MessageCircleMore, MoreHorizontal, X, LogOut } from "lucide-react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
-import { useState } from "react";
-import { Dialog as DialogPrimitive } from "radix-ui";
+import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, CircleUserRound, Star, MessageCircleMore, LogOut } from "lucide-react";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useTheme } from "@/theme";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useProfileData } from "@/hooks/profile/useProfileData";
+import { DashboardMobileMenu } from "@/components/DashboardMobileMenu";
 
 function DashboardLayout() {
     const { isDark } = useTheme();
     const location = useLocation();
-    const navigate = useNavigate();
-    const [moreOpen, setMoreOpen] = useState(false);
-    const [pendingNav, setPendingNav] = useState<string | null>(null);
     const { handleSignOut } = useProfileData();
     const isChatPage = location.pathname.startsWith("/dashboard/chat");
 
@@ -90,11 +85,11 @@ function DashboardLayout() {
             </aside>
 
 
-            <main className={isChatPage ? "flex-1 min-h-0 overflow-hidden px-4 pt-4 pb-24 md:pt-14 md:px-16 md:pb-8" : "flex-1 px-4 pt-4 pb-24 overflow-y-auto md:pt-14 md:px-16 md:pb-8"}>
+            <main className={isChatPage ? "flex-1 min-h-0 overflow-hidden px-4 pt-8 pb-24 md:pt-16 md:px-16 md:pb-8" : "flex-1 px-4 pt-8 pb-24 overflow-y-auto md:pt-16 md:px-16 md:pb-8"}>
                 <Outlet />
             </main>
 
-            <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around gap-1 border-t border-border bg-popover/95 px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+            <nav className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around gap-1 border-t border-border bg-popover px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
                 {primaryItems.map((item) => (
                     <NavLink
                         key={item.to}
@@ -111,81 +106,7 @@ function DashboardLayout() {
                     </NavLink>
                 ))}
 
-                <DialogPrimitive.Root open={moreOpen} onOpenChange={setMoreOpen}>
-                    <DialogPrimitive.Trigger asChild>
-                        <button
-                            type="button"
-                            className={cn(
-                                "flex flex-1 flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition-colors",
-                                isSecondaryActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                            )}
-                        >
-                            <MoreHorizontal className="h-5 w-5 shrink-0" strokeWidth={2} />
-                            <span>More</span>
-                        </button>
-                    </DialogPrimitive.Trigger>
-                    <DialogPrimitive.Portal>
-                        <DialogPrimitive.Overlay className="fixed inset-0 z-50 modal-overlay data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0" />
-                        <DialogPrimitive.Content
-                            onAnimationEnd={(e) => {
-                                if (e.animationName === "exit" && pendingNav) {
-                                    navigate(pendingNav);
-                                    setPendingNav(null);
-                                }
-                            }}
-                            className="fixed inset-x-0 bottom-0 z-50 flex flex-col gap-4 rounded-t-3xl border-t border-border bg-popover p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] text-sm text-popover-foreground shadow-xl outline-none duration-300 ease-out data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-8 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-bottom-8"
-                        >
-                            <div className="flex items-center justify-between">
-                                <DialogPrimitive.Title className="text-base font-semibold">More</DialogPrimitive.Title>
-                                <DialogPrimitive.Close asChild>
-                                    <Button variant="ghost" size="icon-sm" className="bg-secondary">
-                                        <X className="h-4 w-4" />
-                                        <span className="sr-only">Close</span>
-                                    </Button>
-                                </DialogPrimitive.Close>
-                            </div>
-                            <DialogPrimitive.Description className="sr-only">
-                                Additional dashboard sections
-                            </DialogPrimitive.Description>
-
-                            <div className="grid grid-cols-3 gap-2">
-                                {secondaryItems.map((item) => (
-                                    <DialogPrimitive.Close asChild key={item.to}>
-                                        <Link
-                                            to={`/dashboard/${item.to}`}
-                                            onClick={() => setPendingNav(`/dashboard/${item.to}`)}
-                                            className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/70 bg-muted/30 p-4 text-xs font-medium text-muted-foreground transition-colors active:bg-muted"
-                                        >
-                                            <item.icon className="h-5 w-5" strokeWidth={2} />
-                                            <span className="text-center leading-tight">{item.title}</span>
-                                        </Link>
-                                    </DialogPrimitive.Close>
-                                ))}
-                            </div>
-                            <div className="flex w-full gap-3">
-                                <DialogPrimitive.Close asChild>
-                                    <Link
-                                        to="/profile"
-                                        onClick={() => setPendingNav("/profile")}
-                                        className="flex flex-1 items-center justify-center gap-2.5 rounded-2xl bg-brand px-4 py-3 text-sm font-semibold text-brand-foreground hover:opacity-90"
-                                    >
-                                        <CircleUserRound className="h-5 w-5 shrink-0" />
-                                        <span>Profile</span>
-                                    </Link>
-                                </DialogPrimitive.Close>
-
-                                <button
-                                    type="button"
-                                    onClick={handleSignOut}
-                                    className="flex flex-1 items-center justify-center gap-2.5 rounded-2xl border border-border/70 px-4 py-3 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10"
-                                >
-                                    <LogOut className="h-5 w-5 shrink-0" />
-                                    <span>Log out</span>
-                                </button>
-                            </div>
-                        </DialogPrimitive.Content>
-                    </DialogPrimitive.Portal>
-                </DialogPrimitive.Root>
+                <DashboardMobileMenu items={secondaryItems} isSecondaryActive={isSecondaryActive} />
             </nav>
         </div>
     );

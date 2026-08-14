@@ -37,7 +37,7 @@ export function MediaPreviewModal({ src, alt = "Preview", onClose }: MediaPrevie
         >
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/80"
                 onClick={onClose}
                 aria-hidden
             />

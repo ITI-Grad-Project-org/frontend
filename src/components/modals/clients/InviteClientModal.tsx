@@ -62,7 +62,7 @@ export default function InviteClientModal({ open, onClose, onSuccess }: Props) {
     >
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md p-8 duration-200 shadow-2xl rounded-3xl bg-background border border-border animate-in fade-in zoom-in-95"
+        className="w-full max-w-md p-8 shadow-2xl rounded-3xl bg-background border border-border modal-card"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

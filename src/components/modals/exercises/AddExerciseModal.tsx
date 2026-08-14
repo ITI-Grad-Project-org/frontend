@@ -171,7 +171,7 @@ function AddExerciseModalContent({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay"
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] flex flex-col rounded-3xl bg-background shadow-2xl border border-border animate-in fade-in zoom-in-95 duration-200"
+        className="w-full max-w-lg max-h-[90vh] flex flex-col rounded-3xl bg-background shadow-2xl border border-border modal-card"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Sticky header ───────────────────────────────────────────────── */}
