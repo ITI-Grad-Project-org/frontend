@@ -14,7 +14,7 @@ export function LandingFloatingArt() {
     const parallaxRef = useMouseParallax(parallaxMappings);
 
     return (
-        <div ref={parallaxRef} aria-hidden className="pointer-events-none absolute inset-0 z-0 animate-in zoom-in-300 blur-in-sm duration-800">
+        <div ref={parallaxRef} aria-hidden className="pointer-events-none absolute inset-0 z-0 animate-in zoom-in-300 blur-in-sm duration-800 hidden md:block">
             <img
                 src={dumbbell1}
                 alt=""

@@ -240,9 +240,15 @@
         cursor: pointer;
     }
 
-    html {
-        scroll-behavior: smooth;
-    }
+html {
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 767.98px) {
+            html {
+                scroll-behavior: auto;
+            }
+        }
 
     html,
     body {
@@ -370,6 +376,22 @@
     will-change: transform;
 }
 
+/* Mobile: freeze decorative float animations (floating art is hidden on mobile anyway) */
+@media (max-width: 767.98px) {
+    .float-a,
+    .float-b {
+        animation: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .float-a,
+    .float-b,
+    .text-shimmer {
+        animation: none;
+    }
+}
+
 @utility reveal {
     animation: reveal-up 500ms cubic-bezier(.2, .7, .2, 1) both;
 }
@@ -378,6 +400,14 @@
     background: color-mix(in oklab, var(--color-background) 55%, transparent);
     backdrop-filter: blur(18px) saturate(140%);
     border: 1px solid oklch(1 0 0 / 8%);
+}
+
+/* Mobile: drop backdrop-filter for scroll perf; use a near-solid tint instead */
+@media (max-width: 767.98px) {
+    .glass-nav {
+        backdrop-filter: none;
+        background: color-mix(in oklab, var(--color-background) 92%, transparent);
+    }
 }
 
 @utility glass-panel {

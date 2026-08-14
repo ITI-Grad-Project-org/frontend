@@ -32,7 +32,7 @@ export function LandingAccessSection() {
                                     href={MOBILE_APP_URL}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="btn-magnetic inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-6 py-3.5 text-sm font-semibold backdrop-blur hover:bg-white/8"
+                                    className="btn-magnetic inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-6 py-3.5 text-sm font-semibold hover:bg-white/8"
                                 >
                                     <Smartphone className="h-4 w-4" /> Open mobile app
                                 </a>

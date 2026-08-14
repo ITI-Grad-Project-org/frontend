@@ -30,7 +30,8 @@ export function LandingNav() {
 
             if (target) {
                 const top = target.getBoundingClientRect().top + window.scrollY - 96;
-                window.scrollTo({ top, behavior: "smooth" });
+                const isMobile = window.matchMedia("(max-width: 767.98px)").matches;
+                window.scrollTo({ top, behavior: isMobile ? "auto" : "smooth" });
                 window.history.pushState(null, "", href);
             }
         }

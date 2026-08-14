@@ -104,7 +104,7 @@ export function LandingPricingSection() {
                             className={`btn-magnetic group mt-7 inline-flex items-center justify-center gap-1.5 rounded-full px-6 py-3 text-sm font-semibold ${
                                 plan.highlighted
                                     ? "bg-brand text-brand-foreground shadow-(--shadow-accent)"
-                                    : "border border-white/10 bg-white/4 backdrop-blur hover:bg-white/8"
+                                    : "border border-white/10 bg-white/4 hover:bg-white/8"
                             }`}
                         >
                             Start free trial

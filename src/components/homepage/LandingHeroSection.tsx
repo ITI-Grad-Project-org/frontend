@@ -33,7 +33,7 @@ export function LandingHeroSection() {
                             href={MOBILE_APP_URL}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="animate-in zoom-in-95 duration-600 btn-magnetic group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-4 text-sm font-semibold backdrop-blur transition hover:bg-white/8"
+                            className="animate-in zoom-in-95 duration-600 btn-magnetic group inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/4 px-7 py-4 text-sm font-semibold transition hover:bg-white/8"
                         >
                             <Smartphone className="h-4 w-4" />
                             Open mobile app
