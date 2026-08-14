@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { UserRoundPlus } from "lucide-react";
 import InviteClientModal from "@/components/modals/clients/InviteClientModal";
 import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
+import { CreateNutritionPlanModal } from "@/components/modals/nutritionPlans/CreateNutritionPlanModal";
 import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
 import { useClientsData } from "@/hooks/clients/useClientsData";
 
@@ -16,6 +17,7 @@ export default function Clients() {
   const [activeTab, setActiveTab] = useState<TabType>("clients");
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
+  const [isCreateNutritionPlanModalOpen, setIsCreateNutritionPlanModalOpen] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedClientName, setSelectedClientName] = useState<string>("Unknown client");
   const navigate = useNavigate();
@@ -77,6 +79,12 @@ export default function Clients() {
             setSelectedClientName(fullName || connection.client.email || "Unknown client");
             setIsCreatePlanModalOpen(true);
           }}
+          onCreateNutritionPlan={(connection) => {
+            setSelectedClientId(connection.id);
+            const fullName = `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim();
+            setSelectedClientName(fullName || connection.client.email || "Unknown client");
+            setIsCreateNutritionPlanModalOpen(true);
+          }}
           onMessageClient={(connection) => {
             navigate(`/dashboard/chat/${connection.client.id}`);
           }}
@@ -125,6 +133,24 @@ export default function Clients() {
         }}
         onCreated={(draft) => {
           navigate(`/dashboard/plans/${draft.id}`, {
+            state: {
+              clientName: selectedClientName,
+            },
+          });
+        }}
+      />
+
+      <CreateNutritionPlanModal
+        open={isCreateNutritionPlanModalOpen}
+        clients={clients.data}
+        selectedClientId={selectedClientId}
+        onClose={() => {
+          setIsCreateNutritionPlanModalOpen(false);
+          setSelectedClientId(null);
+          setSelectedClientName("Unknown client");
+        }}
+        onCreated={(draft) => {
+          navigate(`/dashboard/nutrition-plans/${draft.id}`, {
             state: {
               clientName: selectedClientName,
             },

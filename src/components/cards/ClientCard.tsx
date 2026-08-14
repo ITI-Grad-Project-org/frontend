@@ -12,10 +12,11 @@ interface ClientCardProps {
   connection: ClientConnection;
   onDeleted?: () => void | Promise<void>;
   onCreatePlan?: (connection: ClientConnection) => void;
+  onCreateNutritionPlan?: (connection: ClientConnection) => void;
   onMessage?: (connection: ClientConnection) => void;
 }
 
-function ClientCard({ connection, onDeleted, onCreatePlan, onMessage }: ClientCardProps) {
+function ClientCard({ connection, onDeleted, onCreatePlan, onCreateNutritionPlan, onMessage }: ClientCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
@@ -60,7 +61,7 @@ function ClientCard({ connection, onDeleted, onCreatePlan, onMessage }: ClientCa
   };
 
   const handleCreateNutrition = () => {
-    toast.info(`Creating custom nutrition for ${fullName}`);
+    onCreateNutritionPlan?.(connection);
   };
 
   const handleMessageClient = () => {

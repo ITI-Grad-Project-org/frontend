@@ -10,6 +10,7 @@ interface ClientsTabProps {
     onRetry: () => void;
     onClientDeleted: () => void | Promise<void>;
     onCreatePlan?: (connection: ClientConnection) => void;
+    onCreateNutritionPlan?: (connection: ClientConnection) => void;
     onMessageClient?: (connection: ClientConnection) => void;
 }
 
@@ -20,6 +21,7 @@ export function ClientsTab({
     onRetry,
     onClientDeleted,
     onCreatePlan,
+    onCreateNutritionPlan,
     onMessageClient,
 }: ClientsTabProps) {
     if (loading) {
@@ -61,6 +63,7 @@ export function ClientsTab({
                     connection={connection}
                     onDeleted={onClientDeleted}
                     onCreatePlan={onCreatePlan}
+                    onCreateNutritionPlan={onCreateNutritionPlan}
                     onMessage={onMessageClient}
                 />
             ))}
