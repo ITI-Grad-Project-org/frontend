@@ -10,7 +10,7 @@ import { LandingTestimonialsSection } from "@/components/homepage/LandingTestimo
 import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 export default function Homepage() {
-    useDocumentTitle("Uply · Train smarter. Coach better.");
+    useDocumentTitle("Uply");
 
     return (
         <div className="landing-page relative min-h-screen overflow-x-clip bg-background text-foreground">

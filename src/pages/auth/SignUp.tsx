@@ -14,6 +14,7 @@ import { markProfileSetupFlowActive } from "@/lib/profile-setup";
 import { detectLocaleDefaults } from "@/lib/locale-defaults";
 import { CURRENCY_BY_REGION } from "@/lib/locale-defaults";
 import { Field } from "@/components/auth/Field";
+import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 const CURRENCY_OPTIONS = [...new Set(Object.values(CURRENCY_BY_REGION))].sort();
 
@@ -27,6 +28,7 @@ const selectCls =
 
 function SignUp() {
     const { isDark } = useTheme();
+    useDocumentTitle("Uply | Sign up");
     const navigate = useNavigate();
     const setSession = useAuthStore((state) => state.setSession);
     const [submissionError, setSubmissionError] = useState("");

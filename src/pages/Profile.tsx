@@ -13,9 +13,11 @@ import { ProfileSidebar } from "@/components/profile/sidebar/ProfileSidebar";
 import { clearProfileSetupFlowFlag, isProfileSetupFlowActive } from "@/lib/profile-setup";
 import { ProfileSetupWizard } from "@/components/profile/wizard/ProfileSetupWizard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 function Profile() {
     const [isSetupFlow, setIsSetupFlow] = useState(() => isProfileSetupFlowActive());
+    useDocumentTitle("Uply | Profile");
     const {
         user,
         form,

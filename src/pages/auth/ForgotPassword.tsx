@@ -12,6 +12,7 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordFormData,
 } from "@/schemas/auth";
+import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 const OTP_LENGTH = 6;
 
@@ -121,6 +122,7 @@ function OtpCodeInput({
 
 function ForgotPassword() {
   const { isDark } = useTheme();
+  useDocumentTitle("Uply | Forgot password");
   const navigate = useNavigate();
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");

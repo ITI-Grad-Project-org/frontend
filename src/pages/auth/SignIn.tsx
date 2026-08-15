@@ -11,9 +11,11 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
 import { signInSchema, type SignInFormData } from "@/schemas/auth";
 import { Field } from "@/components/auth/Field";
+import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 function SignIn() {
     const { isDark } = useTheme();
+    useDocumentTitle("Uply | Sign in");
     const navigate = useNavigate();
     const location = useLocation();
     const setSession = useAuthStore((state) => state.setSession);

@@ -4,9 +4,11 @@ import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
 import { useProfileData } from "@/hooks/profile/useProfileData";
 import { DashboardMobileMenu } from "@/components/DashboardMobileMenu";
+import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 function DashboardLayout() {
     const { isDark } = useTheme();
+    useDocumentTitle("Uply | Dashboard");
     const location = useLocation();
     const { handleSignOut } = useProfileData();
     const isChatPage = location.pathname.startsWith("/dashboard/chat");

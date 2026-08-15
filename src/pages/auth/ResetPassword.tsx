@@ -9,9 +9,11 @@ import { getFirstFormErrorMessage } from "@/lib/form-errors";
 import { resetPassword } from "@/services/auth";
 import { useTheme } from "@/theme";
 import { resetPasswordSchema, type ResetPasswordFormData } from "@/schemas/auth";
+import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 function ResetPassword() {
   const { isDark } = useTheme();
+  useDocumentTitle("Uply | Reset password");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const resetToken = searchParams.get("token");
