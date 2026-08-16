@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
 import { useProfileData } from "@/hooks/profile/useProfileData";
+import { useUnreadMessages } from "@/hooks/coach/useUnreadMessages";
 import { DashboardMobileMenu } from "@/components/DashboardMobileMenu";
 import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
@@ -12,6 +13,8 @@ function DashboardLayout() {
     const location = useLocation();
     const { handleSignOut } = useProfileData();
     const isChatPage = location.pathname.startsWith("/dashboard/chat");
+    const unreadChatCount = useUnreadMessages().data ?? 0;
+    const showChatBadge = !isChatPage && unreadChatCount > 0;
 
     const items = [
         { to: "overview", title: "Overview", icon: LayoutDashboard },
@@ -60,6 +63,15 @@ function DashboardLayout() {
                             >
                                 <item.icon className="w-5 h-5 transition-colors shrink-0" strokeWidth={2} />
                                 <span>{item.title}</span>
+                                {item.to === "chat" && showChatBadge && (
+                                    <span
+                                        title={`${unreadChatCount} unread message${unreadChatCount === 1 ? "" : "s"}`}
+                                        aria-label={`${unreadChatCount} unread messages`}
+                                        className="ml-auto grid min-w-5 h-5 place-items-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold leading-none text-destructive-foreground animate-in fade-in zoom-in-95 duration-200"
+                                    >
+                                        {unreadChatCount > 99 ? "99+" : unreadChatCount}
+                                    </span>
+                                )}
                             </NavLink>
                         );
                     })}
@@ -103,7 +115,18 @@ function DashboardLayout() {
                             )
                         }
                     >
-                        <item.icon className="h-5 w-5 shrink-0" strokeWidth={2} />
+                        <span className="relative">
+                            <item.icon className="h-5 w-5 shrink-0" strokeWidth={2} />
+                            {item.to === "chat" && showChatBadge && (
+                                <span
+                                    title={`${unreadChatCount} unread message${unreadChatCount === 1 ? "" : "s"}`}
+                                    aria-label={`${unreadChatCount} unread messages`}
+                                    className="absolute -top-1.5 -right-2 grid min-w-4 h-4 place-items-center rounded-full bg-destructive px-1 text-[9px] font-semibold leading-none text-destructive-foreground animate-in fade-in zoom-in-95 duration-200"
+                                >
+                                    {unreadChatCount > 99 ? "99+" : unreadChatCount}
+                                </span>
+                            )}
+                        </span>
                         <span>{item.title}</span>
                     </NavLink>
                 ))}
