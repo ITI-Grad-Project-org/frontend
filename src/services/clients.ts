@@ -1,13 +1,41 @@
 import { api } from "@/lib/api";
-import type { ClientConnection, ClientInvitation } from "@/types/client";
+import type {
+  ClientConnection,
+  ClientConnectionDetail,
+  ClientInvitation,
+  ClientMeasurement,
+  MeasurementListResponse,
+  MeasurementQueryParams,
+} from "@/types/client";
 
 export async function getClients(): Promise<ClientConnection[]> {
   const { data } = await api.get<ClientConnection[]>("/client");
   return data;
 }
 
-export async function getClientById(id: string): Promise<ClientConnection> {
-  const { data } = await api.get<ClientConnection>(`/client/${id}`);
+export async function getClientById(id: string): Promise<ClientConnectionDetail> {
+  const { data } = await api.get<ClientConnectionDetail>(`/client/${id}`);
+  return data;
+}
+
+export async function getClientMeasurements(
+  clientId: string,
+  params: MeasurementQueryParams = {},
+): Promise<MeasurementListResponse> {
+  const { data } = await api.get<MeasurementListResponse>(
+    `/client/${clientId}/measurements`,
+    { params },
+  );
+  return data;
+}
+
+export async function getClientMeasurementById(
+  clientId: string,
+  id: string,
+): Promise<ClientMeasurement> {
+  const { data } = await api.get<ClientMeasurement>(
+    `/client/${clientId}/measurements/${id}`,
+  );
   return data;
 }
 

@@ -4,6 +4,7 @@ import { Navigate, Route, Routes } from "react-router";
 import DashboardLayout from "./DashboardLayout";
 import Overview from "./Overview";
 import Clients from "./Clients";
+import ClientProfile from "./ClientProfile";
 import Chat from "./Chat";
 import Plans from "./plans/Plans";
 import PlanLogs from "./plans/PlanLogs";
@@ -35,6 +36,7 @@ export default function DashboardRoutes() {
                 <Route index element={<Navigate to="/dashboard/overview" replace />} />
                 <Route path="overview" element={<Overview />} />
                 <Route path="clients" element={<Clients />} />
+                <Route path="clients/:clientId" element={<ClientProfile />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="chat/:clientId" element={<Chat />} />
                 <Route path="plans" element={<Plans />} />

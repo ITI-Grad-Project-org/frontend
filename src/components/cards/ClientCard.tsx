@@ -73,6 +73,10 @@ function ClientCard({ connection, onDeleted, onCreatePlan, onCreateNutritionPlan
     navigate(`/dashboard/chat/${client.id}`);
   };
 
+  const handleOpenProfile = () => {
+    navigate(`/dashboard/clients/${client.id}`);
+  };
+
   const handleDeleteClient = async () => {
     setIsDeleting(true);
 
@@ -101,7 +105,7 @@ function ClientCard({ connection, onDeleted, onCreatePlan, onCreateNutritionPlan
   };
 
   return (
-    <CardMain className="w-full flex flex-col justify-between gap-5 p-6 transition-all duration-300 hover:shadow-lg border border-border bg-card rounded-3xl">
+    <CardMain className={`w-full flex flex-col justify-between gap-5 p-6 transition-all duration-300 hover:shadow-lg border border-border bg-card rounded-3xl cursor-pointer`} onClick={handleOpenProfile}>
       <div className="flex flex-col gap-4">
         <div className="flex justify-between gap-3">
           <Avatar className="w-16 h-16 border-2 border-border shadow-sm shrink-0">
@@ -113,7 +117,10 @@ function ClientCard({ connection, onDeleted, onCreatePlan, onCreateNutritionPlan
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handleMessageClient}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleMessageClient();
+              }}
               className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border/70 bg-muted/40 text-foreground transition hover:bg-muted/70 active:scale-[0.98]"
               aria-label={`Message ${fullName}`}
               title={`Message ${fullName}`}
@@ -122,7 +129,10 @@ function ClientCard({ connection, onDeleted, onCreatePlan, onCreateNutritionPlan
             </button>
             <button
               type="button"
-              onClick={() => setIsDeleteDialogOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteDialogOpen(true);
+              }}
               className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-destructive/20 bg-destructive/5 text-destructive transition hover:bg-destructive/10 active:scale-[0.98]"
               aria-label="Remove client"
               title="Remove client"
@@ -189,14 +199,20 @@ function ClientCard({ connection, onDeleted, onCreatePlan, onCreateNutritionPlan
       {/* Action buttons */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mt-2">
         <button
-          onClick={handleCreatePlan}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCreatePlan();
+          }}
           className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold cursor-pointer bg-ink text-ink-foreground rounded-xl hover:opacity-90 active:scale-[0.98] transition-all border border-transparent shadow-sm"
         >
           <Dumbbell className="w-3.5 h-3.5" strokeWidth={2.5} />
           <span className="whitespace-nowrap">Custom plan</span>
         </button>
         <button
-          onClick={handleCreateNutrition}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCreateNutrition();
+          }}
           className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold cursor-pointer bg-brand text-brand-foreground rounded-xl hover:opacity-90 active:scale-[0.98] transition-all border border-transparent shadow-sm"
         >
           <Utensils className="w-3.5 h-3.5" strokeWidth={2.5} />
