@@ -1,17 +1,67 @@
 import { useState } from "react";
-import { X, Ruler, Loader2, ImageOff } from "lucide-react";
+import { X, Ruler, Loader2, ImageOff, ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
 import { useClientMeasurement } from "@/hooks/clients/useClientMeasurements";
+import type { ClientMeasurement } from "@/types/client";
 
 interface MeasurementDetailsModalProps {
   clientId: string;
   measurementId: string | null;
+  previous: ClientMeasurement | null;
   onClose: () => void;
+}
+
+function fmtN(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+type DeltaKind = "up" | "down" | "same";
+
+interface DeltaInfo {
+  value: number;
+  kind: DeltaKind;
+}
+
+function computeDelta(current: number | null, previous: number | null): DeltaInfo | null {
+  if (current == null || previous == null) return null;
+  const diff = Number((current - previous).toFixed(1));
+  return {
+    value: Math.abs(diff),
+    kind: diff > 0 ? "up" : diff < 0 ? "down" : "same",
+  };
+}
+
+function deltaColor(): string {
+  return "text-info";
+}
+
+interface MetricTile {
+  label: string;
+  valueText: string;
+  delta: DeltaInfo | null;
+}
+
+function buildTiles(m: ClientMeasurement, prev: ClientMeasurement | null): MetricTile[] {
+  const rows = [
+    { label: "Weight", current: m.weightKg, prev: prev?.weightKg ?? null, suffix: " kg" },
+    { label: "Body fat", current: m.bodyFatPct, prev: prev?.bodyFatPct ?? null, suffix: "%" },
+    { label: "Chest", current: m.chestCm, prev: prev?.chestCm ?? null, suffix: " cm" },
+    { label: "Waist", current: m.waistCm, prev: prev?.waistCm ?? null, suffix: " cm" },
+    { label: "Hips", current: m.hipsCm, prev: prev?.hipsCm ?? null, suffix: " cm" },
+    { label: "Arm", current: m.armCm, prev: prev?.armCm ?? null, suffix: " cm" },
+    { label: "Thigh", current: m.thighCm, prev: prev?.thighCm ?? null, suffix: " cm" },
+  ];
+  return rows.map((row) => ({
+    label: row.label,
+    valueText: row.current != null ? `${row.current}${row.suffix}` : "N/A",
+    delta: computeDelta(row.current, row.prev),
+  }));
 }
 
 export default function MeasurementDetailsModal({
   clientId,
   measurementId,
+  previous,
   onClose,
 }: MeasurementDetailsModalProps) {
   const { measurement, loading } = useClientMeasurement(clientId, measurementId);
@@ -19,20 +69,18 @@ export default function MeasurementDetailsModal({
 
   if (!measurementId) return null;
 
-  const tiles = measurement
-    ? [
-        { label: "Weight", value: measurement.weightKg != null ? `${measurement.weightKg} kg` : "N/A" },
-        { label: "Body fat", value: measurement.bodyFatPct != null ? `${measurement.bodyFatPct}%` : "N/A" },
-        { label: "Chest", value: measurement.chestCm != null ? `${measurement.chestCm} cm` : "N/A" },
-        { label: "Waist", value: measurement.waistCm != null ? `${measurement.waistCm} cm` : "N/A" },
-        { label: "Hips", value: measurement.hipsCm != null ? `${measurement.hipsCm} cm` : "N/A" },
-        { label: "Arm", value: measurement.armCm != null ? `${measurement.armCm} cm` : "N/A" },
-        { label: "Thigh", value: measurement.thighCm != null ? `${measurement.thighCm} cm` : "N/A" },
-      ]
-    : [];
+  const tiles = measurement ? buildTiles(measurement, previous) : [];
 
   const formattedDate = measurement
     ? new Date(`${measurement.measuredAt}T00:00:00`).toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
+
+  const formattedPrevDate = previous
+    ? new Date(`${previous.measuredAt}T00:00:00`).toLocaleDateString(undefined, {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -74,18 +122,50 @@ export default function MeasurementDetailsModal({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                {tiles.map((tile) => (
-                  <div
-                    key={tile.label}
-                    className="flex flex-col gap-1 rounded-2xl border border-border/50 bg-muted/40 p-3"
-                  >
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      {tile.label}
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Measurements
+                  </h4>
+                  {previous && (
+                    <span className="text-[11px] text-muted-foreground/80">
+                      Compared to previous entry on {formattedPrevDate}
                     </span>
-                    <span className="text-sm font-extrabold text-foreground">{tile.value}</span>
-                  </div>
-                ))}
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                  {tiles.map((tile) => (
+                    <div
+                      key={tile.label}
+                      className="flex flex-col gap-1 rounded-2xl border border-border/50 bg-muted/40 p-3"
+                    >
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        {tile.label}
+                      </span>
+                      <span className="text-sm font-extrabold text-foreground tabular-nums">{tile.valueText}</span>
+                      {previous &&
+                        (tile.delta ? (
+                          <span
+                            className={`inline-flex items-center gap-0.5 text-[10px] font-bold tabular-nums ${deltaColor()}`}
+                            title="Change vs previous entry"
+                          >
+                            {tile.delta.kind === "up" ? (
+                              <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                            ) : tile.delta.kind === "down" ? (
+                              <ArrowDownRight className="h-3 w-3" aria-hidden="true" />
+                            ) : (
+                              <Minus className="h-3 w-3" aria-hidden="true" />
+                            )}
+                            {tile.delta.kind === "same"
+                              ? "0"
+                              : `${tile.delta.kind === "up" ? "+" : "-"}${fmtN(tile.delta.value)}`}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-muted-foreground/60">—</span>
+                        ))}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div>

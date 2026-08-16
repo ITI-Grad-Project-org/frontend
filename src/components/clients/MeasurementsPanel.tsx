@@ -1,5 +1,13 @@
 import { useMemo, useState } from "react";
-import { ChevronRight, Filter as FilterIcon, Scale } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  ChevronRight,
+  Filter as FilterIcon,
+  Minus,
+  Scale,
+  TrendingUp,
+} from "lucide-react";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -57,6 +65,46 @@ function fmt(value: number | null | undefined, suffix: string): string {
   return value == null ? "N/A" : `${value}${suffix}`;
 }
 
+function fmtN(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+type DeltaKind = "up" | "down" | "same";
+
+interface DeltaInfo {
+  value: number;
+  kind: DeltaKind;
+}
+
+function computeDelta(current: number | null, previous: number | null): DeltaInfo | null {
+  if (current == null || previous == null) return null;
+  const diff = Number((current - previous).toFixed(1));
+  return {
+    value: Math.abs(diff),
+    kind: diff > 0 ? "up" : diff < 0 ? "down" : "same",
+  };
+}
+
+function deltaColor(): string {
+  return "text-info";
+}
+
+function DeltaBadge({ delta }: { delta: DeltaInfo | null }) {
+  if (!delta) return null;
+  const Icon = delta.kind === "up" ? ArrowUpRight : delta.kind === "down" ? ArrowDownRight : Minus;
+  return (
+    <span
+      className={`inline-flex items-center gap-0.5 text-[10px] font-bold tabular-nums ${deltaColor()}`}
+      title="Change vs previous entry"
+    >
+      <Icon className="h-3 w-3" aria-hidden="true" />
+      {delta.kind === "same"
+        ? "0"
+        : `${delta.kind === "up" ? "+" : "-"}${fmtN(delta.value)}`}
+    </span>
+  );
+}
+
 interface StatTile {
   key: string;
   label: string;
@@ -102,6 +150,14 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
     [docs],
   );
 
+  const previousById = useMemo(() => {
+    const map = new Map<string, ClientMeasurement>();
+    for (let i = 1; i < sortedAsc.length; i++) {
+      map.set(sortedAsc[i].id, sortedAsc[i - 1]);
+    }
+    return map;
+  }, [sortedAsc]);
+
   const trendData = useMemo(
     () =>
       sortedAsc.map((m) => ({
@@ -111,6 +167,9 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
       })),
     [sortedAsc],
   );
+
+  const canShowWeight = trendData.length >= 2;
+  const canShowBodyFat = trendData.filter((d) => d.bodyFat != null).length >= 2;
 
   const latest = sortedDesc[0] ?? null;
   const tiles = useMemo(() => buildTiles(latest), [latest]);
@@ -128,7 +187,7 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
   const hasFilters = from !== "" || to !== "";
 
   const inputCls =
-    "h-10 rounded-xl border border-border bg-muted/40 px-3 text-sm text-foreground outline-none focus:border-brand transition-colors";
+    "h-10 w-[9.5rem] rounded-xl border border-border bg-muted/40 px-3 text-left text-sm text-foreground outline-none focus:border-brand transition-colors";
 
   return (
     <div className="flex flex-col gap-6">
@@ -171,18 +230,20 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
                   <FilterIcon className="h-4 w-4" />
                   Apply
                 </button>
-                {hasFilters && (
-                  <button
-                    type="button"
-                    onClick={clearFilters}
-                    className="inline-flex h-10 items-center rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-muted-foreground transition hover:bg-muted cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  disabled={!hasFilters}
+                  aria-hidden={!hasFilters}
+                  className={`inline-flex h-10 items-center rounded-xl border border-border bg-muted/40 px-4 text-sm font-semibold text-muted-foreground transition hover:bg-muted cursor-pointer ${
+                    hasFilters ? "" : "invisible pointer-events-none"
+                  }`}
+                >
+                  Clear
+                </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
         {docs.length > 0 && (
@@ -235,95 +296,103 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
       ) : (
         <>
           {/* Trend charts */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <CardMain className="min-w-0 overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg">Weight trend</CardTitle>
-                <CardDescription>Body weight across recorded sessions (kg)</CardDescription>
-              </CardHeader>
-              <CardContent className="min-w-0 overflow-hidden flex-1">
-                {trendData.length < 2 ? (
-                  <div className="flex h-60 items-center justify-center text-sm text-muted-foreground">
-                    Log at least two measurements to see a trend.
-                  </div>
-                ) : (
-                  <ChartContainer config={weightConfig} className="h-65 w-full min-w-0">
-                    <RechartsLineChart accessibilityLayer data={trendData} margin={{ top: 5, right: 8, left: 0, bottom: 5 }}>
-                      <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                      <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        interval="preserveStartEnd"
-                        tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        width={40}
-                        domain={["dataMin - 2", "dataMax + 2"]}
-                        tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
-                      <Line
-                        dataKey="weight"
-                        type="monotone"
-                        stroke="var(--color-weight)"
-                        strokeWidth={2.5}
-                        dot={false}
-                        activeDot={{ r: 5 }}
-                      />
-                    </RechartsLineChart>
-                  </ChartContainer>
-                )}
-              </CardContent>
-            </CardMain>
+          {canShowWeight || canShowBodyFat ? (
+            <div
+              className={`grid grid-cols-1 gap-6 ${canShowWeight && canShowBodyFat ? "lg:grid-cols-2" : ""}`}
+            >
+              {canShowWeight && (
+                <CardMain className="min-w-0 overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Weight trend</CardTitle>
+                    <CardDescription>Body weight across recorded sessions (kg)</CardDescription>
+                  </CardHeader>
+                  <CardContent className="min-w-0 overflow-hidden flex-1">
+                    <ChartContainer config={weightConfig} className="h-65 w-full min-w-0">
+                      <RechartsLineChart accessibilityLayer data={trendData} margin={{ top: 5, right: 8, left: 0, bottom: 5 }}>
+                        <CartesianGrid vertical={false} stroke="var(--color-border)" />
+                        <XAxis
+                          dataKey="date"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          interval="preserveStartEnd"
+                          tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          width={40}
+                          domain={["dataMin - 2", "dataMax + 2"]}
+                          tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                        />
+                        <ChartTooltip content={<ChartTooltipContent indicator="dot" />} />
+                        <Line
+                          dataKey="weight"
+                          type="monotone"
+                          stroke="var(--color-weight)"
+                          strokeWidth={2.5}
+                          dot={false}
+                          activeDot={{ r: 5 }}
+                        />
+                      </RechartsLineChart>
+                    </ChartContainer>
+                  </CardContent>
+                </CardMain>
+              )}
 
-            <CardMain className="min-w-0 overflow-hidden">
-              <CardHeader>
-                <CardTitle className="text-lg">Body fat trend</CardTitle>
-                <CardDescription>Body fat percentage across recorded sessions</CardDescription>
-              </CardHeader>
-              <CardContent className="min-w-0 overflow-hidden flex-1">
-                {trendData.filter((d) => d.bodyFat != null).length < 2 ? (
-                  <div className="flex h-60 items-center justify-center text-sm text-muted-foreground">
-                    Log at least two body-fat measurements to see a trend.
-                  </div>
-                ) : (
-                  <ChartContainer config={bodyFatConfig} className="h-65 w-full min-w-0">
-                    <RechartsBarChart accessibilityLayer data={trendData} margin={{ top: 5, right: 8, left: 0, bottom: 5 }}>
-                      <CartesianGrid vertical={false} stroke="var(--color-border)" />
-                      <XAxis
-                        dataKey="date"
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        interval="preserveStartEnd"
-                        tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        tickMargin={8}
-                        width={40}
-                        domain={["dataMin - 1", "dataMax + 1"]}
-                        tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      />
-                      <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                      <Bar
-                        dataKey="bodyFat"
-                        fill="var(--color-bodyFat)"
-                        radius={6}
-                        maxBarSize={36}
-                      />
-                    </RechartsBarChart>
-                  </ChartContainer>
-                )}
-              </CardContent>
+              {canShowBodyFat && (
+                <CardMain className="min-w-0 overflow-hidden">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Body fat trend</CardTitle>
+                    <CardDescription>Body fat percentage across recorded sessions</CardDescription>
+                  </CardHeader>
+                  <CardContent className="min-w-0 overflow-hidden flex-1">
+                    <ChartContainer config={bodyFatConfig} className="h-65 w-full min-w-0">
+                      <RechartsBarChart accessibilityLayer data={trendData} margin={{ top: 5, right: 8, left: 0, bottom: 5 }}>
+                        <CartesianGrid vertical={false} stroke="var(--color-border)" />
+                        <XAxis
+                          dataKey="date"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          interval="preserveStartEnd"
+                          tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          width={40}
+                          domain={["dataMin - 1", "dataMax + 1"]}
+                          tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                        />
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
+                        <Bar
+                          dataKey="bodyFat"
+                          fill="var(--color-bodyFat)"
+                          radius={6}
+                          maxBarSize={36}
+                        />
+                      </RechartsBarChart>
+                    </ChartContainer>
+                  </CardContent>
+                </CardMain>
+              )}
+            </div>
+          ) : (
+            <CardMain className="items-center justify-center py-12 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-border/60 bg-muted/40">
+                <TrendingUp className="h-6 w-6 text-muted-foreground/60" />
+              </div>
+              <p className="text-lg font-medium text-foreground">Not enough data for trends yet</p>
+              <p className="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-muted-foreground">
+                Weight and body-fat charts need at least two logged measurements before a trend can
+                take shape. Once your client records the next entry, the change between sessions
+                shows up here automatically.
+              </p>
             </CardMain>
-          </div>
+          )}
 
           {/* Measurement list */}
           <CardMain className="gap-4">
@@ -340,7 +409,8 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
                     key={m.id}
                     type="button"
                     onClick={() => setSelectedId(m.id)}
-                    className="flex w-full items-center justify-between gap-3 bg-background/60 px-4 py-3 text-left transition hover:bg-muted/50 cursor-pointer"
+                    aria-label={`View details for measurement on ${formatLongDate(m.measuredAt)}`}
+                    className="group flex w-full items-center justify-between gap-3 bg-background/60 px-4 py-3 text-left transition hover:bg-muted/50 cursor-pointer"
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       <div className="shrink-0">
@@ -352,12 +422,28 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
                         </span>
                       </div>
                       <div className="hidden sm:flex items-center gap-2">
-                        <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-bold text-foreground">
-                          {fmt(m.weightKg, " kg")}
-                        </span>
-                        <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-bold text-foreground">
-                          {fmt(m.bodyFatPct, "% fat")}
-                        </span>
+                        <div className="flex flex-col rounded-xl border border-border/60 bg-muted/40 px-2.5 py-1.5">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Weight
+                          </span>
+                          <span className="text-xs font-bold text-foreground tabular-nums">
+                            {fmt(m.weightKg, " kg")}
+                          </span>
+                          <DeltaBadge
+                            delta={computeDelta(m.weightKg, previousById.get(m.id)?.weightKg ?? null)}
+                          />
+                        </div>
+                        <div className="flex flex-col rounded-xl border border-border/60 bg-muted/40 px-2.5 py-1.5">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Body fat
+                          </span>
+                          <span className="text-xs font-bold text-foreground tabular-nums">
+                            {fmt(m.bodyFatPct, "%")}
+                          </span>
+                          <DeltaBadge
+                            delta={computeDelta(m.bodyFatPct, previousById.get(m.id)?.bodyFatPct ?? null)}
+                          />
+                        </div>
                         {m.photos.length > 0 && (
                           <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
                             {m.photos.length} photo{m.photos.length === 1 ? "" : "s"}
@@ -365,7 +451,10 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
                         )}
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/70" />
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors group-hover:border-brand/40 group-hover:bg-brand/10 group-hover:text-brand">
+                      View details
+                      <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </span>
                   </button>
                 ))}
               </div>
@@ -383,6 +472,7 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
       <MeasurementDetailsModal
         clientId={clientId}
         measurementId={selectedId}
+        previous={selectedId ? (previousById.get(selectedId) ?? null) : null}
         onClose={() => setSelectedId(null)}
       />
     </div>
