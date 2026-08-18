@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileText, ImageIcon } from "lucide-react";
-import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 
 export function CertPreview({
     file,
@@ -25,7 +25,7 @@ export function CertPreview({
                         className="max-h-48 w-full object-contain rounded-xl border border-border bg-muted/30 transition-opacity group-hover:opacity-80 cursor-zoom-in" />
                 </button>
                 {previewOpen && (
-                    <MediaPreviewModal src={localPreview} alt={file?.name ?? "Certificate"} onClose={() => setPreviewOpen(false)} />
+                    <MediaLightbox src={localPreview} alt={file?.name ?? "Certificate"} onClose={() => setPreviewOpen(false)} />
                 )}
             </div>
         );
@@ -58,7 +58,7 @@ export function CertPreview({
                     )}
                 </button>
                 {previewOpen && (
-                    <MediaPreviewModal
+                    <MediaLightbox
                         src={fileUrl}
                         alt={certName ?? (isPdf ? "Certificate PDF" : "Certificate")}
                         onClose={() => setPreviewOpen(false)}

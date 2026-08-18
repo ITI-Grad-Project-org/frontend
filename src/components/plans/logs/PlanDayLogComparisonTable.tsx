@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Dumbbell, Layers } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 import type { PrescribedDayInfo, WorkoutLog, WorkoutLogSet, PlannedExerciseSet } from "@/types/plans";
 import { OutcomeBadge } from "./OutcomeBadge";
 
@@ -9,6 +11,7 @@ interface PlanDayLogComparisonTableProps {
 }
 
 export function PlanDayLogComparisonTable({ prescription, workoutLog }: PlanDayLogComparisonTableProps) {
+  const [previewUrl, setPreviewUrl] = useState<{ url: string; name: string } | null>(null);
   return (
     <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between border-b border-border/60 pb-4">
@@ -25,6 +28,7 @@ export function PlanDayLogComparisonTable({ prescription, workoutLog }: PlanDayL
 
       <div className="mt-6 space-y-8">
         {prescription.exercises.map((pExercise) => {
+          const demoGif = pExercise.demoGifUrl;
           const loggedEx = workoutLog?.exercises?.find(
             (e) => e.plannedExerciseId === pExercise.id || e.exerciseId === pExercise.exerciseId
           );
@@ -44,18 +48,32 @@ export function PlanDayLogComparisonTable({ prescription, workoutLog }: PlanDayL
                     {pExercise.coachNotes ? ` · Coach Notes: ${pExercise.coachNotes}` : ""}
                   </p>
                 </div>
-                <Avatar className="size-12 border border-border shrink-0 bg-muted">
-                  {pExercise.demoGifUrl ? (
-                    <AvatarImage
-                      src={pExercise.demoGifUrl}
-                      alt={pExercise.exerciseName}
-                      className="object-cover"
-                    />
-                  ) : null}
-                  <AvatarFallback className="bg-muted text-muted-foreground">
-                    <Dumbbell className="size-5" />
-                  </AvatarFallback>
-                </Avatar>
+                {demoGif ? (
+                  <button
+                    type="button"
+                    onClick={() => setPreviewUrl({ url: demoGif, name: pExercise.exerciseName })}
+                    className="group shrink-0 rounded-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                    aria-label={`View ${pExercise.exerciseName} demonstration`}
+                    title={`View ${pExercise.exerciseName} demonstration`}
+                  >
+                    <Avatar className="size-12 border border-border shrink-0 bg-muted transition group-hover:opacity-85">
+                      <AvatarImage
+                        src={demoGif}
+                        alt={pExercise.exerciseName}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-muted text-muted-foreground">
+                        <Dumbbell className="size-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                ) : (
+                  <Avatar className="size-12 border border-border shrink-0 bg-muted">
+                    <AvatarFallback className="bg-muted text-muted-foreground">
+                      <Dumbbell className="size-5" />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
               </div>
 
               <div className="overflow-x-auto">
@@ -121,6 +139,10 @@ export function PlanDayLogComparisonTable({ prescription, workoutLog }: PlanDayL
           );
         })}
       </div>
+
+      {previewUrl && (
+        <MediaLightbox src={previewUrl.url} alt={previewUrl.name} onClose={() => setPreviewUrl(null)} />
+      )}
     </section>
   );
 }

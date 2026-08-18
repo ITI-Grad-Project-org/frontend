@@ -21,13 +21,12 @@ import {
 import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StarRating } from "@/components/reviews/ReviewCard";
-import { Lightbox } from "@/components/coachProfile/Lightbox";
 import { PageSkeleton } from "@/components/coachProfile/PageSkeleton";
 import { SectionHeading } from "@/components/coachProfile/SectionHeading";
 import { StatPill } from "@/components/coachProfile/StatPill";
 import { CoachReviewCard } from "@/components/coachProfile/CoachReviewCard";
 import { RatingBreakdown } from "@/components/coachProfile/RatingBreakdown";
-import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 import {
   formatDate,
   genderLabel,
@@ -347,7 +346,7 @@ export default function CoachProfile() {
 
                   {/* Lightbox */}
                   {lightboxIndex !== null && coach.transformationPhotos?.length > 0 && (
-                    <Lightbox
+                    <MediaLightbox
                       photos={coach.transformationPhotos}
                       initialIndex={lightboxIndex}
                       onClose={() => setLightboxIndex(null)}
@@ -356,7 +355,7 @@ export default function CoachProfile() {
 
                   {/* Certificate preview */}
                   {previewCertUrl && (
-                    <MediaPreviewModal
+                    <MediaLightbox
                       src={previewCertUrl}
                       alt="Certificate preview"
                       onClose={() => setPreviewCertUrl(null)}

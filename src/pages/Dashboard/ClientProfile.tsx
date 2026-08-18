@@ -14,6 +14,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 import CardMain from "@/components/cards/CardMain";
 import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
 import { CreateNutritionPlanModal } from "@/components/modals/nutritionPlans/CreateNutritionPlanModal";
@@ -61,6 +62,7 @@ export default function ClientProfile() {
   const { connection, loading, error, refetch } = useClientProfile(clientId ?? "");
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [isNutritionModalOpen, setIsNutritionModalOpen] = useState(false);
+  const [isAvatarPreviewOpen, setIsAvatarPreviewOpen] = useState(false);
 
   if (loading) {
     return (
@@ -128,12 +130,28 @@ export default function ClientProfile() {
       <CardMain className="gap-5">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4 min-w-0">
-            <Avatar className="h-20 w-20 shrink-0 border-2 border-border shadow-sm">
-              <AvatarImage src={client.avatarUrl || ""} className="object-cover" />
-              <AvatarFallback className="bg-muted text-muted-foreground">
-                <UserRound className="h-10 w-10" />
-              </AvatarFallback>
-            </Avatar>
+            {client.avatarUrl ? (
+              <button
+                type="button"
+                onClick={() => setIsAvatarPreviewOpen(true)}
+                className="group shrink-0 rounded-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                aria-label={`View ${fullName}'s photo`}
+                title={`View ${fullName}'s photo`}
+              >
+                <Avatar className="h-20 w-20 shrink-0 border-2 border-border shadow-sm transition group-hover:opacity-85">
+                  <AvatarImage src={client.avatarUrl} className="object-cover" />
+                  <AvatarFallback className="bg-muted text-muted-foreground">
+                    <UserRound className="h-10 w-10" />
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            ) : (
+              <Avatar className="h-20 w-20 shrink-0 border-2 border-border shadow-sm">
+                <AvatarFallback className="bg-muted text-muted-foreground">
+                  <UserRound className="h-10 w-10" />
+                </AvatarFallback>
+              </Avatar>
+            )}
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-3xl font-black font-display tracking-tight text-foreground">
@@ -277,6 +295,14 @@ export default function ClientProfile() {
           });
         }}
       />
+
+      {isAvatarPreviewOpen && client.avatarUrl && (
+        <MediaLightbox
+          src={client.avatarUrl}
+          alt={fullName}
+          onClose={() => setIsAvatarPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 }

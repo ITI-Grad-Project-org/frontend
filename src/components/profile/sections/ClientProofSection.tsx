@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useFieldArray, Controller, type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 import { Trash2, Loader2, Upload } from "lucide-react";
 import { inputClassName, type ProfileFormData } from "../../../schemas/profileSchema";
-import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 import { SectionCard } from "../SectionCard";
 
 // ── Multi photo button ─────────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ function ExistingPhotoRow({ url, index, onRemove }: { url: string; index: number
                 <span className="hidden sm:inline">{removing ? "Removing…" : "Remove"}</span>
             </button>
             {previewOpen && (
-                <MediaPreviewModal src={url} alt={`Transformation photo ${index + 1}`} onClose={() => setPreviewOpen(false)} />
+                <MediaLightbox src={url} alt={`Transformation photo ${index + 1}`} onClose={() => setPreviewOpen(false)} />
             )}
         </div>
     );
@@ -97,7 +97,7 @@ function NewPhotoUploader({ index, file, onChange }: { index: number; file: File
                     </div>
                     <button type="button" onClick={clearFile} className="text-xs font-semibold text-destructive hover:opacity-80 shrink-0">Remove</button>
                     {previewOpen && (
-                        <MediaPreviewModal src={preview} alt={file.name} onClose={() => setPreviewOpen(false)} />
+                        <MediaLightbox src={preview} alt={file.name} onClose={() => setPreviewOpen(false)} />
                     )}
                 </div>
             ) : (

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 import type { ClientConnection } from "@/types/client";
 
 function formatDate(isoStr: string | null | undefined): string {
@@ -20,21 +22,37 @@ interface ClientInfoCardProps {
 
 export function ClientInfoCard({ client, membershipId }: ClientInfoCardProps) {
   const clientDetail = client?.client;
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const clientName = clientDetail ? `${clientDetail.firstName} ${clientDetail.lastName}` : "Client";
+  const avatarUrl = clientDetail?.avatarUrl;
 
   return (
     <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
       <div className="flex items-center justify-between border-b border-border/60 pb-4">
         <div className="flex items-center gap-3">
-          <Avatar className="size-10 border border-border/60">
-            <AvatarImage
-              src={clientDetail?.avatarUrl || ""}
-              alt={clientDetail ? `${clientDetail.firstName} ${clientDetail.lastName}` : "Client"}
-              className="object-cover"
-            />
-            <AvatarFallback className="bg-brand/10 text-brand">
-              <User className="size-5" />
-            </AvatarFallback>
-          </Avatar>
+          {avatarUrl ? (
+            <button
+              type="button"
+              onClick={() => setPreviewUrl(avatarUrl)}
+              className="group shrink-0 rounded-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              aria-label={`View ${clientName}'s photo`}
+              title={`View ${clientName}'s photo`}
+            >
+              <Avatar className="size-10 border border-border/60 transition group-hover:opacity-85">
+                <AvatarImage src={avatarUrl} alt={clientName} className="object-cover" />
+                <AvatarFallback className="bg-brand/10 text-brand">
+                  <User className="size-5" />
+                </AvatarFallback>
+              </Avatar>
+            </button>
+          ) : (
+            <Avatar className="size-10 border border-border/60">
+              <AvatarFallback className="bg-brand/10 text-brand">
+                <User className="size-5" />
+              </AvatarFallback>
+            </Avatar>
+          )}
           <div>
             <h2 className="font-bold text-foreground">Client Information</h2>
             <p className="text-xs text-muted-foreground">Assigned client details</p>
@@ -78,6 +96,10 @@ export function ClientInfoCard({ client, membershipId }: ClientInfoCardProps) {
           </span>
         </div>
       </div>
+
+      {previewUrl && (
+        <MediaLightbox src={previewUrl} alt={clientName} onClose={() => setPreviewUrl(null)} />
+      )}
     </section>
   );
 }

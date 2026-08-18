@@ -3,6 +3,7 @@ import InvitationSkeleton from "@/components/skeletons/InvitationSkeleton";
 import { RefreshCw, Check, X } from "lucide-react";
 import type { JoinRequest } from "@/types/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 
 
 interface RequestsTabProps {
@@ -17,6 +18,7 @@ interface RequestsTabProps {
 type FilterStatus = "all" | "requested" | "approved" | "rejected";
 
 export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject }: RequestsTabProps) {
+    const [previewUrl, setPreviewUrl] = useState<{ url: string; name: string } | null>(null);
     const [statusFilter, setStatusFilter] = useState<FilterStatus>("requested");
 
     // Filter requests based on selected status
@@ -69,6 +71,7 @@ export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject
     }
 
     return (
+        <>
         <div className="flex flex-col gap-6 animate-in fade-in duration-200">
             {/* Filter Pills */}
             <div className="flex items-center gap-2 p-1 bg-muted/50 rounded-2xl w-fit border border-border/50">
@@ -101,15 +104,34 @@ export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject
                 </div>
             ) : (
                 <div className="flex flex-col gap-4">
-                    {filteredData.map((req) => (
+                    {filteredData.map((req) => {
+                        const avatarUrl = req.client.avatarUrl;
+                        const avatarName = `${req.client.firstName} ${req.client.lastName}`;
+                        return (
                         <div key={req.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 border border-border bg-card rounded-2xl shadow-sm transition-all hover:shadow">
                             <div className="flex items-center gap-4 min-w-0">
-                                <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
-                                    <AvatarImage src={req.client.avatarUrl || ""} alt={req.client.firstName} />
-                                    <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
-                                        {req.client.firstName[0]}{req.client.lastName[0]}
-                                    </AvatarFallback>
-                                </Avatar>
+                                {avatarUrl ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setPreviewUrl({ url: avatarUrl, name: avatarName })}
+                                            className="group shrink-0 rounded-full cursor-zoom-in focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+                                            aria-label={`View ${req.client.firstName}'s photo`}
+                                            title={`View ${req.client.firstName}'s photo`}
+                                        >
+                                            <Avatar className="w-12 h-12 border-2 border-background shadow-sm transition group-hover:opacity-85">
+                                                <AvatarImage src={avatarUrl} alt={req.client.firstName} className="object-cover" />
+                                                <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
+                                                    {req.client.firstName[0]}{req.client.lastName[0]}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </button>
+                                    ) : (
+                                        <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
+                                            <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
+                                                {req.client.firstName[0]}{req.client.lastName[0]}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    )}
                                 <div className="flex flex-col min-w-0">
                                     <p className="font-bold text-foreground">
                                         {req.client.firstName} {req.client.lastName}
@@ -145,9 +167,15 @@ export function RequestsTab({ data, loading, error, onRetry, onApprove, onReject
                                 ) : <div aria-hidden="true" />}
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
+
+        {previewUrl && (
+            <MediaLightbox src={previewUrl.url} alt={previewUrl.name} onClose={() => setPreviewUrl(null)} />
+        )}
+        </>
     );
 }

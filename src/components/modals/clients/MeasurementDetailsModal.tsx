@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Ruler, Loader2, ImageOff, ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
-import { MediaPreviewModal } from "@/components/ui/MediaPreviewModal";
+import { MediaLightbox } from "@/components/ui/MediaLightbox";
 import { useClientMeasurement } from "@/hooks/clients/useClientMeasurements";
 import type { ClientMeasurement } from "@/types/client";
 
@@ -207,7 +207,7 @@ export default function MeasurementDetailsModal({
       </div>
 
       {previewUrl && (
-        <MediaPreviewModal
+        <MediaLightbox
           src={previewUrl}
           alt="Progress photo"
           onClose={() => setPreviewUrl(null)}
