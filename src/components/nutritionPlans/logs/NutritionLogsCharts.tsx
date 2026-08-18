@@ -1,71 +1,32 @@
 import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
 import type { NutritionDayLog } from "@/types/nutritionPlans";
-import {
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
 import CardMain from "@/components/cards/CardMain";
+import {
+  AdherenceRows,
+  DayStrip,
+  LogCardHeader,
+  OutcomeRing,
+  StatHero,
+  type AdherenceRow,
+  type DayStripRow,
+  type OutcomeRingEntry,
+} from "@/components/logs/LogVisuals";
 
 const OUTCOME_ORDER = ["completed", "partial", "non_compliant", "pending"] as const;
+const MEAL_OUTCOME_ORDER = ["completed", "partial", "skipped"] as const;
 
-const outcomeFill: Record<string, string> = {
-  completed: "var(--chart-2)",
-  partial: "var(--chart-5)",
-  non_compliant: "var(--chart-4)",
-  pending: "var(--chart-3)",
+const DAY_OUTCOME_META: Record<string, { label: string; color: string }> = {
+  completed: { label: "Completed", color: "var(--color-success)" },
+  partial: { label: "Partial", color: "var(--color-info)" },
+  non_compliant: { label: "Non-compliant", color: "var(--color-danger)" },
+  pending: { label: "Pending", color: "var(--color-warn)" },
 };
 
-const outcomeConfig = {
-  completed: { label: "Completed", color: "var(--chart-2)" },
-  partial: { label: "Partial", color: "var(--chart-5)" },
-  non_compliant: { label: "Non-compliant", color: "var(--chart-4)" },
-  pending: { label: "Pending", color: "var(--chart-3)" },
-} satisfies ChartConfig;
-
-const calorieConfig = {
-  target: { label: "Target", color: "var(--chart-1)" },
-  actual: { label: "Actual", color: "var(--chart-2)" },
-} satisfies ChartConfig;
-
-const macroConfig = {
-  target: { label: "Avg target", color: "var(--chart-1)" },
-  actual: { label: "Avg actual", color: "var(--chart-2)" },
-} satisfies ChartConfig;
-
-const mealOutcomeConfig = {
-  completed: { label: "Completed", color: "var(--chart-2)" },
-  partial: { label: "Partial", color: "var(--chart-5)" },
-  skipped: { label: "Skipped", color: "var(--chart-4)" },
-} satisfies ChartConfig;
-
-const waterConfig = {
-  target: { label: "Target", color: "var(--chart-1)" },
-  consumed: { label: "Consumed", color: "var(--chart-3)" },
-} satisfies ChartConfig;
-
-function truncateLabel(value: string, max = 14): string {
-  return value.length > max ? `${value.slice(0, max - 1)}…` : value;
-}
+const MEAL_OUTCOME_META: Record<string, { label: string; color: string }> = {
+  completed: { label: "Completed", color: "var(--color-success)" },
+  partial: { label: "Partial", color: "var(--color-info)" },
+  skipped: { label: "Skipped", color: "var(--color-warn)" },
+};
 
 function shortDate(iso: string): string {
   const d = new Date(iso);
@@ -97,7 +58,7 @@ interface NutritionLogsChartsProps {
 }
 
 export function NutritionLogsCharts({ logs }: NutritionLogsChartsProps) {
-  const outcomeData = useMemo(() => {
+  const outcomeData = useMemo<OutcomeRingEntry[]>(() => {
     const counts = new Map<string, number>();
     for (const log of logs) {
       const key = normalizeOutcome(log.adherenceOutcome);
@@ -106,27 +67,30 @@ export function NutritionLogsCharts({ logs }: NutritionLogsChartsProps) {
     return OUTCOME_ORDER.map((outcome) => ({
       outcome,
       count: counts.get(outcome) ?? 0,
-      fill: outcomeFill[outcome],
+      label: DAY_OUTCOME_META[outcome].label,
+      color: DAY_OUTCOME_META[outcome].color,
     })).filter((entry) => entry.count > 0);
   }, [logs]);
 
   const totalDays = logs.length;
-  const completedDays = outcomeData.find((d) => d.outcome === "completed")?.count ?? 0;
-  const completedPct = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
 
-  const calorieData = useMemo(
-    () =>
-      logs
-        .filter((log) => typeof log.comparisons?.calories?.actual === "number")
-        .map((log) => ({
-          day: shortDate(log.scheduledDate),
-          target: log.comparisons!.calories!.target ?? 0,
-          actual: log.comparisons!.calories!.actual as number,
-        })),
-    [logs],
-  );
+  const mealOutcomeData = useMemo<OutcomeRingEntry[]>(() => {
+    const counts = new Map<string, number>();
+    for (const log of logs) {
+      for (const meal of log.mealOutcomes ?? []) {
+        const key = (meal.outcome || "skipped").toLowerCase();
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+    }
+    return MEAL_OUTCOME_ORDER.map((outcome) => ({
+      outcome,
+      count: counts.get(outcome) ?? 0,
+      label: MEAL_OUTCOME_META[outcome].label,
+      color: MEAL_OUTCOME_META[outcome].color,
+    })).filter((entry) => entry.count > 0);
+  }, [logs]);
 
-  const macroData = useMemo(() => {
+  const macroData = useMemo<AdherenceRow[]>(() => {
     const sums = new Map<string, { target: number; actual: number; count: number }>();
     for (const log of logs) {
       for (const { key } of MACRO_KEYS) {
@@ -143,254 +107,179 @@ export function NutritionLogsCharts({ logs }: NutritionLogsChartsProps) {
       const agg = sums.get(key);
       return {
         name: label,
-        target: agg && agg.count > 0 ? round1(agg.target / agg.count) : 0,
+        prescribed: agg && agg.count > 0 ? round1(agg.target / agg.count) : 0,
         actual: agg && agg.count > 0 ? round1(agg.actual / agg.count) : 0,
       };
-    }).filter((entry) => entry.target > 0 || entry.actual > 0);
+    }).filter((entry) => entry.prescribed > 0 || entry.actual > 0);
   }, [logs]);
 
-  const mealOutcomeData = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const log of logs) {
-      for (const meal of log.mealOutcomes ?? []) {
-        const key = (meal.outcome || "skipped").toLowerCase();
-        counts.set(key, (counts.get(key) ?? 0) + 1);
-      }
-    }
-    return (["completed", "partial", "skipped"] as const)
-      .map((outcome) => ({ outcome, count: counts.get(outcome) ?? 0 }))
-      .filter((entry) => entry.count > 0);
-  }, [logs]);
+  const macroOverall = useMemo(() => {
+    const targetSum = macroData.reduce((sum, d) => sum + d.prescribed, 0);
+    const actualSum = macroData.reduce((sum, d) => sum + d.actual, 0);
+    return targetSum > 0 ? Math.round((actualSum / targetSum) * 100) : null;
+  }, [macroData]);
 
-  const waterData = useMemo(
+  const calorieData = useMemo<DayStripRow[]>(
     () =>
       logs
-        .filter((log) => typeof log.waterMlConsumed === "number")
+        .filter((log) => typeof log.comparisons?.calories?.actual === "number")
         .map((log) => ({
-          day: shortDate(log.scheduledDate),
-          target: log.effectiveTargets?.waterMl ?? 0,
-          consumed: log.waterMlConsumed as number,
+          label: shortDate(log.scheduledDate),
+          target: log.comparisons!.calories!.target ?? 0,
+          actual: log.comparisons!.calories!.actual as number,
         })),
     [logs],
   );
 
-  const hasMealData = mealOutcomeData.length > 0;
+  const calorieOverall = useMemo(() => {
+    const targetSum = calorieData.reduce((sum, d) => sum + d.target, 0);
+    const actualSum = calorieData.reduce((sum, d) => sum + d.actual, 0);
+    return targetSum > 0 ? Math.round((actualSum / targetSum) * 100) : null;
+  }, [calorieData]);
+
+  const waterData = useMemo<DayStripRow[]>(
+    () =>
+      logs
+        .filter((log) => typeof log.waterMlConsumed === "number")
+        .map((log) => ({
+          label: shortDate(log.scheduledDate),
+          target: log.effectiveTargets?.waterMl ?? 0,
+          actual: log.waterMlConsumed as number,
+        })),
+    [logs],
+  );
+
+  const waterOverall = useMemo(() => {
+    const targetSum = waterData.reduce((sum, d) => sum + d.target, 0);
+    const actualSum = waterData.reduce((sum, d) => sum + d.actual, 0);
+    return targetSum > 0 ? Math.round((actualSum / targetSum) * 100) : null;
+  }, [waterData]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
-      {/* Day outcomes doughnut */}
-      <CardMain className="min-w-0 overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg">Day Outcomes</CardTitle>
-          <CardDescription>Adherence of each logged day</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1">
-          {outcomeData.length === 0 ? (
-            <div className="flex h-[190px] items-center justify-center text-sm text-muted-foreground">
-              No logged days yet
-            </div>
-          ) : (
-            <>
-              <div className="relative mx-auto h-[160px] max-w-[200px]">
-                <ChartContainer config={outcomeConfig} className="h-full w-full">
-                  <PieChart accessibilityLayer>
-                    <ChartTooltip content={<ChartTooltipContent nameKey="outcome" />} />
-                    <Pie
-                      data={outcomeData}
-                      dataKey="count"
-                      nameKey="outcome"
-                      innerRadius={48}
-                      outerRadius={70}
-                      paddingAngle={4}
-                      strokeWidth={4}
-                      stroke="var(--color-card)"
-                    >
-                      {outcomeData.map((entry) => (
-                        <Cell key={entry.outcome} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ChartContainer>
-                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-bold text-foreground">{completedPct}%</span>
-                  <span className="text-xs text-muted-foreground">Completed</span>
-                </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Day outcomes */}
+        <CardMain className="min-w-0 overflow-hidden">
+          <LogCardHeader
+            eyebrow="Adherence"
+            title="Day outcomes"
+            description="Adherence of each logged day"
+          />
+          <div className="flex flex-1 flex-col gap-6">
+            {outcomeData.length === 0 ? (
+              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
+                No logged days yet
               </div>
-              <ChartLegend content={<ChartLegendContent nameKey="outcome" />} />
-            </>
-          )}
-        </CardContent>
-      </CardMain>
+            ) : (
+              <OutcomeRing data={outcomeData} centerLabel="days completed" />
+            )}
+          </div>
+        </CardMain>
 
-      {/* Meal outcomes */}
+        {/* Meal outcomes */}
+        <CardMain className="min-w-0 overflow-hidden">
+          <LogCardHeader
+            eyebrow="Meals"
+            title="Meal outcomes"
+            description="Results of meals logged across all days"
+          />
+          <div className="flex flex-1 flex-col gap-6">
+            {mealOutcomeData.length === 0 ? (
+              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
+                No meals logged yet
+              </div>
+            ) : (
+              <OutcomeRing data={mealOutcomeData} centerLabel="meals completed" />
+            )}
+          </div>
+        </CardMain>
+      </div>
+
+      {/* Macro adherence — full width */}
       <CardMain className="min-w-0 overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg">Meal Outcomes</CardTitle>
-          <CardDescription>Results of meals logged across all days</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1">
-          {!hasMealData ? (
-            <div className="flex h-[190px] items-center justify-center text-sm text-muted-foreground">
-              No meals logged yet
-            </div>
-          ) : (
-            <ChartContainer config={mealOutcomeConfig} className="h-[190px] w-full min-w-0">
-              <BarChart accessibilityLayer data={mealOutcomeData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="outcome"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tickFormatter={(value) => truncateLabel(value)}
-                  tick={{ fontSize: 11 }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  allowDecimals={false}
-                  tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                <Bar dataKey="count" radius={6} barSize={26}>
-                  {mealOutcomeData.map((entry) => (
-                    <Cell
-                      key={entry.outcome}
-                      fill={
-                        mealOutcomeConfig[entry.outcome as keyof typeof mealOutcomeConfig]?.color ??
-                        "var(--color-muted)"
-                      }
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ChartContainer>
-          )}
-        </CardContent>
-      </CardMain>
-
-      {/* Calorie adherence — full width */}
-      <CardMain className="min-w-0 overflow-hidden lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-lg">Daily Calorie Adherence</CardTitle>
-          <CardDescription>Target vs actual calories per logged day</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1">
-          {calorieData.length === 0 ? (
-            <div className="flex h-[190px] items-center justify-center text-sm text-muted-foreground">
-              No calorie data yet
-            </div>
-          ) : (
-            <>
-              <ChartContainer config={calorieConfig} className="h-[190px] w-full min-w-0">
-                <BarChart accessibilityLayer data={calorieData}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="day"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 11 }}
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                  />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                  <Bar dataKey="target" fill="var(--color-target)" radius={4} barSize={14} />
-                  <Bar dataKey="actual" fill="var(--color-actual)" radius={4} barSize={14} />
-                </BarChart>
-              </ChartContainer>
-              <ChartLegend content={<ChartLegendContent />} />
-            </>
-          )}
-        </CardContent>
-      </CardMain>
-
-      {/* Macro adherence */}
-      <CardMain className="min-w-0 overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg">Macro Adherence</CardTitle>
-          <CardDescription>Average target vs actual intake per macro</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1">
+        <LogCardHeader
+          eyebrow="Macros"
+          title="Macro adherence"
+          description="Average daily intake vs plan target, per macro"
+        />
+        <div className="flex flex-1 flex-col gap-6">
           {macroData.length === 0 ? (
-            <div className="flex h-[190px] items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
               No macro data yet
             </div>
           ) : (
-            <ChartContainer config={macroConfig} className="h-[190px] w-full min-w-0">
-              <BarChart
-                accessibilityLayer
-                data={macroData}
-                layout="vertical"
-                margin={{ top: 5, right: 16, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid horizontal={false} />
-                <XAxis
-                  type="number"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={70}
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                <Bar dataKey="target" fill="var(--color-target)" radius={4} barSize={10} />
-                <Bar dataKey="actual" fill="var(--color-actual)" radius={4} barSize={10} />
-              </BarChart>
-            </ChartContainer>
+            <>
+              <StatHero
+                value={macroOverall == null ? "—" : `${macroOverall}%`}
+                caption={
+                  macroOverall == null
+                    ? "No macro targets to compare"
+                    : `of daily macro targets hit across ${totalDays} logged day${totalDays === 1 ? "" : "s"}`
+                }
+              />
+              <AdherenceRows data={macroData} />
+            </>
           )}
-        </CardContent>
+        </div>
       </CardMain>
 
-      {/* Water intake */}
-      <CardMain className="min-w-0 overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg">Water Intake</CardTitle>
-          <CardDescription>Target vs consumed water per logged day</CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1">
-          {waterData.length === 0 ? (
-            <div className="flex h-[190px] items-center justify-center text-sm text-muted-foreground">
-              No water data yet
-            </div>
-          ) : (
-            <ChartContainer config={waterConfig} className="h-[190px] w-full min-w-0">
-              <BarChart accessibilityLayer data={waterData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 11 }}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Daily calorie adherence */}
+        <CardMain className="min-w-0 overflow-hidden">
+          <LogCardHeader
+            eyebrow="Energy"
+            title="Daily calories"
+            description="Target vs actual calories per logged day"
+          />
+          <div className="flex flex-1 flex-col gap-6">
+            {calorieData.length === 0 ? (
+              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
+                No calorie data yet
+              </div>
+            ) : (
+              <>
+                <StatHero
+                  value={calorieOverall == null ? "—" : `${calorieOverall}%`}
+                  caption={
+                    calorieOverall == null
+                      ? "No calorie targets to compare"
+                      : `of daily calorie targets hit across ${calorieData.length} logged day${calorieData.length === 1 ? "" : "s"}`
+                  }
                 />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
+                <DayStrip data={calorieData} />
+              </>
+            )}
+          </div>
+        </CardMain>
+
+        {/* Water intake */}
+        <CardMain className="min-w-0 overflow-hidden">
+          <LogCardHeader
+            eyebrow="Hydration"
+            title="Water intake"
+            description="Target vs consumed water per logged day"
+          />
+          <div className="flex flex-1 flex-col gap-6">
+            {waterData.length === 0 ? (
+              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
+                No water data yet
+              </div>
+            ) : (
+              <>
+                <StatHero
+                  value={waterOverall == null ? "—" : `${waterOverall}%`}
+                  caption={
+                    waterOverall == null
+                      ? "No water targets to compare"
+                      : `of daily water targets hit across ${waterData.length} logged day${waterData.length === 1 ? "" : "s"}`
+                  }
                 />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                <Bar dataKey="target" fill="var(--color-target)" radius={4} barSize={14} />
-                <Bar dataKey="consumed" fill="var(--color-consumed)" radius={4} barSize={14} />
-              </BarChart>
-            </ChartContainer>
-          )}
-        </CardContent>
-      </CardMain>
+                <DayStrip data={waterData} />
+              </>
+            )}
+          </div>
+        </CardMain>
+      </div>
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { useNutritionPlanDayLog } from "@/hooks/nutritionPlans/useNutritionPlanD
 import { ClientInfoCard } from "@/components/plans/logs/ClientInfoCard";
 import { LogStatusBadge } from "@/components/plans/logs/LogStatusBadge";
 import { NutritionPlanDayLogDetail } from "@/components/nutritionPlans/logs/NutritionPlanDayLogDetail";
+import CardMain from "@/components/cards/CardMain";
+import { LogCardHeader } from "@/components/logs/LogVisuals";
 
 function formatDate(isoStr: string | null | undefined): string {
   if (!isoStr) return "—";
@@ -103,11 +105,12 @@ export default function NutritionPlanDayLog() {
         <ClientInfoCard client={client} membershipId={plan.membershipId} />
 
         {/* Day summary card */}
-        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-          <div className="border-b border-border/60 pb-4 mb-4">
-            <h2 className="font-bold text-foreground">Day Summary</h2>
-            <p className="text-xs text-muted-foreground">Prescription configuration for this day</p>
-          </div>
+        <CardMain className="h-full">
+          <LogCardHeader
+            eyebrow="Day"
+            title="Day summary"
+            description="Prescription configuration for this day"
+          />
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="block text-xs font-medium text-muted-foreground">Plan</span>
@@ -140,7 +143,7 @@ export default function NutritionPlanDayLog() {
               </div>
             )}
           </div>
-        </section>
+        </CardMain>
       </div>
 
       {/* No log banner */}

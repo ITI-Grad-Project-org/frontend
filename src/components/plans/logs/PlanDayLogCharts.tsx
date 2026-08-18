@@ -1,60 +1,28 @@
 import { useMemo } from "react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
 import type {
   PrescribedDayInfo,
   PrescribedDayExercise,
   WorkoutLog,
   WorkoutLogExercise,
 } from "@/types/plans";
-import {
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
 import CardMain from "@/components/cards/CardMain";
+import {
+  AdherenceRows,
+  LogCardHeader,
+  OutcomeRing,
+  StatHero,
+  VolumeRows,
+  type OutcomeRingEntry,
+} from "@/components/logs/LogVisuals";
 
 const OUTCOME_ORDER = ["completed", "skipped", "failed", "partial"] as const;
 
-const outcomeFill: Record<string, string> = {
-  completed: "var(--chart-2)",
-  skipped: "var(--chart-5)",
-  failed: "var(--chart-4)",
-  partial: "var(--chart-3)",
+const OUTCOME_META: Record<string, { label: string; color: string }> = {
+  completed: { label: "Completed", color: "var(--color-success)" },
+  skipped: { label: "Skipped", color: "var(--color-warn)" },
+  failed: { label: "Failed", color: "var(--color-danger)" },
+  partial: { label: "Partial", color: "var(--color-info)" },
 };
-
-const adherenceConfig = {
-  prescribed: { label: "Prescribed (avg)", color: "var(--chart-1)" },
-  actual: { label: "Actual (avg)", color: "var(--chart-2)" },
-} satisfies ChartConfig;
-
-const volumeConfig = {
-  volume: { label: "Volume (kg)", color: "var(--chart-3)" },
-} satisfies ChartConfig;
-
-const outcomeConfig = {
-  completed: { label: "Completed", color: "var(--chart-2)" },
-  skipped: { label: "Skipped", color: "var(--chart-5)" },
-  failed: { label: "Failed", color: "var(--chart-4)" },
-  partial: { label: "Partial", color: "var(--chart-3)" },
-} satisfies ChartConfig;
 
 function midpoint(
   min: number | null | undefined,
@@ -66,10 +34,6 @@ function midpoint(
 
 function round1(value: number): number {
   return Math.round(value * 10) / 10;
-}
-
-function truncateLabel(value: string, max = 18): string {
-  return value.length > max ? `${value.slice(0, max - 1)}…` : value;
 }
 
 interface DayExerciseInsight {
@@ -147,6 +111,12 @@ export function PlanDayLogCharts({ prescription, workoutLog }: PlanDayLogChartsP
     [insights]
   );
 
+  const adherenceOverall = useMemo(() => {
+    const prescribedSum = adherenceData.reduce((sum, d) => sum + d.prescribed, 0);
+    const actualSum = adherenceData.reduce((sum, d) => sum + d.actual, 0);
+    return prescribedSum > 0 ? Math.round((actualSum / prescribedSum) * 100) : null;
+  }, [adherenceData]);
+
   const volumeData = useMemo(
     () =>
       insights
@@ -156,7 +126,12 @@ export function PlanDayLogCharts({ prescription, workoutLog }: PlanDayLogChartsP
     [insights]
   );
 
-  const outcomeData = useMemo(() => {
+  const totalVolume = useMemo(
+    () => volumeData.reduce((sum, d) => sum + d.volume, 0),
+    [volumeData]
+  );
+
+  const outcomeData = useMemo<OutcomeRingEntry[]>(() => {
     const counts = new Map<string, number>();
     for (const exercise of workoutLog?.exercises || []) {
       for (const set of exercise.sets) {
@@ -168,7 +143,8 @@ export function PlanDayLogCharts({ prescription, workoutLog }: PlanDayLogChartsP
       .map(([outcome, count]) => ({
         outcome,
         count,
-        fill: outcomeFill[outcome] || "var(--color-muted)",
+        label: OUTCOME_META[outcome]?.label ?? outcome,
+        color: OUTCOME_META[outcome]?.color ?? "var(--color-muted)",
       }))
       .sort(
         (a, b) =>
@@ -177,158 +153,80 @@ export function PlanDayLogCharts({ prescription, workoutLog }: PlanDayLogChartsP
       );
   }, [workoutLog]);
 
-  const totalSets = outcomeData.reduce((sum, d) => sum + d.count, 0);
-  const completedSets = outcomeData.find((d) => d.outcome === "completed")?.count || 0;
-  const setCompletionRate = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
   const hasLog = Boolean(workoutLog);
-
-  const adherenceChartHeight = Math.max(300, adherenceData.length * 44);
 
   return (
     <div className="space-y-6">
       {/* Adherence */}
-      <CardMain>
-        <CardHeader>
-          <CardTitle className="text-lg">Program Adherence — Prescribed vs Actual Reps</CardTitle>
-          <CardDescription>
-            Average prescribed rep target vs average reps actually performed, per exercise
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex-1">
+      <CardMain className="min-w-0 overflow-hidden">
+        <LogCardHeader
+          eyebrow="Adherence"
+          title="Prescribed vs actual reps"
+          description="Average rep target vs reps actually performed, per exercise"
+        />
+        <div className="flex flex-1 flex-col gap-6">
           {adherenceData.length === 0 ? (
-            <div className="flex h-[240px] items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
               No prescribed exercises yet
             </div>
           ) : (
             <>
-              <ChartContainer
-                  config={adherenceConfig}
-                  className="w-full min-w-0"
-                  style={{ height: adherenceChartHeight }}
-                >
-                <BarChart
-                  accessibilityLayer
-                  data={adherenceData}
-                  layout="vertical"
-                  barCategoryGap="80%"
-                  margin={{ top: 5, right: 16, left: 0, bottom: 5 }}
-                >
-                  <CartesianGrid horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={140}
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => truncateLabel(value)}
-                    tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                  />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                  <Bar dataKey="prescribed" fill="var(--color-prescribed)" radius={4} barSize={10} />
-                  <Bar dataKey="actual" fill="var(--color-actual)" radius={4} barSize={10} />
-                </BarChart>
-              </ChartContainer>
-              <ChartLegend content={<ChartLegendContent />} />
+              <StatHero
+                value={adherenceOverall == null ? "—" : `${adherenceOverall}%`}
+                caption={
+                  adherenceOverall == null
+                    ? "No prescribed rep targets to compare"
+                    : `of prescribed rep targets hit across ${adherenceData.length} exercise${adherenceData.length === 1 ? "" : "s"}`
+                }
+              />
+              <AdherenceRows data={adherenceData} />
             </>
           )}
-        </CardContent>
+        </div>
       </CardMain>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Volume by Exercise */}
         <CardMain className="min-w-0 overflow-hidden lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-lg">Volume by Exercise</CardTitle>
-            <CardDescription>Total weight lifted (kg × reps) in this session</CardDescription>
-          </CardHeader>
-          <CardContent className="min-w-0 overflow-hidden flex-1 p-2 sm:p-6">
+          <LogCardHeader
+            eyebrow="Load"
+            title="Volume by exercise"
+            description="Total weight lifted (kg × reps) in this session"
+          />
+          <div className="flex flex-1 flex-col gap-6">
             {volumeData.length === 0 ? (
-              <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
+              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
                 No volume data yet
               </div>
             ) : (
-              <ChartContainer config={volumeConfig} className="h-[280px] w-full min-w-0">
-                <BarChart
-                  accessibilityLayer
-                  data={volumeData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 16, left: 0, bottom: 5 }}
-                >
-                  <XAxis
-                    type="number"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={130}
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => truncateLabel(value, 18)}
-                    tick={{ fontSize: 11, fill: "var(--color-muted-foreground)" }}
-                  />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
-                  <Bar dataKey="volume" fill="var(--color-volume)" radius={4} barSize={16} />
-                </BarChart>
-              </ChartContainer>
+              <>
+                <StatHero
+                  value={totalVolume.toLocaleString()}
+                  unit="kg"
+                  caption={`total load across ${volumeData.length} exercise${volumeData.length === 1 ? "" : "s"}`}
+                />
+                <VolumeRows data={volumeData} />
+              </>
             )}
-          </CardContent>
+          </div>
         </CardMain>
 
         {/* Set Outcomes */}
         <CardMain className="min-w-0 overflow-hidden">
-          <CardHeader>
-            <CardTitle className="text-lg">Set Outcomes</CardTitle>
-            <CardDescription>Results of this session's performed sets</CardDescription>
-          </CardHeader>
-          <CardContent className="min-w-0 flex-1">
+          <LogCardHeader
+            eyebrow="Outcomes"
+            title="Set outcomes"
+            description="Results of this session's performed sets"
+          />
+          <div className="flex flex-1 flex-col gap-6">
             {!hasLog || outcomeData.length === 0 ? (
-              <div className="flex h-[260px] items-center justify-center text-sm text-muted-foreground">
+              <div className="flex h-40 items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
                 No workout log recorded for this day
               </div>
             ) : (
-              <>
-                <div className="relative mx-auto h-[200px] max-w-[240px]">
-                  <ChartContainer config={outcomeConfig} className="h-full w-full">
-                    <PieChart accessibilityLayer>
-                      <ChartTooltip content={<ChartTooltipContent nameKey="outcome" />} />
-                      <Pie
-                        data={outcomeData}
-                        dataKey="count"
-                        nameKey="outcome"
-                        innerRadius={56}
-                        outerRadius={82}
-                        paddingAngle={4}
-                        strokeWidth={4}
-                        stroke="var(--color-card)"
-                      >
-                        {outcomeData.map((entry) => (
-                          <Cell key={entry.outcome} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ChartContainer>
-                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-foreground">{setCompletionRate}%</span>
-                    <span className="text-xs text-muted-foreground">Sets Completed</span>
-                  </div>
-                </div>
-                <ChartLegend content={<ChartLegendContent nameKey="outcome" />} />
-              </>
+              <OutcomeRing data={outcomeData} />
             )}
-          </CardContent>
+          </div>
         </CardMain>
       </div>
     </div>

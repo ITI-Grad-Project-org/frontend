@@ -1,5 +1,8 @@
 import { Utensils } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { NutritionPlanDay, NutritionLogComparisons } from "@/types/nutritionPlans";
+import CardMain from "@/components/cards/CardMain";
+import { LogCardHeader, StatHero } from "@/components/logs/LogVisuals";
 
 interface Props {
   prescription: NutritionPlanDay;
@@ -13,13 +16,6 @@ function fmt(val: number | null | undefined, unit = "") {
   return `${val}${unit}`;
 }
 
-function diffColor(diff: number | null) {
-  if (diff == null) return "text-muted-foreground";
-  if (diff > 0) return "text-danger";
-  if (diff < 0) return "text-info";
-  return "text-success";
-}
-
 function pctBar(actual: number, target: number) {
   if (target <= 0) return 0;
   return Math.min(100, Math.round((actual / target) * 100));
@@ -30,6 +26,13 @@ function pctDiff(value: number | null | undefined) {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
+function diffChip(diff: number | null): { bg: string; text: string } {
+  if (diff == null) return { bg: "bg-muted", text: "text-muted-foreground" };
+  if (diff > 0) return { bg: "bg-danger/10", text: "text-danger" };
+  if (diff < 0) return { bg: "bg-info/10", text: "text-info" };
+  return { bg: "bg-success/10", text: "text-success" };
+}
+
 const MACRO_ROWS: { key: keyof NutritionLogComparisons; label: string; unit: string; barColor: string }[] = [
   { key: "calories", label: "Calories", unit: " kcal", barColor: "bg-warn" },
   { key: "proteinG", label: "Protein", unit: "g", barColor: "bg-info" },
@@ -38,57 +41,80 @@ const MACRO_ROWS: { key: keyof NutritionLogComparisons; label: string; unit: str
   { key: "fiberG", label: "Fiber", unit: "g", barColor: "bg-success" },
 ];
 
-// ─── Macro Comparison Table ───────────────────────────────────────────────────
+// ─── Macro Comparison List ───────────────────────────────────────────────────
 
-function MacroComparisonTable({ comparisons }: { comparisons: NutritionLogComparisons }) {
+function MacroComparisonList({ comparisons }: { comparisons: NutritionLogComparisons }) {
+  const present = MACRO_ROWS.filter((row) => comparisons[row.key]).map((row) => {
+    const c = comparisons[row.key]!;
+    return {
+      ...row,
+      c,
+      pct: pctBar(c.actual, c.target),
+      chip: diffChip(c.actualVsTarget.absoluteDifference),
+      vsPresc: c.actualVsPrescription.absoluteDifference,
+    };
+  });
+
+  let targetSum = 0;
+  let actualSum = 0;
+  for (const { c } of present) {
+    if (typeof c.actual !== "number") continue;
+    if ((c.target ?? 0) > 0) {
+      targetSum += c.target;
+      actualSum += c.actual;
+    }
+  }
+  const overall = targetSum > 0 ? Math.round((actualSum / targetSum) * 100) : null;
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs">
-        <thead>
-          <tr className="border-b border-border/60 text-muted-foreground font-semibold uppercase tracking-wider">
-            <th className="py-2 px-3">Nutrient</th>
-            <th className="py-2 px-3 bg-muted/30">Target</th>
-            <th className="py-2 px-3 bg-muted/30">Prescribed</th>
-            <th className="py-2 px-3 bg-brand/5 text-brand">Actual</th>
-            <th className="py-2 px-3 bg-brand/5 text-brand">vs Target</th>
-            <th className="py-2 px-3 bg-brand/5 text-brand">vs Prescription</th>
-            <th className="py-2 px-3">Progress</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border/20">
-          {MACRO_ROWS.map(({ key, label, unit, barColor }) => {
-            const c = comparisons[key];
-            if (!c) return null;
-            const pct = pctBar(c.actual, c.target);
-            const vsTargetDiff = c.actualVsTarget.absoluteDifference;
-            const vsPrescDiff = c.actualVsPrescription.absoluteDifference;
-            return (
-              <tr key={key} className="hover:bg-muted/20">
-                <td className="py-2.5 px-3 font-bold text-foreground">{label}</td>
-                <td className="py-2.5 px-3 bg-muted/10 text-muted-foreground">{fmt(c.target, unit)}</td>
-                <td className="py-2.5 px-3 bg-muted/10 text-muted-foreground">{fmt(c.prescribed, unit)}</td>
-                <td className="py-2.5 px-3 bg-brand/5 font-semibold text-foreground">{fmt(c.actual, unit)}</td>
-                <td className={`py-2.5 px-3 bg-brand/5 font-semibold ${diffColor(vsTargetDiff)}`}>
-                  {vsTargetDiff > 0 ? "+" : ""}{fmt(vsTargetDiff, unit)}
-                  <span className="ml-1 text-[10px] opacity-70">({pctDiff(c.actualVsTarget.percentageDifference)})</span>
-                </td>
-                <td className={`py-2.5 px-3 bg-brand/5 font-semibold ${diffColor(vsPrescDiff)}`}>
-                  {vsPrescDiff > 0 ? "+" : ""}{fmt(vsPrescDiff, unit)}
-                  <span className="ml-1 text-[10px] opacity-70">({pctDiff(c.actualVsPrescription.percentageDifference)})</span>
-                </td>
-                <td className="py-2.5 px-3">
-                  <div className="flex items-center gap-2 min-w-20">
-                    <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
-                    </div>
-                    <span className="text-[10px] font-semibold text-muted-foreground w-8 text-right">{pct}%</span>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className="flex flex-1 flex-col gap-6">
+      <StatHero
+        value={overall == null ? "—" : `${overall}%`}
+        caption={
+          overall == null
+            ? "No nutrient targets to compare"
+            : "of daily nutrient targets met this day"
+        }
+      />
+      <ul className="max-h-80 space-y-4 overflow-x-hidden overflow-y-auto overscroll-y-contain pr-1">
+        {present.map((row) => (
+          <li key={row.key} className="flex flex-col gap-1.5">
+            <div className="flex items-baseline gap-2.5">
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+                {row.label}
+              </span>
+              <span className="text-lg font-black tabular-nums text-foreground">
+                {fmt(row.c.actual)}
+              </span>
+              <span className="text-xs text-muted-foreground">/ {fmt(row.c.target, row.unit)}</span>
+              <span
+                className={cn(
+                  "rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums",
+                  row.chip.bg,
+                  row.chip.text,
+                )}
+              >
+                {pctDiff(row.c.actualVsTarget.percentageDifference)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn("h-full rounded-full", row.barColor)}
+                  style={{ width: `${row.pct}%` }}
+                />
+              </div>
+              <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+                Prescribed {fmt(row.c.prescribed, row.unit)}
+                <span className="ml-1.5 opacity-70">
+                  · vs prescription {row.vsPresc > 0 ? "+" : ""}
+                  {fmt(row.vsPresc, row.unit)}
+                </span>
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -194,42 +220,36 @@ export function NutritionPlanDayLogDetail({ prescription, comparisons }: Props) 
 
   return (
     <div className="space-y-6">
-      {/* Macro comparison table */}
       {hasComparisons && (
-        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-          <div className="flex items-center gap-3 border-b border-border/60 pb-4 mb-5">
-            <div className="flex size-9 items-center justify-center rounded-2xl bg-brand/10 text-brand">
-              <Utensils className="size-4" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Nutrient Comparison</h2>
-              <p className="text-xs text-muted-foreground">Target · Prescribed · Actual with variance</p>
-            </div>
-          </div>
-          <MacroComparisonTable comparisons={comparisons!} />
-        </section>
+        <CardMain className="min-w-0 overflow-hidden">
+          <LogCardHeader
+            eyebrow="Adherence"
+            title="Nutrient comparison"
+            description="Target · prescribed · actual with variance"
+          />
+          <MacroComparisonList comparisons={comparisons!} />
+        </CardMain>
       )}
 
-      {/* Prescribed meals */}
-      <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
-        <div className="flex items-center gap-3 border-b border-border/60 pb-4 mb-5">
-          <div className="flex size-9 items-center justify-center rounded-2xl bg-success/10 text-success">
-            <Utensils className="size-4" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-foreground">Prescribed Meals</h2>
-            <p className="text-xs text-muted-foreground">
-              {prescription.isFlexibleDay ? "Flexible day — no fixed meal plan" : `${prescription.meals?.length ?? 0} meal(s) prescribed`}
-            </p>
-          </div>
-          {prescription.isFlexibleDay && (
-            <span className="ml-auto px-2.5 py-1 text-[11px] font-bold rounded-full bg-violet/10 text-violet border border-violet/20">
-              Flexible Day
-            </span>
-          )}
-        </div>
+      <CardMain className="min-w-0 overflow-hidden">
+        <LogCardHeader
+          eyebrow="Meals"
+          title="Prescribed meals"
+          description={
+            prescription.isFlexibleDay
+              ? "Flexible day — no fixed meal plan"
+              : `${prescription.meals?.length ?? 0} meal(s) prescribed`
+          }
+          action={
+            prescription.isFlexibleDay ? (
+              <span className="px-2.5 py-1 text-[11px] font-bold rounded-full bg-violet/10 text-violet border border-violet/20">
+                Flexible Day
+              </span>
+            ) : undefined
+          }
+        />
         <PrescribedMealsSection prescription={prescription} />
-      </section>
+      </CardMain>
     </div>
   );
 }
