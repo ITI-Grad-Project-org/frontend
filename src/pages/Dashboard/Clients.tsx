@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { UserRoundPlus } from "lucide-react";
 import InviteClientModal from "@/components/modals/clients/InviteClientModal";
 import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
@@ -15,7 +15,11 @@ import { RequestsTab } from "@/components/clients/RequestsTab";
 export type TabType = "clients" | "invitations" | "requests";
 
 export default function Clients() {
-  const [activeTab, setActiveTab] = useState<TabType>("clients");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const tab = searchParams.get("tab");
+    return tab === "invitations" || tab === "requests" ? tab : "clients";
+  });
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isCreatePlanModalOpen, setIsCreatePlanModalOpen] = useState(false);
   const [isCreateNutritionPlanModalOpen, setIsCreateNutritionPlanModalOpen] = useState(false);
@@ -33,6 +37,14 @@ export default function Clients() {
 
   const activeTabClasses = "px-5 py-2.5 text-sm font-bold bg-ink text-ink-foreground rounded-xl transition-all shadow-sm";
   const inactiveTabClasses = "px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted/65 hover:text-foreground rounded-xl transition-all cursor-pointer";
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    const next = new URLSearchParams(searchParams);
+    if (tab === "clients") next.delete("tab");
+    else next.set("tab", tab);
+    setSearchParams(next, { replace: true });
+  };
 
   return (
     <>
@@ -58,7 +70,7 @@ export default function Clients() {
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             className={activeTab === tab.id ? activeTabClasses : inactiveTabClasses}
           >
             {tab.label} {tab.count !== undefined && tab.count > 0 ? `(${tab.count})` : ""}

@@ -102,7 +102,16 @@ export default function Chat() {
               </Badge>
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">{headerName}</h1>
+              {clientId && displayedClient ? (
+                <Link
+                  to={`/dashboard/clients/${clientId}`}
+                  className="text-2xl font-black tracking-tight text-foreground transition-colors hover:text-brand hover:underline underline-offset-4 md:text-3xl"
+                >
+                  {headerName}
+                </Link>
+              ) : (
+                <h1 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">{headerName}</h1>
+              )}
               <p className="mt-1 text-sm text-muted-foreground">{headerEmail}</p>
             </div>
           </div>
@@ -238,7 +247,16 @@ export default function Chat() {
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <p className="truncate text-base font-semibold text-foreground">{headerName}</p>
+                {clientId && displayedClient ? (
+                  <Link
+                    to={`/dashboard/clients/${clientId}`}
+                    className="truncate text-base font-semibold text-foreground transition-colors hover:text-brand hover:underline underline-offset-4"
+                  >
+                    {headerName}
+                  </Link>
+                ) : (
+                  <p className="truncate text-base font-semibold text-foreground">{headerName}</p>
+                )}
                 <p className="truncate text-sm text-muted-foreground">{headerEmail}</p>
               </div>
             </div>

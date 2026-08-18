@@ -99,7 +99,7 @@ function DashboardLayout() {
             </aside>
 
 
-            <main className={isChatPage ? "flex-1 min-h-0 overflow-hidden px-4 pt-8 pb-24 md:pt-16 md:px-16 md:pb-8" : "flex-1 px-4 pt-8 pb-24 overflow-y-auto md:pt-16 md:px-16 md:pb-8"}>
+            <main className={isChatPage ? "flex-1 min-h-0 overflow-hidden px-4 pt-8 pb-24 md:pt-16 md:px-16 md:pb-8" : "flex-1 px-4 pt-8 pb-24 overflow-x-hidden overflow-y-auto md:pt-16 md:px-16 md:pb-8"}>
                 <Outlet />
             </main>
 

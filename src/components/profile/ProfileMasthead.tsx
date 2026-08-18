@@ -121,7 +121,7 @@ function MastheadAvatar({ user }: { user: Coach | null }) {
 
 export function ProfileMasthead({ user }: ProfileMastheadProps) {
     const tenantHandle = user?.tenants?.[0]?.slug ? `@${user.tenants[0].slug}` : "";
-    const roleLine = [tenantHandle ? `Coach ${tenantHandle}` : "Coach", user?.location]
+    const roleLine = [tenantHandle ? `Coach ${tenantHandle}` : "Coach"]
         .filter(Boolean)
         .join(" · ");
 
@@ -142,9 +142,9 @@ export function ProfileMasthead({ user }: ProfileMastheadProps) {
                         </p>
                     )}
                     {user?.isEmailVerified && (
-                        <span className="mt-3 inline-flex items-center rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-inset ring-success/30">
+                        <span className="mt-3 ml-1 inline-flex items-center rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success ring-1 ring-inset ring-success/30">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
-                            Email verified
+                            verified
                         </span>
                     )}
                 </div>
