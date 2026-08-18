@@ -1,5 +1,8 @@
 // src/schemas/nutritionPlans.ts
 import { z } from "zod";
+import { getLocalDateInputValue } from "@/lib/dates";
+
+export { getLocalDateInputValue };
 
 export const nutritionGoalOptions = [
   { value: "fat_loss", label: "Fat loss" },
@@ -10,14 +13,6 @@ export const nutritionGoalOptions = [
   { value: "general_health", label: "General health" },
   { value: "yoga_mobility", label: "Yoga / mobility" },
 ] as const;
-
-export function getLocalDateInputValue(date = new Date()): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
 
 const optionalDescriptionSchema = z.union([
   z.string().trim().max(5000, "Description must be 5,000 characters or fewer"),
