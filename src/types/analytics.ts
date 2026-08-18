@@ -35,15 +35,18 @@ export interface AtRiskClient {
   membershipId: string;
   clientName: string;
   lastActivityOn: string | null;
-  daysSilent: number;
+  daysSinceActivity: number;
+  neverActive?: boolean;
 }
 
 /** Mirrors a check-in awaiting review */
 export interface PendingCheckin {
+  checkinId: string;
   membershipId: string;
   clientName: string;
+  scheduledFor?: string;
   submittedAt: string;
-  hoursWaiting: number;
+  daysWaiting: number;
 }
 
 /** Mirrors a program that ends within the horizon */

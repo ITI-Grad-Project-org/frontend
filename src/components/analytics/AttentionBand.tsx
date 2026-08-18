@@ -14,13 +14,6 @@ function formatDate(iso: string | null | undefined): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-function formatHours(hours: number | undefined): string {
-  if (hours == null) return "—";
-  if (hours < 1) return `${Math.round(hours * 60)} min`;
-  if (hours < 24) return `${Math.round(hours)}h`;
-  return `${(hours / 24).toFixed(hours % 24 >= 12 ? 1 : 0)}d`;
-}
-
 function formatDays(days: number | undefined | null): string {
   if (days == null) return "—";
   return `${days}d`;
@@ -73,17 +66,20 @@ export function AttentionBand({ queue, loading, error, onRetry }: AttentionBandP
         id: row.membershipId,
         to: `/dashboard/clients/${row.membershipId}`,
         title: row.clientName,
-        meta: [
-          `${formatDays(row.daysSilent)} silent`,
-          `last active ${formatDate(row.lastActivityOn)}`,
-        ],
+        meta: row.neverActive
+          // ? ["no activity on file"]
+          ? [""]
+          : [
+            `${formatDays(row.daysSinceActivity)} silent`,
+            `last active ${formatDate(row.lastActivityOn)}`,
+          ],
       })),
       empty: "No client has gone quiet. Everyone still shows signs of life.",
     },
     {
       id: "checkins",
       title: "Check-ins awaiting you",
-      hint: "Submitted and unanswered",
+      hint: "Client-submitted measurements",
       color: "var(--color-warn)",
       chip: "bg-warn/10 text-warn",
       icon: ClipboardCheck,
@@ -91,9 +87,9 @@ export function AttentionBand({ queue, loading, error, onRetry }: AttentionBandP
         id: row.membershipId,
         to: `/dashboard/clients/${row.membershipId}`,
         title: row.clientName,
-        meta: [`submitted ${formatDate(row.submittedAt)}`, `waiting ${formatHours(row.hoursWaiting)}`],
+        meta: [`submitted ${formatDate(row.submittedAt)}`, `waiting ${formatDays(row.daysWaiting)}`],
       })),
-      empty: "No unanswered check-ins right now.",
+      empty: "No check-in measurements awaiting review.",
     },
     {
       id: "programs",

@@ -10,12 +10,18 @@ import {
 } from "lucide-react";
 import type { AttentionQueue } from "@/types/analytics";
 
-function formatHours(hours: number | undefined | null): string {
-  if (hours == null) return "—";
-  if (hours < 1) return `${Math.round(hours * 60)} min`;
-  if (hours < 24) return `${Math.round(hours)}h`;
-  return `${Math.round(hours / 24)}d`;
-}
+// function formatHours(hours: number | undefined | null): string {
+//   if (hours == null) return "—";
+//   if (hours < 1 / 60) return "less than a minute";
+//   if (hours < 1) return `${Math.max(1, Math.round(hours * 60))} min`;
+//   if (hours < 24) return `${Math.round(hours)}h`;
+//   return `${Math.round(hours / 24)}d`;
+// }
+
+// function formatDays(days: number | null | undefined): string {
+//   if (days == null) return "—";
+//   return `${days}d`;
+// }
 
 interface OverviewHeroProps {
   loading: boolean;
@@ -43,10 +49,10 @@ export function OverviewHero({
   const programsEnding = queue ? queue.programsEndingSoon.length : fallbackCounts.programsEnding;
   const total = unread + checkins + atRisk + programsEnding;
 
-  const oldestCheckin = queue && queue.checkinsAwaitingReview.length > 0
-    ? Math.max(...queue.checkinsAwaitingReview.map((c) => c.hoursWaiting ?? 0))
-    : null;
-  const quietClient = queue?.atRisk[0];
+  // const oldestCheckin = queue && queue.checkinsAwaitingReview.length > 0
+  //   ? Math.max(...queue.checkinsAwaitingReview.map((c) => c.daysWaiting ?? 0))
+  //   : null;
+  // const quietClient = queue?.atRisk[0];
   const endingProgram = queue?.programsEndingSoon[0];
 
   const deck = [
@@ -66,12 +72,12 @@ export function OverviewHero({
     {
       id: "checkins",
       label: "Check-ins awaiting review",
-      sub:
-        checkins === 0
-          ? "All reviewed"
-          : oldestCheckin != null
-            ? `oldest waiting ${formatHours(oldestCheckin)}`
-            : `${checkins} waiting on you`,
+      // sub:
+      //   checkins === 0
+      //     ? "All reviewed"
+      //     : oldestCheckin != null && oldestCheckin > 0
+      //       ? `oldest waiting ${formatHours(oldestCheckin)}`
+      //       : `${checkins} waiting on you`,
       count: checkins,
       to: "/dashboard/clients",
       icon: ClipboardCheck,
@@ -79,12 +85,12 @@ export function OverviewHero({
     {
       id: "at-risk",
       label: "Clients gone quiet",
-      sub:
-        atRisk === 0
-          ? "Everyone is active"
-          : quietClient
-            ? `${quietClient.clientName} silent ${quietClient.daysSilent}d`
-            : `${atRisk} past the silence threshold`,
+      // sub:
+      //   atRisk === 0
+      //     ? "Everyone is active"
+      //     : quietClient
+      //       ? `${quietClient.clientName} silent ${formatDays(quietClient.daysSilent)}`
+      //       : `${atRisk} past the silence threshold`,
       count: atRisk,
       to: "/dashboard/clients",
       icon: UserX,
