@@ -9,12 +9,17 @@ import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 function DashboardLayout() {
     const { isDark } = useTheme();
-    useDocumentTitle("Uply | Dashboard");
     const location = useLocation();
     const { handleSignOut } = useProfileData();
     const isChatPage = location.pathname.startsWith("/dashboard/chat");
     const unreadChatCount = useUnreadMessages().data ?? 0;
     const showChatBadge = !isChatPage && unreadChatCount > 0;
+
+    useDocumentTitle(
+        unreadChatCount > 0
+            ? `(${unreadChatCount > 99 ? "99+" : unreadChatCount}) Uply | Dashboard`
+            : "Uply | Dashboard",
+    );
 
     const items = [
         { to: "overview", title: "Overview", icon: LayoutDashboard },
