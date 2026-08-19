@@ -32,6 +32,9 @@ export function PlansFilters({
         `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim() ||
         connection.client.email;
 
+    const getClientLabel = (connection: ClientConnection) =>
+        `${getClientName(connection)} (${connection.client.email})`;
+
     return (
         <section className="rounded-3xl p-6">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -80,7 +83,7 @@ export function PlansFilters({
                             <option value="all">All clients</option>
                             {clients.map((c) => (
                                 <option key={c.id} value={c.id}>
-                                    {getClientName(c)}
+                                    {getClientLabel(c)}
                                 </option>
                             ))}
                         </select>
@@ -179,7 +182,7 @@ export function PlansFilters({
                     )}
                     {filters.membershipId !== "all" && (
                         <span className="rounded-full bg-muted px-3 py-1 font-medium">
-                            Client: {getClientName(clients.find((c) => c.id === filters.membershipId)!)}
+                            Client: {getClientLabel(clients.find((c) => c.id === filters.membershipId)!)}
                         </span>
                     )}
                     {filters.isArchived && (

@@ -59,6 +59,7 @@ export type AuthResponse = {
   user: Coach;
   accessToken: string;
   refreshToken?: string;
+  isNew?: boolean;
 };
 
 export type TokenResponse = {
@@ -86,6 +87,7 @@ export type LoginPayload = {
 export type UpdateCoachPayload = {
   firstName?: string;
   lastName?: string;
+  businessName?: string;
   avatarUrl?: string | null;
   phone?: string | null;
   age?: number | null;

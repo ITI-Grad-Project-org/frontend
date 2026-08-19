@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { getFirstFormErrorMessage } from "@/lib/form-errors";
-import { registerCoach } from "@/services/auth";
+import { registerCoach, signInWithGoogle } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
 import { signUpSchema, type SignUpFormData } from "@/schemas/auth";
@@ -14,6 +14,7 @@ import { markProfileSetupFlowActive } from "@/lib/profile-setup";
 import { detectLocaleDefaults } from "@/lib/locale-defaults";
 import { CURRENCY_BY_REGION } from "@/lib/locale-defaults";
 import { Field } from "@/components/auth/Field";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 const CURRENCY_OPTIONS = [...new Set(Object.values(CURRENCY_BY_REGION))].sort();
@@ -79,6 +80,29 @@ function SignUp() {
         toast.error(message);
     };
 
+    const onGoogleSuccess = async (idToken: string) => {
+        setSubmissionError("");
+
+        try {
+            const session = await signInWithGoogle(idToken);
+            setSession(session);
+
+            if (session.isNew) {
+                markProfileSetupFlowActive();
+                toast.success("Account created successfully. Please complete your setup.");
+                navigate("/profile", { replace: true });
+                return;
+            }
+
+            toast.success("Signed in successfully.");
+            navigate("/dashboard", { replace: true });
+        } catch (error) {
+            const message = getApiErrorMessage(error, "Google sign-in failed. Please try again.");
+            setSubmissionError(message);
+            toast.error(message);
+        }
+    };
+
     return (
         <div className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
             <div className="w-full max-w-md">
@@ -97,45 +121,47 @@ function SignUp() {
                 </div>
 
                 <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="mt-8 space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <Field label="First name" type="text" autoComplete="given-name" placeholder="Alex" error={errors.firstName?.message} {...register("firstName")} />
-                        <Field label="Last name" type="text" autoComplete="family-name" placeholder="Rivera" error={errors.lastName?.message} {...register("lastName")} />
-                    </div>
-                    <Field label="Email" type="email" autoComplete="email" placeholder="alex@yourgym.com" error={errors.email?.message} {...register("email")} />
-                    <Field label="Business name" type="text" autoComplete="organization" placeholder="Your coaching business" error={errors.businessName?.message} {...register("businessName")} />
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <label className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Currency</span>
-                            <select className={selectCls} {...register("currency")}>
-                                {CURRENCY_OPTIONS.map((code) => (
-                                    <option key={code} value={code}>{code}</option>
-                                ))}
-                            </select>
-                            {errors.currency && <p className="mt-1 text-xs text-destructive">{errors.currency.message}</p>}
-                        </label>
-                        <label className="block">
-                            <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Timezone</span>
-                            <select className={selectCls} {...register("timezone")}>
-                                {TIMEZONE_OPTIONS.map((tz) => (
-                                    <option key={tz} value={tz}>{tz}</option>
-                                ))}
-                            </select>
-                            {errors.timezone && <p className="mt-1 text-xs text-destructive">{errors.timezone.message}</p>}
-                        </label>
-                    </div>
-                    <Field label="Password" type="password" autoComplete="new-password" placeholder="Min. 8 characters" error={errors.password?.message} {...register("password")} />
-                    <Field label="Confirm password" type="password" autoComplete="new-password" placeholder="Repeat your password" error={errors.confirmPassword?.message} {...register("confirmPassword")} />
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <Field label="First name" type="text" autoComplete="given-name" placeholder="Alex" error={errors.firstName?.message} {...register("firstName")} />
+                            <Field label="Last name" type="text" autoComplete="family-name" placeholder="Rivera" error={errors.lastName?.message} {...register("lastName")} />
+                        </div>
+                        <Field label="Email" type="email" autoComplete="email" placeholder="alex@yourgym.com" error={errors.email?.message} {...register("email")} />
+                        <Field label="Business name" type="text" autoComplete="organization" placeholder="Your coaching business" error={errors.businessName?.message} {...register("businessName")} />
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Currency</span>
+                                <select className={selectCls} {...register("currency")}>
+                                    {CURRENCY_OPTIONS.map((code) => (
+                                        <option key={code} value={code}>{code}</option>
+                                    ))}
+                                </select>
+                                {errors.currency && <p className="mt-1 text-xs text-destructive">{errors.currency.message}</p>}
+                            </label>
+                            <label className="block">
+                                <span className="mb-1.5 block text-xs font-semibold text-muted-foreground">Timezone</span>
+                                <select className={selectCls} {...register("timezone")}>
+                                    {TIMEZONE_OPTIONS.map((tz) => (
+                                        <option key={tz} value={tz}>{tz}</option>
+                                    ))}
+                                </select>
+                                {errors.timezone && <p className="mt-1 text-xs text-destructive">{errors.timezone.message}</p>}
+                            </label>
+                        </div>
+                        <Field label="Password" type="password" autoComplete="new-password" placeholder="Min. 8 characters" error={errors.password?.message} {...register("password")} />
+                        <Field label="Confirm password" type="password" autoComplete="new-password" placeholder="Repeat your password" error={errors.confirmPassword?.message} {...register("confirmPassword")} />
 
-                    {submissionError && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{submissionError}</p>}
+                        {submissionError && <p role="alert" className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{submissionError}</p>}
 
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="cursor-pointer group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        {isSubmitting ? "Creating account…" : <>Create account <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></>}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="cursor-pointer group mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {isSubmitting ? "Creating account…" : <>Create account <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></>}
+                        </button>
+                    </form>
+
+                <GoogleSignInButton onSuccess={onGoogleSuccess} />
             </div>
         </div>
     );

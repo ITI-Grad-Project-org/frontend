@@ -256,7 +256,7 @@ export default function NutritionPlanBuilder() {
 
               <h1 className="mt-2 text-3xl font-black text-foreground">{tree.name}</h1>
               <p className="mt-1 text-sm font-medium text-muted-foreground">Client: {clientName}</p>
-              {tree.description && <p className="mt-2 text-sm text-foreground/80 max-w-3xl">{tree.description}</p>}
+
             </div>
 
             {/* Quick Action Buttons */}
@@ -296,7 +296,7 @@ export default function NutritionPlanBuilder() {
               )}
             </div>
           </div>
-
+          {tree.description && <p className="mt-2 text-sm text-foreground/80 max-w-3xl">{tree.description}</p>}
           {/* Info Grid */}
           <div className="grid gap-4 pt-4 border-t border-border/60 sm:grid-cols-3 text-xs">
             <div>

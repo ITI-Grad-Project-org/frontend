@@ -6,11 +6,13 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { getFirstFormErrorMessage } from "@/lib/form-errors";
-import { signIn } from "@/services/auth";
+import { signIn, signInWithGoogle } from "@/services/auth";
 import { useAuthStore } from "@/stores/auth-store";
 import { useTheme } from "@/theme";
 import { signInSchema, type SignInFormData } from "@/schemas/auth";
+import { markProfileSetupFlowActive } from "@/lib/profile-setup";
 import { Field } from "@/components/auth/Field";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import { useDocumentTitle } from "@/hooks/shared/useDocumentTitle";
 
 function SignIn() {
@@ -28,6 +30,17 @@ function SignIn() {
         resolver: zodResolver(signInSchema),
     });
 
+    const redirectAfterAuth = (isNew?: boolean) => {
+        if (isNew) {
+            markProfileSetupFlowActive();
+            toast.success("Please fill in the missing info.");
+            navigate("/profile", { replace: true });
+            return;
+        }
+        const redirectPath = (location.state as { from?: string } | null)?.from ?? "/dashboard";
+        navigate(redirectPath, { replace: true });
+    };
+
     const onSubmit = async (data: SignInFormData) => {
         setSubmissionError("");
 
@@ -35,10 +48,24 @@ function SignIn() {
             const session = await signIn(data);
             setSession(session);
             toast.success("Signed in successfully.");
-            const redirectPath = (location.state as { from?: string } | null)?.from ?? "/dashboard";
-            navigate(redirectPath, { replace: true });
+            redirectAfterAuth(session.isNew);
         } catch (error) {
             const message = getApiErrorMessage(error, "Incorrect email or password. Please try again.");
+            setSubmissionError(message);
+            toast.error(message);
+        }
+    };
+
+    const onGoogleSuccess = async (idToken: string) => {
+        setSubmissionError("");
+
+        try {
+            const session = await signInWithGoogle(idToken);
+            setSession(session);
+            toast.success("Signed in successfully.");
+            redirectAfterAuth(session.isNew);
+        } catch (error) {
+            const message = getApiErrorMessage(error, "Google sign-in failed. Please try again.");
             setSubmissionError(message);
             toast.error(message);
         }
@@ -84,6 +111,8 @@ function SignIn() {
                         {isSubmitting ? "Signing in…" : <>Sign in <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></>}
                     </button>
                 </form>
+
+                <GoogleSignInButton onSuccess={onGoogleSuccess} />
             </div>
         </div>
     );
