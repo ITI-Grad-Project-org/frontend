@@ -86,16 +86,9 @@ function SignUp() {
         try {
             const session = await signInWithGoogle(idToken);
             setSession(session);
-
-            if (session.isNew) {
-                markProfileSetupFlowActive();
-                toast.success("Account created successfully. Please complete your setup.");
-                navigate("/profile", { replace: true });
-                return;
-            }
-
-            toast.success("Signed in successfully.");
-            navigate("/dashboard", { replace: true });
+            markProfileSetupFlowActive();
+            toast.success("Account created successfully. Please complete your setup.");
+            navigate("/profile", { replace: true });
         } catch (error) {
             const message = getApiErrorMessage(error, "Google sign-in failed. Please try again.");
             setSubmissionError(message);
