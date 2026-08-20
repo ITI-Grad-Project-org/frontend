@@ -6,6 +6,7 @@ import type {
   ClientMeasurement,
   MeasurementListResponse,
   MeasurementQueryParams,
+  PendingMeasurementReviewsResponse,
 } from "@/types/client";
 
 export async function getClients(): Promise<ClientConnection[]> {
@@ -37,6 +38,24 @@ export async function getClientMeasurementById(
     `/client/${clientId}/measurements/${id}`,
   );
   return data;
+}
+
+/** GET /measurements/reviews/pending — unreviewed measurements across the tenant */
+export async function getPendingMeasurementReviews(
+  params: MeasurementQueryParams = {},
+): Promise<PendingMeasurementReviewsResponse> {
+  const { data } = await api.get<PendingMeasurementReviewsResponse>(
+    "/measurements/reviews/pending",
+    { params },
+  );
+  return data;
+}
+
+export async function reviewMeasurement(
+  measurementId: string,
+  coachFeedback: string,
+): Promise<void> {
+  await api.patch(`/measurements/${measurementId}/review`, { coachFeedback });
 }
 
 export async function deleteClient(id: string): Promise<void> {

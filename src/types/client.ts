@@ -52,10 +52,8 @@ export interface ClientConnectionDetail extends ClientConnection {
   tenant: ClientTenant;
 }
 
-export interface ClientMeasurement {
+export interface MeasurementReviewEntry {
   id: string;
-  tenantId: string;
-  membershipId: string;
   measuredAt: string; // "YYYY-MM-DD"
   weightKg: number | null;
   bodyFatPct: number | null;
@@ -65,6 +63,31 @@ export interface ClientMeasurement {
   armCm: number | null;
   thighCm: number | null;
   photos: string[];
+}
+
+export interface ClientMeasurement extends MeasurementReviewEntry {
+  tenantId: string;
+  membershipId: string;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  coachFeedback: string | null;
+}
+
+export interface PendingMeasurementReview extends MeasurementReviewEntry {
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+  coachFeedback: string | null;
+  client: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl: string | null;
+  };
+}
+
+export interface PendingMeasurementReviewsResponse {
+  docs: PendingMeasurementReview[];
+  meta: MeasurementPaginationMeta;
 }
 
 export interface MeasurementPaginationMeta {

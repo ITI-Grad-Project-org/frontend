@@ -3,11 +3,13 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   ChevronRight,
+  ClipboardCheck,
   Filter as FilterIcon,
   Minus,
   Scale,
   TrendingUp,
 } from "lucide-react";
+import { useSearchParams } from "react-router";
 import {
   Bar,
   BarChart as RechartsBarChart,
@@ -34,6 +36,7 @@ import CardMain from "@/components/cards/CardMain";
 import { Pagination } from "@/components/ui/Pagination";
 import { useClientMeasurements } from "@/hooks/clients/useClientMeasurements";
 import MeasurementDetailsModal from "@/components/modals/clients/MeasurementDetailsModal";
+import MeasurementsReviewModal from "@/components/modals/clients/MeasurementsReviewModal";
 
 const PAGE_SIZE = 10;
 
@@ -133,13 +136,23 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<ClientMeasurement | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const reviewRequested = searchParams.get("review") === "1";
 
   const { docs, meta, loading, error, refetch } = useClientMeasurements(clientId, {
     page,
-    limit: PAGE_SIZE,
+    limit: reviewRequested ? 200 : PAGE_SIZE,
     from: from || undefined,
     to: to || undefined,
   });
+
+  const clearReviewParam = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("review");
+    setSearchParams(next, { replace: true });
+  };
 
   const sortedAsc = useMemo(
     () => [...docs].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt)),
@@ -149,6 +162,19 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
     () => [...docs].sort((a, b) => b.measuredAt.localeCompare(a.measuredAt)),
     [docs],
   );
+
+  const handleReviewClose = () => {
+    setReviewTarget(null);
+    if (reviewRequested) clearReviewParam();
+  };
+
+  const pendingAutoTarget = useMemo(() => {
+    if (!reviewRequested) return null;
+    return sortedDesc.find((d) => d.reviewedAt === null) ?? null;
+  }, [reviewRequested, sortedDesc]);
+
+  const showNoPendingNotice =
+    reviewRequested && !loading && docs.length > 0 && pendingAutoTarget === null;
 
   const previousById = useMemo(() => {
     const map = new Map<string, ClientMeasurement>();
@@ -405,57 +431,77 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
             <CardContent className="flex-1">
               <div className="divide-y divide-border/60 overflow-hidden rounded-2xl border border-border/60">
                 {sortedDesc.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setSelectedId(m.id)}
-                    aria-label={`View details for measurement on ${formatLongDate(m.measuredAt)}`}
-                    className="group flex w-full items-center justify-between gap-3 bg-background/60 px-4 py-3 text-left transition hover:bg-muted/50 cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="shrink-0">
-                        <span className="block text-sm font-bold text-foreground">
-                          {formatAxisDate(m.measuredAt)}
-                        </span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {m.measuredAt ? formatLongDate(m.measuredAt).split(",")[0] : ""}
-                        </span>
-                      </div>
-                      <div className="hidden sm:flex items-center gap-2">
-                        <div className="flex flex-col rounded-xl border border-border/60 bg-muted/40 px-2.5 py-1.5">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                            Weight
+                  <div key={m.id} className="flex items-stretch">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(m.id)}
+                      aria-label={`View details for measurement on ${formatLongDate(m.measuredAt)}`}
+                      className="group flex min-w-0 flex-1 items-center justify-between gap-3 bg-background/60 px-4 py-3 text-left transition hover:bg-muted/50 cursor-pointer"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="shrink-0">
+                          <span className="block text-sm font-bold text-foreground">
+                            {formatAxisDate(m.measuredAt)}
                           </span>
-                          <span className="text-xs font-bold text-foreground tabular-nums">
-                            {fmt(m.weightKg, " kg")}
+                          <span className="block text-[11px] text-muted-foreground">
+                            {m.measuredAt ? formatLongDate(m.measuredAt).split(",")[0] : ""}
                           </span>
-                          <DeltaBadge
-                            delta={computeDelta(m.weightKg, previousById.get(m.id)?.weightKg ?? null)}
-                          />
+                          {m.reviewedAt === null && (
+                            <span className="mt-1 inline-block rounded-full border border-warn/25 bg-warn/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-warn">
+                              Awaiting review
+                            </span>
+                          )}
                         </div>
-                        <div className="flex flex-col rounded-xl border border-border/60 bg-muted/40 px-2.5 py-1.5">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
-                            Body fat
-                          </span>
-                          <span className="text-xs font-bold text-foreground tabular-nums">
-                            {fmt(m.bodyFatPct, "%")}
-                          </span>
-                          <DeltaBadge
-                            delta={computeDelta(m.bodyFatPct, previousById.get(m.id)?.bodyFatPct ?? null)}
-                          />
+                        <div className="hidden sm:flex items-center gap-2">
+                          <div className="flex flex-col rounded-xl border border-border/60 bg-muted/40 px-2.5 py-1.5">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                              Weight
+                            </span>
+                            <span className="text-xs font-bold text-foreground tabular-nums">
+                              {fmt(m.weightKg, " kg")}
+                            </span>
+                            <DeltaBadge
+                              delta={computeDelta(m.weightKg, previousById.get(m.id)?.weightKg ?? null)}
+                            />
+                          </div>
+                          <div className="flex flex-col rounded-xl border border-border/60 bg-muted/40 px-2.5 py-1.5">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                              Body fat
+                            </span>
+                            <span className="text-xs font-bold text-foreground tabular-nums">
+                              {fmt(m.bodyFatPct, "%")}
+                            </span>
+                            <DeltaBadge
+                              delta={computeDelta(m.bodyFatPct, previousById.get(m.id)?.bodyFatPct ?? null)}
+                            />
+                          </div>
+                          {m.photos.length > 0 && (
+                            <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                              {m.photos.length} photo{m.photos.length === 1 ? "" : "s"}
+                            </span>
+                          )}
                         </div>
-                        {m.photos.length > 0 && (
-                          <span className="rounded-full border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
-                            {m.photos.length} photo{m.photos.length === 1 ? "" : "s"}
-                          </span>
-                        )}
                       </div>
-                    </div>
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors group-hover:border-brand/40 group-hover:bg-brand/10 group-hover:text-brand">
-                      View details
-                      <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                    </span>
-                  </button>
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border/70 bg-muted/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors group-hover:border-brand/40 group-hover:bg-brand/10 group-hover:text-brand">
+                        View details
+                        <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                    </button>
+                    {m.reviewedAt === null && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReviewTarget(m);
+                        }}
+                        aria-label={`Review measurement from ${formatLongDate(m.measuredAt)}`}
+                        className="m-2 inline-flex shrink-0 items-center gap-1.5 self-center rounded-xl bg-brand px-3 py-2 text-xs font-bold text-brand-foreground transition hover:opacity-90 cursor-pointer"
+                      >
+                        <ClipboardCheck className="h-3.5 w-3.5" />
+                        Review
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </CardContent>
@@ -475,6 +521,42 @@ export function MeasurementsPanel({ clientId }: MeasurementsPanelProps) {
         previous={selectedId ? (previousById.get(selectedId) ?? null) : null}
         onClose={() => setSelectedId(null)}
       />
+
+      {showNoPendingNotice && (
+        <CardMain className="gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <ClipboardCheck className="h-5 w-5 text-warn" />
+              <p className="text-sm font-semibold text-foreground">
+                No measurements are awaiting review for this client right now.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={clearReviewParam}
+              className="inline-flex h-9 shrink-0 items-center rounded-lg border border-border bg-muted/40 px-3 text-xs font-semibold text-muted-foreground transition hover:bg-muted cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        </CardMain>
+      )}
+
+      {reviewTarget && (
+        <MeasurementsReviewModal
+          measurement={reviewTarget}
+          previous={previousById.get(reviewTarget.id) ?? null}
+          onClose={handleReviewClose}
+        />
+      )}
+
+      {!reviewTarget && pendingAutoTarget && (
+        <MeasurementsReviewModal
+          measurement={pendingAutoTarget}
+          previous={previousById.get(pendingAutoTarget.id) ?? null}
+          onClose={handleReviewClose}
+        />
+      )}
     </div>
   );
 }

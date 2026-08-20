@@ -26,7 +26,7 @@ const ATTENTION_BADGES: {
   },
   {
     key: "checkinsAwaitingReview",
-    label: "Check-ins awaiting you",
+    label: "Measurements awaiting you",
     color: "var(--color-warn)",
     dot: "bg-warn",
   },

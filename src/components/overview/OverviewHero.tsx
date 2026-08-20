@@ -27,6 +27,7 @@ interface OverviewHeroProps {
   loading: boolean;
   unread: number;
   queue: AttentionQueue | null | undefined;
+  checkinsOverride?: number;
   fallbackCounts: {
     checkins: number;
     atRisk: number;
@@ -39,12 +40,14 @@ export function OverviewHero({
   loading,
   unread,
   queue,
+  checkinsOverride,
   fallbackCounts,
   dateLabel,
 }: OverviewHeroProps) {
   const navigate = useNavigate();
 
-  const checkins = queue ? queue.checkinsAwaitingReview.length : fallbackCounts.checkins;
+  const checkins =
+    checkinsOverride ?? (queue ? queue.checkinsAwaitingReview.length : fallbackCounts.checkins);
   const atRisk = queue ? queue.atRisk.length : fallbackCounts.atRisk;
   const programsEnding = queue ? queue.programsEndingSoon.length : fallbackCounts.programsEnding;
   const total = unread + checkins + atRisk + programsEnding;
@@ -71,7 +74,7 @@ export function OverviewHero({
     },
     {
       id: "checkins",
-      label: "Check-ins awaiting review",
+      label: "Measurements awaiting review",
       // sub:
       //   checkins === 0
       //     ? "All reviewed"
@@ -79,7 +82,7 @@ export function OverviewHero({
       //       ? `oldest waiting ${formatHours(oldestCheckin)}`
       //       : `${checkins} waiting on you`,
       count: checkins,
-      to: "/dashboard/clients",
+      to: "/dashboard/analytics#attention-band",
       icon: ClipboardCheck,
     },
     {
@@ -92,7 +95,7 @@ export function OverviewHero({
       //       ? `${quietClient.clientName} silent ${formatDays(quietClient.daysSilent)}`
       //       : `${atRisk} past the silence threshold`,
       count: atRisk,
-      to: "/dashboard/clients",
+      to: "/dashboard/analytics#attention-band",
       icon: UserX,
     },
     {
@@ -119,14 +122,14 @@ export function OverviewHero({
       }
       : checkins > 0
         ? {
-          label: "Review check-ins",
-          to: "/dashboard/clients",
-          copy: `${checkins} check-in${checkins === 1 ? "" : "s"} need${checkins === 1 ? "s" : ""} a reply. Waiting too long erodes trust.`,
+          label: "Review measurements",
+          to: "/dashboard/analytics#attention-band",
+          copy: `${checkins} measurement${checkins === 1 ? "" : "s"} waiting for your review. Quick feedback keeps trust high.`,
         }
         : atRisk > 0
           ? {
             label: "Reach out",
-            to: "/dashboard/clients",
+            to: "/dashboard/analytics#attention-band",
             copy: `${atRisk} client${atRisk === 1 ? " has" : "s have"} gone quiet. One message can bring them back.`,
           }
           : programsEnding > 0

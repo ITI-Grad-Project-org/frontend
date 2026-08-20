@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { CalendarClock, ClipboardCheck, UserX } from "lucide-react";
+import { CalendarClock, ClipboardCheck, UserX, type LucideIcon } from "lucide-react";
 import type { AttentionQueue } from "@/types/analytics";
 import {
   ATTENTION_ENDING_HORIZON_DAYS,
   ATTENTION_RISK_THRESHOLD_DAYS,
 } from "@/types/analytics";
+import type { PendingMeasurementReview } from "@/types/client";
+import MeasurementsReviewModal from "@/components/modals/clients/MeasurementsReviewModal";
 import { cn } from "@/lib/utils";
 
 function formatDate(iso: string | null | undefined): string {
@@ -20,10 +22,31 @@ function formatDays(days: number | undefined | null): string {
   return `${days}d`;
 }
 
+function daysSince(dateStr: string | undefined | null): number {
+  if (!dateStr) return 0;
+  const d = new Date(`${dateStr}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return 0;
+  return Math.max(0, Math.round((Date.now() - d.getTime()) / 86_400_000));
+}
+
 const RISK_MIN = 1;
 const RISK_MAX = 30;
 const HORIZON_MIN = 1;
 const HORIZON_MAX = 60;
+
+interface AttentionRowMeta {
+  label: string;
+  pct: number;
+}
+
+interface AttentionRow {
+  id: string;
+  to: string;
+  title: string;
+  meta: Array<string | AttentionRowMeta>;
+  onOpen?: () => void;
+  action?: { label: string; onClick: () => void };
+}
 
 function ThresholdControls({
   riskThresholdDays,
@@ -129,6 +152,7 @@ function ThresholdControls({
 
 interface AttentionBandProps {
   queue: AttentionQueue | null | undefined;
+  pendingReviews: PendingMeasurementReview[];
   loading: boolean;
   error: string;
   onRetry: () => void;
@@ -140,6 +164,7 @@ interface AttentionBandProps {
 
 export function AttentionBand({
   queue,
+  pendingReviews,
   loading,
   error,
   onRetry,
@@ -149,6 +174,7 @@ export function AttentionBand({
   onEndingHorizonDaysChange,
 }: AttentionBandProps) {
   const navigate = useNavigate();
+  const [reviewTarget, setReviewTarget] = useState<PendingMeasurementReview | null>(null);
 
   if (loading) {
     return (
@@ -175,7 +201,16 @@ export function AttentionBand({
     );
   }
 
-  const columns = [
+  const columns: Array<{
+    id: string;
+    title: string;
+    hint: string;
+    color: string;
+    chip: string;
+    icon: LucideIcon;
+    rows: AttentionRow[];
+    empty: string;
+  }> = [
     {
       id: "at-risk",
       title: "Gone quiet",
@@ -198,18 +233,26 @@ meta: row.neverActive
     },
     {
       id: "checkins",
-      title: "Check-ins awaiting you",
-      hint: "Client check-ins that need your review",
+      title: "Measurements awaiting review",
+      hint: "Client measurements that need your review",
       color: "var(--color-warn)",
       chip: "bg-warn/10 text-warn",
       icon: ClipboardCheck,
-      rows: queue.checkinsAwaitingReview.map((row) => ({
-        id: row.membershipId,
-        to: `/dashboard/clients/${row.membershipId}`,
-        title: row.clientName,
-        meta: [`awaiting review for ${formatDays(row.daysWaiting)}`],
-      })),
-      empty: "No check-in measurements awaiting review.",
+      rows: pendingReviews.map((row) => {
+        const fullName = `${row.client.firstName} ${row.client.lastName}`.trim() || "Unknown client";
+        return {
+          id: row.id,
+          to: `/dashboard/clients/${row.client.id}`,
+          title: fullName,
+          meta: [`awaiting review for ${formatDays(daysSince(row.measuredAt))}`],
+          onOpen: () => setReviewTarget(row),
+          action: {
+            label: "Review",
+            onClick: () => setReviewTarget(row),
+          },
+        };
+      }),
+      empty: "No measurements awaiting review.",
     },
     {
       id: "programs",
@@ -286,11 +329,11 @@ meta: row.neverActive
               ) : (
                 <ul className="divide-y divide-border/50">
                   {column.rows.map((row) => (
-                    <li key={row.id}>
+                    <li key={row.id} className="flex items-stretch">
                       <button
                         type="button"
-                        onClick={() => void navigate(row.to)}
-                        className="flex w-full flex-col gap-1 px-4 py-3 text-left transition hover:bg-muted/50 cursor-pointer"
+                        onClick={row.onOpen ?? (() => void navigate(row.to))}
+                        className="flex min-w-0 flex-1 flex-col gap-1 px-4 py-3 text-left transition hover:bg-muted/50 cursor-pointer"
                       >
                         <span className="truncate text-sm font-semibold text-foreground">
                           {row.title}
@@ -318,6 +361,19 @@ meta: row.neverActive
                           )}
                         </span>
                       </button>
+                      {row.action && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            row.action!.onClick();
+                          }}
+                          className="m-2 inline-flex shrink-0 items-center gap-1.5 self-center rounded-lg bg-brand px-3 py-2 text-xs font-bold text-brand-foreground transition hover:opacity-90 cursor-pointer"
+                        >
+                          <ClipboardCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
+                          {row.action.label}
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -326,6 +382,14 @@ meta: row.neverActive
           );
         })}
       </div>
+
+      {reviewTarget && (
+        <MeasurementsReviewModal
+          measurement={reviewTarget}
+          clientName={`${reviewTarget.client.firstName} ${reviewTarget.client.lastName}`.trim()}
+          onClose={() => setReviewTarget(null)}
+        />
+      )}
     </section>
   );
 }

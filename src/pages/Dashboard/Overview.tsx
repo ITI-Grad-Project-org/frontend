@@ -10,6 +10,7 @@ import { useUnreadMessages } from "@/hooks/coach/useUnreadMessages";
 import { useCoachConversationLastSeen } from "@/hooks/coach/useCoachConversationLastSeen";
 import { useRosterReport } from "@/hooks/analytics/useRosterReport";
 import { useClientsData } from "@/hooks/clients/useClientsData";
+import { usePendingMeasurementReviews } from "@/hooks/clients/useMeasurementReviews";
 import { usePlansData } from "@/hooks/plans/usePlansData";
 import { useNutritionPlansData } from "@/hooks/nutritionPlans/useNutritionPlansData";
 import { useReviewsData } from "@/hooks/reviews/useReviewsData";
@@ -41,6 +42,7 @@ function Overview() {
   const unreadQuery = useUnreadMessages();
   const conversationLastSeen = useCoachConversationLastSeen();
   const clientsData = useClientsData();
+  const pendingReviews = usePendingMeasurementReviews({ limit: 100 });
   const plans = usePlansData();
   const nutrition = useNutritionPlansData();
   const reviews = useReviewsData();
@@ -118,16 +120,23 @@ function Overview() {
     [reviews.reviews],
   );
 
-  const queueCounts = attention.queue
+  const pendingCheckins =
+    pendingReviews.loading && pendingReviews.docs.length === 0
+      ? null
+      : pendingReviews.docs.length;
+
+  const queueCounts = attention.queue && pendingCheckins != null
     ? {
-        checkins: attention.queue.checkinsAwaitingReview.length,
+        checkins: pendingCheckins,
         atRisk: attention.queue.atRisk.length,
         programsEnding: attention.queue.programsEndingSoon.length,
       }
     : {
-        checkins: overview.overview?.checkinsAwaitingReview ?? 0,
-        atRisk: overview.overview?.clientsAtRisk ?? 0,
-        programsEnding: overview.overview?.programsEndingSoon ?? 0,
+        checkins:
+          pendingCheckins ?? (overview.overview?.checkinsAwaitingReview ?? 0),
+        atRisk: attention.queue?.atRisk.length ?? overview.overview?.clientsAtRisk ?? 0,
+        programsEnding:
+          attention.queue?.programsEndingSoon.length ?? overview.overview?.programsEndingSoon ?? 0,
       };
 
   const totalWaiting = unread + queueCounts.checkins + queueCounts.atRisk + queueCounts.programsEnding;
@@ -176,6 +185,11 @@ function Overview() {
         loading={heroLoading}
         unread={unread}
         queue={attention.queue}
+        checkinsOverride={
+          pendingReviews.loading && pendingReviews.docs.length === 0
+            ? undefined
+            : pendingReviews.docs.length
+        }
         fallbackCounts={queueCounts}
         dateLabel={new Date().toLocaleDateString(undefined, {
           weekday: "long",

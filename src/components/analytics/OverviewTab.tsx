@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { useLocation } from "react-router";
 import { useAnalyticsOverview } from "@/hooks/analytics/useAnalyticsOverview";
 import { useAttentionQueue } from "@/hooks/analytics/useAttentionQueue";
 import { useActivityFeed } from "@/hooks/analytics/useActivityFeed";
 import { useAdherence } from "@/hooks/analytics/useAdherence";
+import { usePendingMeasurementReviews } from "@/hooks/clients/useMeasurementReviews";
 import { ATTENTION_ENDING_HORIZON_DAYS, ATTENTION_RISK_THRESHOLD_DAYS } from "@/types/analytics";
 
 import { AnalyticsSkeleton } from "@/components/analytics/AnalyticsSkeleton";
@@ -54,11 +56,22 @@ interface OverviewTabProps {
 export function OverviewTab({ from, to }: OverviewTabProps) {
   const [riskThresholdDays, setRiskThresholdDays] = useState(ATTENTION_RISK_THRESHOLD_DAYS);
   const [endingHorizonDays, setEndingHorizonDays] = useState(ATTENTION_ENDING_HORIZON_DAYS);
+  const location = useLocation();
 
   const overview = useAnalyticsOverview(from, to);
   const attention = useAttentionQueue(to, riskThresholdDays, endingHorizonDays);
   const activity = useActivityFeed(from, to);
   const adherence = useAdherence(from, to);
+  const pendingReviews = usePendingMeasurementReviews({ limit: 100 });
+
+  useEffect(() => {
+    if (location.hash !== "#attention-band" || attention.loading) return;
+    requestAnimationFrame(() => {
+      document
+        .getElementById("attention-band")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [location.hash, attention.loading]);
 
   const heroPending = overview.loading && !overview.overview;
   const heroError = overview.error && !overview.overview;
@@ -95,7 +108,10 @@ export function OverviewTab({ from, to }: OverviewTabProps) {
               roster={overview.overview.roster}
               attention={{
                 clientsAtRisk: overview.overview.clientsAtRisk,
-                checkinsAwaitingReview: overview.overview.checkinsAwaitingReview,
+                checkinsAwaitingReview:
+                  pendingReviews.loading && pendingReviews.docs.length === 0
+                    ? overview.overview.checkinsAwaitingReview
+                    : pendingReviews.docs.length,
                 programsEndingSoon: overview.overview.programsEndingSoon,
               }}
               onShowAttention={scrollToAttention}
@@ -106,6 +122,7 @@ export function OverviewTab({ from, to }: OverviewTabProps) {
 
       <AttentionBand
         queue={attention.queue}
+        pendingReviews={pendingReviews.docs}
         loading={attention.loading}
         error={attention.error}
         onRetry={attention.refetch}
