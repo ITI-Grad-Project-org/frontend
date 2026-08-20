@@ -183,3 +183,8 @@ export function getApiErrorMessage(error: unknown, fallback: string) {
 
   return fallback;
 }
+
+export function getApiStatus(error: unknown) {
+  if (!axios.isAxiosError(error)) return undefined;
+  return error.response?.status;
+}

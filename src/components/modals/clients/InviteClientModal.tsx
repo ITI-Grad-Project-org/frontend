@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { X, Plus, Mail, User } from "lucide-react";
 import { createInvitation } from "@/services/clients";
-import { getApiErrorMessage } from "@/lib/api";
+import { getApiErrorMessage, getApiStatus } from "@/lib/api";
 import { toast } from "react-toastify";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  onClientLimitReached?: (message: string) => void;
 };
 
-export default function InviteClientModal({ open, onClose, onSuccess }: Props) {
+export default function InviteClientModal({ open, onClose, onSuccess, onClientLimitReached }: Props) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +44,9 @@ export default function InviteClientModal({ open, onClose, onSuccess }: Props) {
       const errMsg = getApiErrorMessage(err, "Failed to send invitation. Please try again.");
       setError(errMsg);
       toast.error(errMsg);
+      if (getApiStatus(err) === 403) {
+        onClientLimitReached?.(errMsg);
+      }
     } finally {
       setIsSubmitting(false);
     }

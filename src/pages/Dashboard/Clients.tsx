@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
-import { UserRoundPlus } from "lucide-react";
+import { CreditCard, UserRoundPlus } from "lucide-react";
 import InviteClientModal from "@/components/modals/clients/InviteClientModal";
 import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
 import { CreateNutritionPlanModal } from "@/components/modals/nutritionPlans/CreateNutritionPlanModal";
@@ -11,6 +11,8 @@ import { ClientsTab } from "@/components/clients/ClientsTab";
 import { ClientsCharts } from "@/components/clients/ClientsCharts";
 import { InvitationsTab } from "@/components/clients/InvitationsTab";
 import { RequestsTab } from "@/components/clients/RequestsTab";
+import { BillingUpgradePanel } from "@/components/billing/BillingUpgradePanel";
+import { invalidateBillingSummary, useBillingSummary } from "@/hooks/billing/useBilling";
 
 export type TabType = "clients" | "invitations" | "requests";
 
@@ -26,8 +28,20 @@ export default function Clients() {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedClientName, setSelectedClientName] = useState<string>("Unknown client");
   const navigate = useNavigate();
+  const billing = useBillingSummary();
 
-  const { clients, invitations, joinRequests, actions } = useClientsData();
+  const showClientUpgrade = billing.billing?.canAddActiveClient === false;
+  const handleClientLimitReached = () => {
+    setIsInviteModalOpen(false);
+    void billing.refetch();
+    window.setTimeout(() => {
+      document.getElementById("client-upgrade")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
+  const { clients, invitations, joinRequests, actions } = useClientsData({
+    onClientLimitReached: handleClientLimitReached,
+  });
 
   const TABS: { id: TabType; label: string; count?: number }[] = [
     { id: "clients", label: "Active Clients", count: clients.data.length },
@@ -57,13 +71,26 @@ export default function Clients() {
           </p>
         </div>
         <button
-          onClick={() => setIsInviteModalOpen(true)}
+          onClick={() => {
+            if (showClientUpgrade) {
+              document.getElementById("client-upgrade")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              return;
+            }
+            setIsInviteModalOpen(true);
+          }}
+          disabled={billing.isLoading}
           className="flex items-center justify-center gap-2 px-5 py-3 text-sm font-bold bg-brand text-brand-foreground rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer shadow-sm w-full sm:w-auto"
         >
-          <UserRoundPlus className="w-4 h-4" strokeWidth={2.5} />
-          <span>Invite Client</span>
+          {showClientUpgrade ? <CreditCard className="w-4 h-4" strokeWidth={2.5} /> : <UserRoundPlus className="w-4 h-4" strokeWidth={2.5} />}
+          <span>{showClientUpgrade ? "Upgrade to add clients" : "Invite Client"}</span>
         </button>
       </div>
+
+      {showClientUpgrade ? (
+        <div id="client-upgrade" className="mb-8 scroll-mt-6">
+          <BillingUpgradePanel reason="client-limit" returnTo="/dashboard/clients" />
+        </div>
+      ) : null}
 
       {/* Navigation Tabs */}
       <div className="flex items-center gap-2 p-1.5 bg-muted/30 border border-border/80 rounded-2xl w-fit mb-8 overflow-x-auto">
@@ -87,7 +114,10 @@ export default function Clients() {
           loading={clients.loading}
           error={clients.error}
           onRetry={() => clients.refetch()}
-          onClientDeleted={() => clients.refetch()}
+          onClientDeleted={() => {
+            clients.refetch();
+            void invalidateBillingSummary();
+          }}
           onCreatePlan={(connection) => {
             setSelectedClientId(connection.id);
             const fullName = `${connection.client.firstName || ""} ${connection.client.lastName || ""}`.trim();
@@ -134,8 +164,10 @@ export default function Clients() {
         onClose={() => setIsInviteModalOpen(false)}
         onSuccess={() => {
           invitations.refetch();
+          void invalidateBillingSummary();
           setActiveTab("invitations");
         }}
+        onClientLimitReached={handleClientLimitReached}
       />
 
       <CreatePlanModal

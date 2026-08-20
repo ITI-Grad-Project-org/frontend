@@ -23,9 +23,12 @@ import {
 import { getApiErrorMessage } from "@/lib/api";
 import type { ClientProgramDraft } from "@/types/plans";
 import type { NutritionPlanSummary } from "@/types/nutritionPlans";
+import { BillingUpgradePanel } from "@/components/billing/BillingUpgradePanel";
+import { useBillingSummary } from "@/hooks/billing/useBilling";
 
 export default function NutritionPlans() {
   const navigate = useNavigate();
+  const billing = useBillingSummary();
 
   // ── Modal / target state ──────────────────────────────────────────────────
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -59,6 +62,16 @@ export default function NutritionPlans() {
     resetFilters,
     clientNameMap,
   } = useNutritionPlansData();
+
+  const aiEnabled = billing.billing?.aiPlanBuilderEnabled ?? true;
+  const showAIUpgrade = billing.billing?.aiPlanBuilderEnabled === false;
+  const handleAIUpgrade = () => {
+    setIsAICreateModalOpen(false);
+    void billing.refetch();
+    window.setTimeout(() => {
+      document.getElementById("nutrition-ai-upgrade")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
 
   // ── Filter helpers ────────────────────────────────────────────────────────
   const handleFiltersChange = (next: Partial<typeof filters>) => {
@@ -202,8 +215,16 @@ export default function NutritionPlans() {
         <NutritionPlansHeader
           onCreateClick={() => setIsCreateModalOpen(true)}
           onAICreateClick={() => setIsAICreateModalOpen(true)}
+          onAIUpgradeClick={handleAIUpgrade}
+          aiEnabled={aiEnabled}
+          aiLoading={billing.isLoading}
           disabled={isLoading || clients.length === 0}
         />
+        {showAIUpgrade ? (
+          <div id="nutrition-ai-upgrade" className="scroll-mt-6">
+            <BillingUpgradePanel reason="ai" returnTo="/dashboard/nutrition-plans" />
+          </div>
+        ) : null}
         <NutritionPlansStats
           total={stats.total}
           drafts={stats.drafts}
@@ -251,6 +272,7 @@ export default function NutritionPlans() {
         defaultKind="nutrition"
         onClose={() => setIsAICreateModalOpen(false)}
         onCreated={handleAICreated}
+        onUpgrade={handleAIUpgrade}
       />
 
       <UpdateNutritionPlanModal

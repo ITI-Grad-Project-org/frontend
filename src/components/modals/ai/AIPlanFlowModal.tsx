@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { AlertTriangle, CheckCircle2, Loader2, RotateCcw, Sparkles, X } from "lucide-react";
-import { getApiErrorMessage } from "@/lib/api";
+import { getApiErrorMessage, getApiStatus } from "@/lib/api";
 import type { ClientConnection } from "@/types/client";
 import {
   acceptPlanSuggestion,
@@ -48,6 +48,7 @@ type Props = {
   defaultKind: AIPlanSuggestionKind;
   onClose: () => void;
   onCreated: (created: ClientProgramTree | NutritionPlanTree) => void | Promise<void>;
+  onUpgrade?: () => void;
   /** Open straight into the review step for an existing ready suggestion. */
   initialDetail?: AIPlanSuggestionDetail;
 };
@@ -129,20 +130,24 @@ function ConfigureStep({
   clients,
   isSubmitting,
   configError,
+  upgradeRequired,
   register,
   control,
   errors,
   onSubmit,
   onClose,
+  onUpgrade,
 }: {
   clients: ClientConnection[];
   isSubmitting: boolean;
   configError: string | null;
+  upgradeRequired: boolean;
   register: ReturnType<typeof useForm<AIPlanConfigFormData>>["register"];
   control: ReturnType<typeof useForm<AIPlanConfigFormData>>["control"];
   errors: ReturnType<typeof useForm<AIPlanConfigFormData>>["formState"]["errors"];
   onSubmit: (event?: React.FormEvent) => void;
   onClose: () => void;
+  onUpgrade?: () => void;
 }) {
   const watchedKind = useWatch<AIPlanConfigFormData>({ control, name: "kind" });
 
@@ -156,9 +161,20 @@ function ConfigureStep({
       <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
         <div className="flex-1 space-y-5 overflow-y-auto p-6">
           {configError ? (
-            <div className="flex items-start gap-2 rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{configError}</span>
+            <div className="rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{configError}</span>
+              </div>
+              {upgradeRequired && onUpgrade ? (
+                <button
+                  type="button"
+                  onClick={onUpgrade}
+                  className="mt-3 rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-ink-foreground"
+                >
+                  View Solo and Studio
+                </button>
+              ) : null}
             </div>
           ) : null}
 
@@ -449,11 +465,13 @@ function AIPlanFlowModalContent({
   onClose,
   onCreated,
   initialDetail,
+  onUpgrade,
 }: Omit<Props, "open">) {
   const [flow, setFlow] = useState<FlowState>(() =>
     initialDetail ? { name: "review", detail: initialDetail, queue: [] } : { name: "configure" },
   );
   const [configError, setConfigError] = useState<string | null>(null);
+  const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
   const [isDeclining, setIsDeclining] = useState(false);
@@ -487,12 +505,14 @@ function AIPlanFlowModalContent({
   const startFlow = async (payload: AICreatePlanSuggestionPayload) => {
     setIsSubmitting(true);
     setConfigError(null);
+    setUpgradeRequired(false);
     try {
       const created = await createPlanSuggestion(payload);
       setLastPayload(payload);
       setFlow({ name: "queued", created });
     } catch (error) {
       setConfigError(getApiErrorMessage(error, "We could not start the AI generation. Please try again."));
+      setUpgradeRequired(getApiStatus(error) === 403);
     } finally {
       setIsSubmitting(false);
     }
@@ -513,6 +533,7 @@ function AIPlanFlowModalContent({
   const resetFlow = () => {
     setFlow({ name: "configure" });
     setConfigError(null);
+    setUpgradeRequired(false);
   };
 
   const retryQueue = () => {
@@ -615,11 +636,13 @@ function AIPlanFlowModalContent({
         clients={clients}
         isSubmitting={isSubmitting}
         configError={configError}
+        upgradeRequired={upgradeRequired}
         register={register}
         control={control}
         errors={errors}
         onSubmit={handleSubmit(onSubmit)}
         onClose={onClose}
+        onUpgrade={onUpgrade}
       />
     );
   } else if (flow.name === "queued") {
@@ -687,6 +710,7 @@ export function AIPlanFlowModal(props: Props) {
           onClose={props.onClose}
           onCreated={props.onCreated}
           initialDetail={props.initialDetail}
+          onUpgrade={props.onUpgrade}
         />
       </div>
     </div>,

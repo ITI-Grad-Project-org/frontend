@@ -5,10 +5,13 @@ import { SpecularButton } from "@/components/ui/specular-button/SpecularButton";
 interface PlansHeaderProps {
     onCreateClick: () => void;
     onAICreateClick: () => void;
+    onAIUpgradeClick: () => void;
+    aiEnabled: boolean;
+    aiLoading?: boolean;
     disabled?: boolean;
 }
 
-export function PlansHeader({ onCreateClick, onAICreateClick, disabled = false }: PlansHeaderProps) {
+export function PlansHeader({ onCreateClick, onAICreateClick, onAIUpgradeClick, aiEnabled, aiLoading = false, disabled = false }: PlansHeaderProps) {
     return (
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-2xl">
@@ -31,8 +34,8 @@ export function PlansHeader({ onCreateClick, onAICreateClick, disabled = false }
                 <SpecularButton
                     size="md"
                     radius={18}
-                    disabled={disabled}
-                    onClick={onAICreateClick}
+                    disabled={disabled || aiLoading}
+                    onClick={aiEnabled ? onAICreateClick : onAIUpgradeClick}
                     speed={0.45}
                     intensity={1.9}
                     thickness={3.5}
@@ -44,7 +47,7 @@ export function PlansHeader({ onCreateClick, onAICreateClick, disabled = false }
                 >
                     <span className="inline-flex items-center gap-2">
                         <Sparkles className="specular-icon h-4 w-4 text-[#ad5fff]" />
-                        Create with AI
+                        {aiEnabled ? "Create with AI" : "Unlock AI"}
                     </span>
                 </SpecularButton>
 

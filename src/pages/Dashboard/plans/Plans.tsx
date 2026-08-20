@@ -22,9 +22,12 @@ import {
 import { getApiErrorMessage } from "@/lib/api";
 import type { ClientProgramDraft } from "@/types/plans";
 import type { NutritionPlanSummary } from "@/types/nutritionPlans";
+import { BillingUpgradePanel } from "@/components/billing/BillingUpgradePanel";
+import { useBillingSummary } from "@/hooks/billing/useBilling";
 
 function Plans() {
     const navigate = useNavigate();
+    const billing = useBillingSummary();
 
     // ── Modal / target state ──────────────────────────────────────────────────
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -58,6 +61,16 @@ function Plans() {
         resetFilters,
         clientNameMap,
     } = usePlansData();
+
+    const aiEnabled = billing.billing?.aiPlanBuilderEnabled ?? true;
+    const showAIUpgrade = billing.billing?.aiPlanBuilderEnabled === false;
+    const handleAIUpgrade = () => {
+        setIsAICreateModalOpen(false);
+        void billing.refetch();
+        window.setTimeout(() => {
+            document.getElementById("plans-ai-upgrade")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+    };
 
     // ── Filter helpers ────────────────────────────────────────────────────────
     const handleFiltersChange = (next: Partial<typeof filters>) => {
@@ -185,8 +198,16 @@ function Plans() {
                 <PlansHeader
                     onCreateClick={() => setIsCreateModalOpen(true)}
                     onAICreateClick={() => setIsAICreateModalOpen(true)}
+                    onAIUpgradeClick={handleAIUpgrade}
+                    aiEnabled={aiEnabled}
+                    aiLoading={billing.isLoading}
                     disabled={isLoading || clients.length === 0}
                 />
+                {showAIUpgrade ? (
+                    <div id="plans-ai-upgrade" className="scroll-mt-6">
+                        <BillingUpgradePanel reason="ai" returnTo="/dashboard/plans" />
+                    </div>
+                ) : null}
                 <PlansStats
                     total={stats.total}
                     drafts={stats.drafts}
@@ -232,6 +253,7 @@ function Plans() {
                 defaultKind="training"
                 onClose={() => setIsAICreateModalOpen(false)}
                 onCreated={handleAICreated}
+                onUpgrade={handleAIUpgrade}
             />
 
             <UpdatePlanModal

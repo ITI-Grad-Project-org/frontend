@@ -24,6 +24,8 @@ import type {
   AIPlanSuggestionStatus,
   AIPlanSuggestionSummary,
 } from "@/types/ai";
+import { BillingUpgradePanel } from "@/components/billing/BillingUpgradePanel";
+import { useBillingSummary } from "@/hooks/billing/useBilling";
 
 const kindOptions: { value: AIPlanSuggestionKind | "all"; label: string }[] = [
   { value: "all", label: "All kinds" },
@@ -172,6 +174,7 @@ const fieldCls =
 
 function AISuggestions() {
   const navigate = useNavigate();
+  const billing = useBillingSummary();
   const {
     clients,
     suggestions,
@@ -185,6 +188,15 @@ function AISuggestions() {
 
   const [reviewDetail, setReviewDetail] = useState<AIPlanSuggestionDetail | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const showAIUpgrade = billing.billing?.aiPlanBuilderEnabled === false;
+
+  const handleAIUpgrade = () => {
+    setReviewDetail(null);
+    void billing.refetch();
+    window.setTimeout(() => {
+      document.getElementById("suggestions-ai-upgrade")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
 
   const handleReview = async (suggestion: AIPlanSuggestionSummary) => {
     setOpeningId(suggestion.id);
@@ -243,6 +255,12 @@ function AISuggestions() {
           </button>
         </div>
       </div>
+
+      {showAIUpgrade ? (
+        <div id="suggestions-ai-upgrade" className="scroll-mt-6">
+          <BillingUpgradePanel reason="ai" returnTo="/dashboard/ai-suggestions" />
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
         <select
@@ -308,6 +326,7 @@ function AISuggestions() {
           void refreshSuggestions();
         }}
         onCreated={handleCreated}
+        onUpgrade={handleAIUpgrade}
       />
     </div>
   );
