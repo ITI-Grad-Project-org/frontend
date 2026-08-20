@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router";
 import HorizontalScrollBar from "@/components/HorizontalScrollBar";
 import { DragDropProvider, DragOverlay } from "@dnd-kit/react";
-import { CalendarDays, MonitorSmartphone, Send } from "lucide-react";
+import { CalendarDays, Archive, MonitorSmartphone, Send } from "lucide-react";
 import { toast } from "react-toastify";
 import AddDayExerciseModal from "@/components/modals/plans/AddDayExerciseModal";
 import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
@@ -47,6 +47,7 @@ export default function PlanBuilder() {
     const [exerciseToEdit, setExerciseToEdit] = useState<BuilderPlannedExercise | null>(null);
     const [exerciseToDelete, setExerciseToDelete] = useState<BuilderPlannedExercise | null>(null);
     const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
+    const [isArchiveConfirmOpen, setIsArchiveConfirmOpen] = useState(false);
     // Bumped after creating an exercise so the (lazily loaded) library refetches
     const [libraryVersion, setLibraryVersion] = useState(0);
     const [isMobile, setIsMobile] = useState(() =>
@@ -62,6 +63,7 @@ export default function PlanBuilder() {
         isLoading,
         error,
         isPublishing,
+        isArchiving,
         reorderingDayId,
         updateLocalDay,
         findDayById,
@@ -71,6 +73,7 @@ export default function PlanBuilder() {
         toggleRestDay,
         reorderExercises,
         publishPlan,
+        archivePlan,
     } = usePlanBuilderData(programId);
 
     const clientName = (location.state as { clientName?: string } | null)?.clientName ?? "Unknown client";
@@ -179,6 +182,11 @@ export default function PlanBuilder() {
         if (ok) setIsPublishConfirmOpen(false);
     }
 
+    async function handleArchiveConfirm() {
+        const ok = await archivePlan();
+        if (ok) setIsArchiveConfirmOpen(false);
+    }
+
     if (isMobile) {
         return (
             <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-6 text-center">
@@ -247,18 +255,31 @@ export default function PlanBuilder() {
                             )}
                         </h1>
                     </div>
+                    <div className="flex gap-3">
+                        {/* Publish button — draft only */}
+                        {program?.status === "draft" && (
+                            <button
+                                type="button"
+                                onClick={() => setIsPublishConfirmOpen(true)}
+                                className="inline-flex items-center gap-2 rounded-2xl bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition hover:opacity-90"
+                            >
+                                <Send className="size-4" />
+                                Publish plan
+                            </button>
+                        )}
 
-                    {/* Publish button — draft only */}
-                    {program?.status === "draft" && (
-                        <button
-                            type="button"
-                            onClick={() => setIsPublishConfirmOpen(true)}
-                            className="inline-flex items-center gap-2 rounded-2xl bg-brand px-5 py-3 text-sm font-semibold text-brand-foreground transition hover:opacity-90"
-                        >
-                            <Send className="size-4" />
-                            Publish plan
-                        </button>
-                    )}
+                        {/* Archive button — hidden once archived */}
+                        {program && !program.isArchived && (
+                            <button
+                                type="button"
+                                onClick={() => setIsArchiveConfirmOpen(true)}
+                                className="inline-flex items-center gap-2 rounded-2xl border border-border px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+                            >
+                                <Archive className="size-4" />
+                                Archive
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div>
@@ -460,6 +481,22 @@ export default function PlanBuilder() {
                 isConfirming={isPublishing}
                 onConfirm={() => void handlePublishConfirm()}
                 onCancel={() => setIsPublishConfirmOpen(false)}
+            />
+
+            <ConfirmDialog
+                open={isArchiveConfirmOpen}
+                title="Archive this plan?"
+                description={
+                    program
+                        ? `"${program.name}" will be hidden from the normal coach list. You can still find it by filtering for archived plans.`
+                        : ""
+                }
+                confirmLabel="Archive"
+                cancelLabel="Not yet"
+                pendingLabel="Archiving…"
+                isConfirming={isArchiving}
+                onConfirm={() => void handleArchiveConfirm()}
+                onCancel={() => setIsArchiveConfirmOpen(false)}
             />
         </>
     );

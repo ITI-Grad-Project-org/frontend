@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/api";
 import { queryClient } from "@/lib/query-client";
 import {
+    archiveClientProgramDraft,
     deletePlannedExercise,
     getClientProgram,
     publishClientProgram,
@@ -20,6 +21,7 @@ export function usePlanBuilderData(programId?: string) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
     const [isPublishing, setIsPublishing] = useState(false);
+    const [isArchiving, setIsArchiving] = useState(false);
     const [reorderingDayId, setReorderingDayId] = useState<string | null>(null);
 
     // Keep the Plans list fresh — edits made here must show when the coach
@@ -242,6 +244,23 @@ export function usePlanBuilderData(programId?: string) {
         }
     }
 
+    async function archivePlan(): Promise<boolean> {
+        if (!program?.id) return false;
+
+        setIsArchiving(true);
+        try {
+            await archiveClientProgramDraft(program.id);
+            setProgram((prev) => (prev ? { ...prev, isArchived: true } : prev));
+            toast.success("Plan archived.");
+            return true;
+        } catch (err) {
+            toast.error(getApiErrorMessage(err, "Could not archive this plan. Please try again."));
+            return false;
+        } finally {
+            setIsArchiving(false);
+        }
+    }
+
     return {
         program,
         builderWeeks,
@@ -251,6 +270,7 @@ export function usePlanBuilderData(programId?: string) {
         isLoading,
         error,
         isPublishing,
+        isArchiving,
         reorderingDayId,
         updateLocalDay,
         findDayById,
@@ -260,5 +280,6 @@ export function usePlanBuilderData(programId?: string) {
         toggleRestDay,
         reorderExercises,
         publishPlan,
+        archivePlan,
     };
 }
