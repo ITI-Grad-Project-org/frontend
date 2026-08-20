@@ -17,6 +17,7 @@ import { AppToaster } from "./components/ui/AppToaster";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Privacy from "./pages/marketing/Privacy";
 import Terms from "./pages/marketing/Terms";
+import BillingResult from "./pages/BillingResult";
 
 const DashboardRoutes = lazy(() => import("./pages/Dashboard"));
 
@@ -83,6 +84,15 @@ function App() {
                   <Suspense fallback={<DashboardFallback />}>
                     <DashboardRoutes />
                   </Suspense>
+                </RequireAuth>
+              }
+            />
+
+            <Route
+              path="/billing/result"
+              element={
+                <RequireAuth>
+                  <BillingResult />
                 </RequireAuth>
               }
             />

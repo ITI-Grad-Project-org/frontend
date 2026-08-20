@@ -6,12 +6,18 @@ import { SpecularButton } from "@/components/ui/specular-button/SpecularButton";
 interface NutritionPlansHeaderProps {
   onCreateClick: () => void;
   onAICreateClick: () => void;
+  onAIUpgradeClick: () => void;
+  aiEnabled: boolean;
+  aiLoading?: boolean;
   disabled?: boolean;
 }
 
 export function NutritionPlansHeader({
   onCreateClick,
   onAICreateClick,
+  onAIUpgradeClick,
+  aiEnabled,
+  aiLoading = false,
   disabled = false,
 }: NutritionPlansHeaderProps) {
   return (
@@ -35,8 +41,8 @@ export function NutritionPlansHeader({
         <SpecularButton
           size="md"
           radius={18}
-          disabled={disabled}
-          onClick={onAICreateClick}
+          disabled={disabled || aiLoading}
+          onClick={aiEnabled ? onAICreateClick : onAIUpgradeClick}
           speed={0.45}
           intensity={1.9}
           thickness={3.5}
@@ -48,7 +54,7 @@ export function NutritionPlansHeader({
         >
           <span className="inline-flex items-center gap-2">
             <Sparkles className="specular-icon h-4 w-4 text-[#ad5fff]" />
-            Create with AI
+            {aiEnabled ? "Create with AI" : "Unlock AI"}
           </span>
         </SpecularButton>
 

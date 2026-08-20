@@ -17,6 +17,7 @@ import Exercises from "./Exercises";
 import Nutrition from "./Nutrition";
 import Analytics from "./Analytics";
 import Reviews from "./Reviews";
+import Billing from "./Billing";
 
 const PlanBuilder = lazy(() => import("./plans/PlanBuilder"));
 const NutritionPlanBuilder = lazy(() => import("./nutritionPlans/NutritionPlanBuilder"));
@@ -55,6 +56,7 @@ export default function DashboardRoutes() {
                 <Route path="meals" element={<Nutrition />} />
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="reviews" element={<Reviews />} />
+                <Route path="billing" element={<Billing />} />
             </Route>
         </Routes>
     );

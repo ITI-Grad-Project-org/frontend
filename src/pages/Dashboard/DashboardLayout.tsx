@@ -1,4 +1,4 @@
-import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, CircleUserRound, Star, MessageCircleMore, LogOut, Sparkles } from "lucide-react";
+import { Apple, BarChart3, Calendar, LayoutDashboard, Dumbbell, UsersRound, Utensils, CircleUserRound, Star, MessageCircleMore, LogOut, Sparkles, CreditCard } from "lucide-react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { useTheme } from "@/theme";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ function DashboardLayout() {
         { to: "ai-suggestions", title: "AI Suggestions", icon: Sparkles },
         { to: "analytics", title: "Analytics", icon: BarChart3 },
         { to: "reviews", title: "Reviews", icon: Star },
+        { to: "billing", title: "Billing", icon: CreditCard },
     ];
 
     const primaryItems = items.slice(0, 3);

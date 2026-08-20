@@ -9,9 +9,10 @@ import {
   approveJoinRequest,
   rejectJoinRequest,
 } from "@/services/clients";
-import { getApiErrorMessage } from "@/lib/api";
+import { getApiErrorMessage, getApiStatus } from "@/lib/api";
 import { queryClient } from "@/lib/query-client";
 import { toast } from "react-toastify";
+import { invalidateBillingSummary } from "@/hooks/billing/useBilling";
 
 const toError = (error: unknown, fallback: string) =>
   error ? getApiErrorMessage(error, fallback) : "";
@@ -20,7 +21,11 @@ const invalidate = (...keys: string[]) => {
   for (const key of keys) void queryClient.invalidateQueries({ queryKey: [key] });
 };
 
-export function useClientsData() {
+export function useClientsData({
+  onClientLimitReached,
+}: {
+  onClientLimitReached?: (message: string) => void;
+} = {}) {
   const clientsQuery = useQuery({
     queryKey: ["clients"],
     queryFn: async () => {
@@ -68,11 +73,16 @@ export function useClientsData() {
     onSuccess: () => {
       toast.success("Request approved successfully!");
       invalidate("join-requests", "clients");
+      void invalidateBillingSummary();
     },
-    onError: (error) =>
-      toast.error(
-        getApiErrorMessage(error, "Failed to approve request. Please try again."),
-      ),
+    onError: (error) => {
+      const message = getApiErrorMessage(error, "Failed to approve request. Please try again.");
+      toast.error(message);
+      if (getApiStatus(error) === 403) {
+        void invalidateBillingSummary();
+        onClientLimitReached?.(message);
+      }
+    },
   });
 
   const rejectRequest = useMutation({
@@ -99,8 +109,12 @@ export function useClientsData() {
 
   const handleApproveConfirm = useCallback(async () => {
     if (!requestToApprove) return;
-    await approveRequest.mutateAsync(requestToApprove);
-    setRequestToApprove(null);
+    try {
+      await approveRequest.mutateAsync(requestToApprove);
+      setRequestToApprove(null);
+    } catch (error) {
+      if (getApiStatus(error) === 403) setRequestToApprove(null);
+    }
   }, [requestToApprove, approveRequest]);
 
   const handleRejectConfirm = useCallback(async () => {
