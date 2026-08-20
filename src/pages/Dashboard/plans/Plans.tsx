@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { Ban } from "lucide-react";
 import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
+import { AIPlanFlowModal } from "@/components/modals/ai/AIPlanFlowModal";
 import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
 import { ReschedulePlanModal } from "@/components/modals/plans/ReschedulePlanModal";
 import { UpdatePlanModal } from "@/components/modals/plans/UpdatePlanModal";
@@ -20,12 +21,14 @@ import {
 } from "@/services/plans";
 import { getApiErrorMessage } from "@/lib/api";
 import type { ClientProgramDraft } from "@/types/plans";
+import type { NutritionPlanSummary } from "@/types/nutritionPlans";
 
 function Plans() {
     const navigate = useNavigate();
 
     // ── Modal / target state ──────────────────────────────────────────────────
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isAICreateModalOpen, setIsAICreateModalOpen] = useState(false);
     const [draftToEdit, setDraftToEdit] = useState<ClientProgramDraft | null>(null);
     const [programToReschedule, setProgramToReschedule] = useState<ClientProgramDraft | null>(null);
 
@@ -68,6 +71,23 @@ function Plans() {
                 clientName: clientNameMap.get(draft.membershipId) ?? "Unknown client",
             },
         });
+    };
+
+    const handleAICreated = async (created: ClientProgramDraft | NutritionPlanSummary) => {
+        const isTraining = "programType" in created && created.programType === "client";
+        if (isTraining) {
+            navigate(`/dashboard/plans/${created.id}`, {
+                state: {
+                    clientName: clientNameMap.get(created.membershipId) ?? "Unknown client",
+                },
+            });
+        } else {
+            navigate(`/dashboard/nutrition-plans/${created.id}`, {
+                state: {
+                    clientName: clientNameMap.get(created.membershipId) ?? "Unknown client",
+                },
+            });
+        }
     };
 
     // ── Edit draft (metadata only) ────────────────────────────────────────────
@@ -164,6 +184,7 @@ function Plans() {
             <div className="flex flex-col gap-6">
                 <PlansHeader
                     onCreateClick={() => setIsCreateModalOpen(true)}
+                    onAICreateClick={() => setIsAICreateModalOpen(true)}
                     disabled={isLoading || clients.length === 0}
                 />
                 <PlansStats
@@ -203,6 +224,14 @@ function Plans() {
                 clients={clients}
                 onClose={() => setIsCreateModalOpen(false)}
                 onCreated={handleCreated}
+            />
+
+            <AIPlanFlowModal
+                open={isAICreateModalOpen}
+                clients={clients}
+                defaultKind="training"
+                onClose={() => setIsAICreateModalOpen(false)}
+                onCreated={handleAICreated}
             />
 
             <UpdatePlanModal

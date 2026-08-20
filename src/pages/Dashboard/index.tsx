@@ -12,6 +12,7 @@ import PlanDayLog from "./plans/PlanDayLog";
 import NutritionPlans from "./nutritionPlans/NutritionPlans";
 import NutritionPlanLogs from "./nutritionPlans/NutritionPlanLogs";
 import NutritionPlanDayLog from "./nutritionPlans/NutritionPlanDayLog";
+import AISuggestions from "./AISuggestions";
 import Exercises from "./Exercises";
 import Nutrition from "./Nutrition";
 import Analytics from "./Analytics";
@@ -48,6 +49,7 @@ export default function DashboardRoutes() {
                 <Route path="nutrition-plans/:planId" element={<Suspense fallback={<BuilderFallback />}><NutritionPlanBuilder /></Suspense>} />
                 <Route path="nutrition-plans/:planId/logs" element={<NutritionPlanLogs />} />
                 <Route path="nutrition-plans/:planId/days/:dayId/log" element={<NutritionPlanDayLog />} />
+                <Route path="ai-suggestions" element={<AISuggestions />} />
                 <Route path="nutrition" element={<Navigate to="/dashboard/nutrition-plans" replace />} />
                 <Route path="exercises" element={<Exercises />} />
                 <Route path="meals" element={<Nutrition />} />

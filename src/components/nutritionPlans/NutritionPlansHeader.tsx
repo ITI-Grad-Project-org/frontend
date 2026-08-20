@@ -1,13 +1,17 @@
 // src/components/nutritionPlans/NutritionPlansHeader.tsx
-import { Plus } from "lucide-react";
+import { ListChecks, Plus, Sparkles } from "lucide-react";
+import { Link } from "react-router";
+import { SpecularButton } from "@/components/ui/specular-button/SpecularButton";
 
 interface NutritionPlansHeaderProps {
   onCreateClick: () => void;
+  onAICreateClick: () => void;
   disabled?: boolean;
 }
 
 export function NutritionPlansHeader({
   onCreateClick,
+  onAICreateClick,
   disabled = false,
 }: NutritionPlansHeaderProps) {
   return (
@@ -19,15 +23,45 @@ export function NutritionPlansHeader({
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={onCreateClick}
-        disabled={disabled}
-        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <Plus className="h-4 w-4" />
-        Create nutrition plan draft
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <Link
+          to="/dashboard/ai-suggestions"
+          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-muted"
+        >
+          <ListChecks className="h-4 w-4" />
+          AI suggestions
+        </Link>
+
+        <SpecularButton
+          size="md"
+          radius={18}
+          disabled={disabled}
+          onClick={onAICreateClick}
+          speed={0.45}
+          intensity={1.9}
+          thickness={3.5}
+          shineSize={14}
+          lineColor="#ad5fff"
+          baseColor="#000000"
+          textColor="var(--color-ink-foreground)"
+          background="var(--color-ink)"
+        >
+          <span className="inline-flex items-center gap-2">
+            <Sparkles className="specular-icon h-4 w-4 text-[#ad5fff]" />
+            Create with AI
+          </span>
+        </SpecularButton>
+
+        <button
+          type="button"
+          onClick={onCreateClick}
+          disabled={disabled}
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-ink px-5 py-3 text-sm font-semibold text-ink-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Plus className="h-4 w-4" />
+          Create nutrition plan draft
+        </button>
+      </div>
     </div>
   );
 }

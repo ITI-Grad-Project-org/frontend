@@ -1,8 +1,10 @@
 // src/pages/Dashboard/NutritionPlans.tsx
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { Ban } from "lucide-react";
 import { ConfirmDialog } from "@/components/modals/common/ConfirmDialog";
+import { AIPlanFlowModal } from "@/components/modals/ai/AIPlanFlowModal";
 import { CreateNutritionPlanModal } from "@/components/modals/nutritionPlans/CreateNutritionPlanModal";
 import { UpdateNutritionPlanModal } from "@/components/modals/nutritionPlans/UpdateNutritionPlanModal";
 import { RescheduleNutritionPlanModal } from "@/components/modals/nutritionPlans/RescheduleNutritionPlanModal";
@@ -19,11 +21,15 @@ import {
   unarchiveNutritionPlan,
 } from "@/services/nutritionPlans";
 import { getApiErrorMessage } from "@/lib/api";
+import type { ClientProgramDraft } from "@/types/plans";
 import type { NutritionPlanSummary } from "@/types/nutritionPlans";
 
 export default function NutritionPlans() {
+  const navigate = useNavigate();
+
   // ── Modal / target state ──────────────────────────────────────────────────
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isAICreateModalOpen, setIsAICreateModalOpen] = useState(false);
   const [draftToEdit, setDraftToEdit] = useState<NutritionPlanSummary | null>(null);
   const [planToReschedule, setPlanToReschedule] = useState<NutritionPlanSummary | null>(null);
 
@@ -62,6 +68,20 @@ export default function NutritionPlans() {
   // ── Create ────────────────────────────────────────────────────────────────
   const handleCreated = async () => {
     await refreshData();
+  };
+
+  const handleAICreated = async (created: ClientProgramDraft | NutritionPlanSummary) => {
+    await refreshData();
+    const isTraining = "programType" in created && created.programType === "client";
+    if (isTraining) {
+      navigate(`/dashboard/plans/${created.id}`, {
+        state: { clientName: clientNameMap.get(created.membershipId) ?? "Unknown client" },
+      });
+    } else {
+      navigate(`/dashboard/nutrition-plans/${created.id}`, {
+        state: { clientName: clientNameMap.get(created.membershipId) ?? "Unknown client" },
+      });
+    }
   };
 
   // ── Edit draft (metadata & targets) ───────────────────────────────────────
@@ -181,6 +201,7 @@ export default function NutritionPlans() {
       <div className="flex flex-col gap-6">
         <NutritionPlansHeader
           onCreateClick={() => setIsCreateModalOpen(true)}
+          onAICreateClick={() => setIsAICreateModalOpen(true)}
           disabled={isLoading || clients.length === 0}
         />
         <NutritionPlansStats
@@ -222,6 +243,14 @@ export default function NutritionPlans() {
         clients={clients}
         onClose={() => setIsCreateModalOpen(false)}
         onCreated={handleCreated}
+      />
+
+      <AIPlanFlowModal
+        open={isAICreateModalOpen}
+        clients={clients}
+        defaultKind="nutrition"
+        onClose={() => setIsAICreateModalOpen(false)}
+        onCreated={handleAICreated}
       />
 
       <UpdateNutritionPlanModal
