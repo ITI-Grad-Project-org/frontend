@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth-store";
 import { uploadTenantLogo } from "@/services/tenant";
+import { TenantNameEditor } from "@/components/profile/TenantNameEditor";
 import type { Coach } from "@/types/auth";
 
 interface TenantCardProps {
@@ -151,7 +152,9 @@ export function TenantCard({ tenants }: TenantCardProps) {
                                     isPrimary={index === 0}
                                 />
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-semibold truncate">{tenant.name}</h4>
+                                    <h4 className="text-sm font-semibold truncate">
+                                        <TenantNameEditor tenantId={tenant.id} name={tenant.name} />
+                                    </h4>
                                     <p className="text-xs text-muted-foreground truncate">
                                         @{tenant.slug}
                                     </p>
