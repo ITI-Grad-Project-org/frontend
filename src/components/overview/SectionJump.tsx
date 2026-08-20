@@ -84,7 +84,7 @@ export function SectionJump({
       meta:
         loading || metrics.adherencePct == null
           ? "No sessions tracked yet"
-          : `Session adherence ${Math.round(metrics.adherencePct)}% over the last 30 days`,
+          : `Session completion ${Math.round(metrics.adherencePct)}% over the last 30 days`,
       value: metrics.adherencePct == null ? "—" : `${Math.round(metrics.adherencePct)}%`,
       urgent: false,
     },

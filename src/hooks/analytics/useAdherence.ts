@@ -34,7 +34,7 @@ export function useAdherence(from: string, to: string, membershipId?: string) {
   return {
     summary: query.data ?? EMPTY_ADHERENCE,
     loading: query.isPending,
-    error: toError(query.error, "Failed to load adherence. Please try again."),
+    error: toError(query.error, "Failed to load these numbers. Please try again."),
     refetch: () => void query.refetch(),
   };
 }

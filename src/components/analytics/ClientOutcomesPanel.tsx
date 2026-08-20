@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { Line, LineChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { TrendingDown, TrendingUp, UserRound } from "lucide-react";
+import { UserRound } from "lucide-react";
 import { useClientsData } from "@/hooks/clients/useClientsData";
 import { useClientProgress } from "@/hooks/analytics/useClientProgress";
+import { StrengthProgressionList } from "@/components/analytics/StrengthProgressionList";
 import {
   Select,
   SelectContent,
@@ -64,7 +65,6 @@ export function ClientOutcomesPanel({ from, to }: ClientOutcomesPanelProps) {
     return rows.sort((a, b) => b.gain - a.gain || b.latest - a.latest);
   }, [progress.progress]);
 
-  const maxStrength = strengthRows.length > 0 ? Math.max(...strengthRows.map((r) => r.latest), 1) : 1;
   const hasMeasurements = measurementData.length > 0;
   const hasStrength = strengthRows.length > 0;
 
@@ -219,52 +219,7 @@ export function ClientOutcomesPanel({ from, to }: ClientOutcomesPanelProps) {
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
               Strength · Epley estimate (kg)
             </p>
-            {hasStrength ? (
-              <ul className="flex max-h-80 flex-col gap-1.5 overflow-y-auto pr-1">
-                {strengthRows.map((row) => {
-                  const positive = row.gain > 0.05;
-                  const negative = row.gain < -0.05;
-                  return (
-                    <li
-                      key={row.name}
-                      className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/25 px-3 py-2"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <span className="truncate text-xs font-semibold text-foreground">
-                            {row.name}
-                          </span>
-                          <span className="flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-foreground">
-                            {row.latest}
-                            {positive ? (
-                              <span className="flex items-center gap-0.5 text-success">
-                                <TrendingUp className="size-3" />
-                                +{row.gain}
-                              </span>
-                            ) : negative ? (
-                              <span className="flex items-center gap-0.5 text-danger">
-                                <TrendingDown className="size-3" />
-                                {row.gain}
-                              </span>
-                            ) : null}
-                          </span>
-                        </div>
-                        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-violet transition-all duration-500"
-                            style={{ width: `${(row.latest / maxStrength) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-border text-sm text-muted-foreground">
-                No strength data in this window
-              </div>
-            )}
+            <StrengthProgressionList exercises={progress.progress?.strength ?? []} />
             <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
               Estimated 1-rep max from logged sets, capped at 12 reps — above that the Epley formula
               inflates enough to invent personal bests.

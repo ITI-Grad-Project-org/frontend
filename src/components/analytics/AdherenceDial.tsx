@@ -51,7 +51,7 @@ export function AdherenceDial({
   return (
     <div className={cn("flex flex-col items-center", className)}>
       <div className="relative w-[min(100%,260px)]">
-        <svg viewBox="0 0 200 200" className="w-full" role="img" aria-label="Session adherence">
+        <svg viewBox="0 0 200 200" className="w-full" role="img" aria-label="Session completion">
           <path d={track} fill="none" stroke="var(--color-border)" strokeWidth={14} strokeLinecap="round" />
           {progress && (
             <path

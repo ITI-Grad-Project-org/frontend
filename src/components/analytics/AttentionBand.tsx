@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import {
-  CalendarClock,
-  ClipboardCheck,
-  UserX,
-} from "lucide-react";
+import { CalendarClock, ClipboardCheck, UserX } from "lucide-react";
 import type { AttentionQueue } from "@/types/analytics";
+import {
+  ATTENTION_ENDING_HORIZON_DAYS,
+  ATTENTION_RISK_THRESHOLD_DAYS,
+} from "@/types/analytics";
 import { cn } from "@/lib/utils";
 
 function formatDate(iso: string | null | undefined): string {
@@ -19,14 +20,134 @@ function formatDays(days: number | undefined | null): string {
   return `${days}d`;
 }
 
+const RISK_MIN = 1;
+const RISK_MAX = 30;
+const HORIZON_MIN = 1;
+const HORIZON_MAX = 60;
+
+function ThresholdControls({
+  riskThresholdDays,
+  endingHorizonDays,
+  onRiskChange,
+  onHorizonChange,
+}: {
+  riskThresholdDays: number;
+  endingHorizonDays: number;
+  onRiskChange: (next: number) => void;
+  onHorizonChange: (next: number) => void;
+}) {
+  const [riskDraft, setRiskDraft] = useState(riskThresholdDays);
+  const [horizonDraft, setHorizonDraft] = useState(endingHorizonDays);
+
+  const risk = riskDraft;
+  const horizon = horizonDraft;
+
+  const atDefaults =
+    riskDraft === ATTENTION_RISK_THRESHOLD_DAYS &&
+    horizonDraft === ATTENTION_ENDING_HORIZON_DAYS;
+
+  const commitRisk = () => {
+    if (risk !== riskThresholdDays) onRiskChange(risk);
+  };
+  const commitHorizon = () => {
+    if (horizon !== endingHorizonDays) onHorizonChange(horizon);
+  };
+
+  const reset = () => {
+    setRiskDraft(ATTENTION_RISK_THRESHOLD_DAYS);
+    setHorizonDraft(ATTENTION_ENDING_HORIZON_DAYS);
+    onRiskChange(ATTENTION_RISK_THRESHOLD_DAYS);
+    onHorizonChange(ATTENTION_ENDING_HORIZON_DAYS);
+  };
+
+  const sliderCls =
+    "h-1.5 w-40 cursor-pointer accent-brand";
+
+  const valueBadge =
+    "min-w-[4.5rem] rounded-md border border-border bg-muted/40 px-2 py-1 text-center text-xs font-bold tabular-nums text-foreground";
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        Attention thresholds
+      </span>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+        <label className="flex flex-col gap-1.5 text-[11px] font-semibold text-muted-foreground">
+          Gone quiet after
+          <span className="flex items-center gap-2.5">
+            <input
+              type="range"
+              min={RISK_MIN}
+              max={RISK_MAX}
+              step={1}
+              value={riskDraft}
+              onChange={(e) => setRiskDraft(Number(e.target.value))}
+              onMouseUp={commitRisk}
+              onTouchEnd={commitRisk}
+              onKeyUp={commitRisk}
+              onBlur={commitRisk}
+              className={sliderCls}
+              aria-label="Days of silence before an active client is listed"
+            />
+            <span className={valueBadge}>{risk} days</span>
+          </span>
+        </label>
+        <label className="flex flex-col gap-1.5 text-[11px] font-semibold text-muted-foreground">
+          Programs ending within
+          <span className="flex items-center gap-2.5">
+            <input
+              type="range"
+              min={HORIZON_MIN}
+              max={HORIZON_MAX}
+              step={1}
+              value={horizonDraft}
+              onChange={(e) => setHorizonDraft(Number(e.target.value))}
+              onMouseUp={commitHorizon}
+              onTouchEnd={commitHorizon}
+              onKeyUp={commitHorizon}
+              onBlur={commitHorizon}
+              className={sliderCls}
+              aria-label="Days ahead to report programs that are ending"
+            />
+            <span className={valueBadge}>{horizon} days</span>
+          </span>
+        </label>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={reset}
+            disabled={atDefaults}
+            className="inline-flex h-9 items-center rounded-lg border border-border bg-muted/40 px-3 text-xs font-semibold text-muted-foreground transition hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface AttentionBandProps {
   queue: AttentionQueue | null | undefined;
   loading: boolean;
   error: string;
   onRetry: () => void;
+  riskThresholdDays: number;
+  endingHorizonDays: number;
+  onRiskThresholdDaysChange: (next: number) => void;
+  onEndingHorizonDaysChange: (next: number) => void;
 }
 
-export function AttentionBand({ queue, loading, error, onRetry }: AttentionBandProps) {
+export function AttentionBand({
+  queue,
+  loading,
+  error,
+  onRetry,
+  riskThresholdDays,
+  endingHorizonDays,
+  onRiskThresholdDaysChange,
+  onEndingHorizonDaysChange,
+}: AttentionBandProps) {
   const navigate = useNavigate();
 
   if (loading) {
@@ -66,9 +187,8 @@ export function AttentionBand({ queue, loading, error, onRetry }: AttentionBandP
         id: row.membershipId,
         to: `/dashboard/clients/${row.membershipId}`,
         title: row.clientName,
-        meta: row.neverActive
-          // ? ["no activity on file"]
-          ? [""]
+meta: row.neverActive
+          ? [`no activity for ${formatDays(row.daysSinceActivity)}`]
           : [
             `${formatDays(row.daysSinceActivity)} silent`,
             `last active ${formatDate(row.lastActivityOn)}`,
@@ -79,7 +199,7 @@ export function AttentionBand({ queue, loading, error, onRetry }: AttentionBandP
     {
       id: "checkins",
       title: "Check-ins awaiting you",
-      hint: "Client-submitted measurements",
+      hint: "Client check-ins that need your review",
       color: "var(--color-warn)",
       chip: "bg-warn/10 text-warn",
       icon: ClipboardCheck,
@@ -87,14 +207,14 @@ export function AttentionBand({ queue, loading, error, onRetry }: AttentionBandP
         id: row.membershipId,
         to: `/dashboard/clients/${row.membershipId}`,
         title: row.clientName,
-        meta: [`submitted ${formatDate(row.submittedAt)}`, `waiting ${formatDays(row.daysWaiting)}`],
+        meta: [`awaiting review for ${formatDays(row.daysWaiting)}`],
       })),
       empty: "No check-in measurements awaiting review.",
     },
     {
       id: "programs",
       title: "Programs ending soon",
-      hint: "Within the next 14 days",
+      hint: `Within the next ${endingHorizonDays} days`,
       color: "var(--color-brand)",
       chip: "bg-brand/10 text-brand",
       icon: CalendarClock,
@@ -114,13 +234,23 @@ export function AttentionBand({ queue, loading, error, onRetry }: AttentionBandP
 
   return (
     <section id="attention-band" className="scroll-mt-6">
-      <div className="mb-4">
-        <h2 className="text-xl font-black font-display tracking-tight text-foreground">
-          Needs you now
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          The three queues that decay without a coach — most urgent first.
-        </p>
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h2 className="text-xl font-black font-display tracking-tight text-foreground">
+            Needs you now
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            The three queues that decay without a coach — most urgent first.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <ThresholdControls
+            riskThresholdDays={riskThresholdDays}
+            endingHorizonDays={endingHorizonDays}
+            onRiskChange={onRiskThresholdDaysChange}
+            onHorizonChange={onEndingHorizonDaysChange}
+          />
+        </div>
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         {columns.map((column) => {

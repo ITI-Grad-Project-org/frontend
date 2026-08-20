@@ -9,19 +9,18 @@ import {
 const toError = (error: unknown, fallback: string) =>
   error ? getApiErrorMessage(error, fallback) : "";
 
-export function useAttentionQueue(asOf: string) {
+export function useAttentionQueue(
+  asOf: string,
+  riskThresholdDays = ATTENTION_RISK_THRESHOLD_DAYS,
+  endingHorizonDays = ATTENTION_ENDING_HORIZON_DAYS,
+) {
   const query = useQuery({
-    queryKey: [
-      "analytics-attention",
-      asOf,
-      ATTENTION_RISK_THRESHOLD_DAYS,
-      ATTENTION_ENDING_HORIZON_DAYS,
-    ],
+    queryKey: ["analytics-attention", asOf, riskThresholdDays, endingHorizonDays],
     queryFn: () =>
       getAttentionQueue({
         asOf,
-        riskThresholdDays: ATTENTION_RISK_THRESHOLD_DAYS,
-        endingHorizonDays: ATTENTION_ENDING_HORIZON_DAYS,
+        riskThresholdDays,
+        endingHorizonDays,
       }),
     staleTime: 60 * 1000,
     enabled: Boolean(asOf),

@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import type { RosterReport } from "@/types/analytics";
+import type { ClientConnection } from "@/types/client";
 import { adherenceColor } from "@/components/analytics/colors";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +23,14 @@ interface RosterLeaderboardProps {
 
 export function RosterLeaderboard({ report, loading, error, onRetry }: RosterLeaderboardProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Roster rows identify the client by membership id; map it to the real client
+  // id from the shared ["clients"] cache so profile links/URLs are canonical.
+  const membershipToClientId = useMemo(() => {
+    const connections = queryClient.getQueryData<ClientConnection[]>(["clients"]) ?? [];
+    return new Map(connections.map((c) => [c.id, c.client.id]));
+  }, [queryClient]);
 
   if (loading) {
     return <div className="h-72 animate-pulse rounded-3xl bg-muted/50" />;
@@ -28,7 +39,7 @@ export function RosterLeaderboard({ report, loading, error, onRetry }: RosterLea
   if (error || !report) {
     return (
       <div className="flex flex-col items-start justify-between gap-4 rounded-3xl border border-border bg-card p-5">
-        <p className="text-sm text-destructive">{error || "Roster report unavailable."}</p>
+        <p className="text-sm text-destructive">{error || "Client report unavailable."}</p>
         <button
           type="button"
           onClick={onRetry}
@@ -46,10 +57,11 @@ export function RosterLeaderboard({ report, loading, error, onRetry }: RosterLea
     <div className="flex h-full flex-col gap-4">
       <div>
         <h2 className="text-xl font-black font-display tracking-tight text-foreground">
-          Roster adherence
+          Client completion
         </h2>
         <p className="text-sm text-muted-foreground">
-          Every client, ranked worst-first — {totalActive} active. Ghost rows had nothing scheduled.
+          Every client, ranked worst-first — {totalActive} active. A dash in the bar means nothing
+          was scheduled.
         </p>
       </div>
 
@@ -66,7 +78,11 @@ export function RosterLeaderboard({ report, loading, error, onRetry }: RosterLea
               <li key={client.membershipId}>
                 <button
                   type="button"
-                  onClick={() => void navigate(`/dashboard/clients/${client.membershipId}`)}
+                  onClick={() =>
+                    void navigate(
+                      `/dashboard/clients/${membershipToClientId.get(client.membershipId) ?? client.membershipId}`,
+                    )
+                  }
                   className="group flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-card px-3 py-2.5 text-left transition hover:border-brand/40 hover:shadow-(--shadow-card) cursor-pointer"
                 >
                   <span

@@ -71,7 +71,7 @@ export function PracticeCard({ roster, attention, onShowAttention }: PracticeCar
           <p className="text-6xl font-black tabular-nums font-display tracking-tight text-foreground">
             {total}
           </p>
-          <p className="text-xs font-semibold text-muted-foreground">clients on the roster</p>
+          <p className="text-xs font-semibold text-muted-foreground">clients in your practice</p>
         </div>
         <span className="grid size-11 place-items-center rounded-2xl bg-chip-mint text-success">
           <UsersRound className="size-5" strokeWidth={2.25} />

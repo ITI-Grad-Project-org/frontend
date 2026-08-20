@@ -122,7 +122,7 @@ export function AdherencePanel({ summary, loading, error, onRetry }: AdherencePa
       <div className="mt-auto rounded-2xl border border-border/60 bg-muted/30 p-4">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-            Volume adherence
+            Volume on target
           </p>
           <p className="text-lg font-black tabular-nums text-foreground">
             {summary.volumeAdherencePct != null ? (
