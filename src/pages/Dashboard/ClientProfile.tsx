@@ -19,6 +19,7 @@ import CardMain from "@/components/cards/CardMain";
 import { CreatePlanModal } from "@/components/modals/plans/CreatePlanModal";
 import { CreateNutritionPlanModal } from "@/components/modals/nutritionPlans/CreateNutritionPlanModal";
 import { MeasurementsPanel } from "@/components/clients/MeasurementsPanel";
+import { ClientStrengthOutcomes } from "@/components/clients/ClientStrengthOutcomes";
 import { useClientProfile } from "@/hooks/clients/useClientProfile";
 
 function calculateAge(dob: string): number | null {
@@ -271,6 +272,8 @@ export default function ClientProfile() {
       </div>
 
       <MeasurementsPanel clientId={connection.client.id} />
+
+      <ClientStrengthOutcomes membershipId={connection.id} />
 
       <CreatePlanModal
         open={isPlanModalOpen}
