@@ -65,7 +65,7 @@ export function LandingPricingSection() {
                     Simple pricing for serious coaches.
                 </h2>
                 <p className="mx-auto mt-4 max-w-md text-muted-foreground">
-                    Start free for 14 days on any plan. No credit card, cancel anytime.
+                    Start with a free plan. Upgrade when you're ready, cancel anytime.
                 </p>
             </div>
 

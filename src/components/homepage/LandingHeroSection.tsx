@@ -42,9 +42,9 @@ export function LandingHeroSection() {
                 </div>
 
                 <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-brand" /> Free 14-day trial</span>
-                    <span className="inline-flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-brand" /> Cancel anytime</span>
-                    <span className="inline-flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-brand" /> Ships worldwide</span>
+                    <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-brand" /> Free plan to start</span>
+                    <span className="inline-flex items-center gap-1.5"><Shield className="h-3.5 w-3.5 text-brand" /> Upgrade anytime</span>
+                    <span className="inline-flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-brand" /> Built for coaches</span>
                 </div>
             </div>
         </section>

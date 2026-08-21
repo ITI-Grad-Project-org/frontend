@@ -8,8 +8,8 @@ type FaqItem = {
 
 const faqs: FaqItem[] = [
     {
-        q: "Do I really get the first 14 days for free?",
-        a: "Yes. Pick any plan and start a free 14-day trial with no credit card. When it ends you decide, not us.",
+        q: "Is there a free plan?",
+        a: "Yes. The Starter plan is free forever with up to 3 clients, plan builder, and client app access. Upgrade to Solo or Studio anytime for unlimited clients and advanced features.",
     },
     {
         q: "How does the AI plan co-pilot work?",

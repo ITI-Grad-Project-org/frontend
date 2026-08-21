@@ -6,9 +6,9 @@ const testimonials = [
     {
         quote:
             "I used to run coaching across four different apps. Now my clients check off their sessions in the app and I see adherence without asking.",
-        name: "Marcus Reed",
+        name: "Youssef Al-Rashid",
         role: "Strength coach · Agile Method",
-        initials: "MR",
+        initials: "YA",
     },
     {
         quote:

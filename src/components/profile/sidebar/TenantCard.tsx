@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router";
-import { Building2, ExternalLink, Star, Camera, Loader2 } from "lucide-react";
+import { Building2, ExternalLink, Star, Camera, Loader2, Crown } from "lucide-react";
 import { toast } from "react-toastify";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth-store";
 import { uploadTenantLogo } from "@/services/tenant";
 import { TenantNameEditor } from "@/components/profile/TenantNameEditor";
 import type { Coach } from "@/types/auth";
+import type { SubscriptionPlan } from "@/types/billing";
 
 interface TenantCardProps {
     tenants: Coach["tenants"];
@@ -18,6 +19,28 @@ interface TenantAvatarProps {
     logoUrl?: string | null;
     /** Only the first (primary) tenant gets the upload affordance */
     isPrimary: boolean;
+}
+
+function planBadgeStyle(plan: SubscriptionPlan | undefined) {
+    switch (plan) {
+        case "studio":
+            return "bg-violet/10 text-violet";
+        case "solo":
+            return "bg-brand/10 text-brand";
+        default:
+            return "bg-muted-foreground/10 text-muted-foreground";
+    }
+}
+
+function planLabel(plan: SubscriptionPlan | undefined) {
+    switch (plan) {
+        case "studio":
+            return "Studio";
+        case "solo":
+            return "Solo";
+        default:
+            return "Free";
+    }
 }
 
 function TenantAvatar({ tenantId, name, logoUrl, isPrimary }: TenantAvatarProps) {
@@ -165,7 +188,16 @@ export function TenantCard({ tenants }: TenantCardProps) {
                                         <span className="inline-block text-[10px] bg-muted-foreground/10 text-muted-foreground px-1.5 py-0.5 rounded font-medium">
                                             {tenant.timezone}
                                         </span>
+                                        <span className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-medium ${planBadgeStyle(tenant.subscriptionPlan)}`}>
+                                            <Crown className="h-3 w-3" />
+                                            {planLabel(tenant.subscriptionPlan)}
+                                        </span>
                                     </div>
+                                    {tenant.subscriptionExpiresAt && (
+                                        <p className="text-[10px] text-muted-foreground mt-1">
+                                            Subscription expires {new Date(tenant.subscriptionExpiresAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

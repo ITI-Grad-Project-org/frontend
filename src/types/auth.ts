@@ -1,3 +1,5 @@
+import type { SubscriptionPlan } from "./billing";
+
 export type Certification = {
   id?: string;
   name: string;
@@ -18,6 +20,9 @@ export type Tenant = {
   logoUrl?: string | null;
   timezone: string;
   currency: string;
+  acceptingClients?: boolean;
+  subscriptionPlan?: SubscriptionPlan;
+  subscriptionExpiresAt?: string | null;
   settings?: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;

@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { Star } from "lucide-react";
 import type { Review, RatingSummary } from "@/types/reviews";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -70,9 +71,12 @@ export function ReviewCard({ review }: { review: Review }) {
 
             <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-start justify-between gap-2 mb-1.5">
-                    <p className="font-semibold text-foreground leading-tight">
+                    <Link
+                        to={`/dashboard/clients/${client.id}`}
+                        className="font-semibold text-foreground leading-tight hover:underline"
+                    >
                         {client.firstName} {client.lastName}
-                    </p>
+                    </Link>
                     <time
                         dateTime={created_at}
                         className="text-xs text-muted-foreground/80 whitespace-nowrap"
