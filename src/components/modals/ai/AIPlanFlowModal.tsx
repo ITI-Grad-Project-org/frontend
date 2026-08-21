@@ -5,7 +5,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { AlertTriangle, CheckCircle2, Loader2, RotateCcw, Sparkles, X } from "lucide-react";
-import { getApiErrorMessage, getApiStatus } from "@/lib/api";
+import { formatAiError, getApiErrorMessage, getApiStatus } from "@/lib/api";
 import type { ClientConnection } from "@/types/client";
 import {
   acceptPlanSuggestion,
@@ -352,7 +352,12 @@ function QueuedStep({
           <div className="w-full max-w-sm space-y-3">
             <div className="flex items-start gap-2 rounded-2xl border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{loadError ?? poll.errorMessage ?? "Generation could not be completed."}</span>
+              <span>
+                {formatAiError(
+                  loadError ?? poll.errorMessage,
+                  "Generation could not be completed. Please try again.",
+                )}
+              </span>
             </div>
             <div className="flex flex-wrap justify-end gap-2">
               {failed || loadError !== null ? (

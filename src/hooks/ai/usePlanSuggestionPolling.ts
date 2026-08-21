@@ -1,4 +1,5 @@
 // src/hooks/ai/usePlanSuggestionPolling.ts
+import { formatAiError } from "@/lib/api";
 import { useCallback, useEffect, useState } from "react";
 import { listPlanSuggestions } from "@/services/ai";
 import type { AIPlanSuggestionKind } from "@/types/ai";
@@ -83,10 +84,12 @@ export function usePlanSuggestionPolling({
           if (match.status === "failed" || match.status === "invalid") {
             setStatus(match.status);
             setErrorMessage(
-              match.error ??
-                (match.status === "failed"
-                  ? "The AI could not generate a plan for this request."
-                  : "The request was invalid and could not be generated."),
+              formatAiError(
+                match.error,
+                match.status === "failed"
+                  ? "The AI could not generate a plan for this request. Please try again."
+                  : "The request was invalid and could not be generated.",
+              ),
             );
             return;
           }

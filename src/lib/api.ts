@@ -188,3 +188,30 @@ export function getApiStatus(error: unknown) {
   if (!axios.isAxiosError(error)) return undefined;
   return error.response?.status;
 }
+
+/**
+ * Formats and sanitizes raw AI backend diagnostic/exception strings
+ * (e.g. 429 quota exhaustion, raw JSON exceptions, EOL trace tags)
+ * into clean, user-friendly UI copy.
+ */
+export function formatAiError(
+  raw: string | null | undefined,
+  fallback = "Generation could not be completed. Please try again.",
+): string {
+  if (!raw) return fallback;
+  const str = String(raw).trim();
+  if (/429|RESOURCE_EXHAUSTED|quota|rate.?limit|TooManyRequests/i.test(str)) {
+    return "The assistant has reached its usage limit for now. Please try again later.";
+  }
+  if (
+    str.includes("{\n") ||
+    str.includes('"code":') ||
+    str.includes("statusCode") ||
+    str.startsWith("{") ||
+    str.includes("TooManyRequests:") ||
+    str.includes("<EOL>")
+  ) {
+    return fallback;
+  }
+  return str;
+}
